@@ -1,51 +1,47 @@
 """
 Module containing the different sources that can be used.
 
+Orders the inputs into lists ready to be printed to the 
+COLA input files. Actual input values go in smearing.py. 
 All functions return dictionary of lists. One list for each
 quark. Labelled u,d,s,n,ns. Recommend input from expanded 
 dictionaries, though not required.
 
 Current sources available:
-point_src,smeared_src,lp_src,lpsm_src,lpxyz_src,xyz_src
+point,smeared,lp,lpsm,lpxyz,xyz
+
+Adding sources requires addition here and in smearing.py.
 
 Function arguments:
 src_loc -- Integer list: the x,y,z,t coordinates of the source
 so_val -- Integer: The 'source value,' ie. 
-                   -for xyz, the number of source smearings
+                   -for smeared sources, the number of smeared
+                    sources
                    -for lp, number of emodes projected at 
                     the source
-                   -for ln, is sigma_z
 lapmodefile -- String list: List of locations of the eigenmodes
                    for the quarks. Each quark is one index.
                    Order is u,d,s,n,ns.
+nd -- Integer: Related to the Laplacian projection. Number of 
+                   dimensions.
 lp_sm = [smearcode,presmear,lapsmear]
             -- List [str,bool,int]: Parameters related to Laplacian 
                    smearing. In order, smearing directions,
                    presmear (smear before or after projection),
                    number of laplacian smearing sweeps.
-link_sm -- List [bool,float,int]: Parameters related to link
+src_sm = [alpha_smsrc,useUzero,u0_smsrc]
+            -- List [float,bool,float]: Parameters related to the 
+                   smearing of the source. See /src/sourcetypes.f90
+link_sm = [use_stout,alpha_fat,swps_fat]
+            -- List [bool,float,int]: Parameters related to link
                    smearing. In order, whether to do stout
                    link smearing, the alpha value and the
                    number of sweeps. Boolean must be in form
                    of just 'T' or 'F'. Case insensitive.
-
-Global variables:
-Variables that are the same for all sources are assigned globally
-here. There is no concern about naming clashes as python maintains
-namespaces when importing modules in the background.
-nd -- Integer: Related to the Laplacian projection. More detail
-               required.
-src_sm -- List [float,bool,float]: Parameters related to the 
-               smearing of the source. In order, smearing coefficient,
-               useUzero (t or f), u0_smsrc. See /src/sourcetypes.f90
 """
 
-#Global variables
-nd = 2
-src_sm = [0.7,'f',1.0]
 
-
-def point_src(src_loc=[1,1,1,16], **kwargs):
+def point(src_loc, **kwargs):
     """
     Returns key information for a point source.
 
@@ -55,16 +51,16 @@ def point_src(src_loc=[1,1,1,16], **kwargs):
     source = {}
     source['sourcetype_num'] = 1
     source['u'] = src_loc
-    source['d'] = src_loc
-    source['s'] = src_loc
-    source['n'] = src_loc
-    source['ns'] = src_loc
+    source['d'] = source['u']
+    source['s'] = source['u']
+    source['n'] = source['u']
+    source['ns'] = source['u']
     
     return source
 
 
 
-def smeared_src(src_loc=[1,1,1,16], so_val, link_sm, **kwargs):
+def smeared(src_loc, so_val, src_sm, link_sm, **kwargs):
     """
     Returns key information for a normally smeared source.
     """
@@ -81,11 +77,11 @@ def smeared_src(src_loc=[1,1,1,16], so_val, link_sm, **kwargs):
 
 
 
-def lp_src(lapmodefile, so_val, src_loc=[1,1,1,16], **kwargs):
+def lp(lapmodefile, nd, so_val, src_loc, **kwargs):
     """
     Returns key information for Laplacian source.
 
-    Laplacian source does no smearing. Instead projects to
+    Laplacian source does no smearing. Instead projects only to
     the Laplacian operator.
     """
 
@@ -99,30 +95,27 @@ def lp_src(lapmodefile, so_val, src_loc=[1,1,1,16], **kwargs):
 
     return source
 
-
-
-def lpxyz_src(lp_sm, lapmodefile, so_val, src_loc=[1,1,1,16], link_sm, **kwargs):
+def xyz(lp_sm, src_loc, so_val, src_sm, link_sm, **kwargs):
     """
-    Returns key information for the Laplacian, xyz source.
+    Returns key information for the xyz source
 
-    Laplacian xyz source does Laplacian projection and smearing.
-    Smears only in direction provided by smearcode, string in src_sm.
+    Does no projection and smears only in the direction(s) 
+    provided by smearcode in src_sm.
     """
-
-    smearcode,presmear,lapsmear=lp_sm     #unpacking
+    smearcode = lp_sm[0]     #unpacking
     source = {}
-    source['sourcetype_num'] = 10
-    source['u'] = [ smearcode,lapmodefile[0],nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
-    source['d'] = [ smearcode,lapmodefile[1],nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
-    source['s'] = [ smearcode,lapmodefile[2],nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
-    source['n'] = [ smearcode,lapmodefile[3],nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
-    source['ns'] = [ smearcode,lapmodefile[4],nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
-    
+    source['sourcetype_num'] = 8
+    source['u'] = [smearcode] + src_loc + [ so_val ] + src_sm + link_sm
+    source['d'] = source['u']
+    source['s'] = source['u']
+    source['n'] = source['u']
+    source['ns'] = source['u']
+
     return source
 
 
 
-def lpsm_src(lapmodefile, so_val, lp_sm, src_loc=[1,1,1,16], link_sm, **kwargs):
+def lpsm(lapmodefile, nd, so_val, lp_sm, src_loc, src_sm, link_sm, **kwargs):
     """
     Returns key information for the Laplacian, smeared source.
 
@@ -143,20 +136,23 @@ def lpsm_src(lapmodefile, so_val, lp_sm, src_loc=[1,1,1,16], link_sm, **kwargs):
 
 
 
-def xyz_src(lp_sm, src_loc=[1,1,1,16], so_val, link_sm, **kwargs):
-    """
-    Returns key information for the xyz source
 
-    Does no projection and smears only in the direction(s) 
-    provided by smearcode in src_sm.
+def lpxyz(lp_sm, lapmodefile, nd, so_val, src_loc, src_sm, link_sm, **kwargs):
     """
-    smearcode = lp_sm[0]     #unpacking
+    Returns key information for the Laplacian, xyz source.
+
+    Laplacian xyz source does Laplacian projection and smearing.
+    Smears only in direction provided by smearcode, string in src_sm.
+    """
+
+    smearcode,presmear,lapsmear=lp_sm     #unpacking
     source = {}
-    source['sourcetype_num'] = 8
-    source['u'] = [smearcode] + src_loc + [ so_val ] + src_sm + link_sm
-    source['d'] = source['u']
-    source['s'] = source['u']
-    source['n'] = source['u']
-    source['ns'] = source['u']
-
+    source['sourcetype_num'] = 10
+    source['u'] = [ smearcode,lapmodefile[0],nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
+    source['d'] = [ smearcode,lapmodefile[1],nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
+    source['s'] = [ smearcode,lapmodefile[2],nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
+    source['n'] = [ smearcode,lapmodefile[3],nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
+    source['ns'] = [ smearcode,lapmodefile[4],nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
+    
     return source
+
