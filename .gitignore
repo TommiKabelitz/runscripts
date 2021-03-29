@@ -1,0 +1,7 @@
+*.~
+
+test.py
+test.py~
+/Inputs/*
+/scripts/*
+/__pycache__/*
