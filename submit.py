@@ -1,7 +1,9 @@
+
 import configIDs as cfg
 import subprocess
 import os
 import runparams as rp
+
 def runvals():
     kappa_vals = [13770]
     kds = [-1,0,1]
@@ -57,6 +59,17 @@ def write_slurm_details(f,partition,nodes,ntasks,time,numGPUs,memory,qos,**kwarg
     f.write(f'#SBATCH --qos={qos}\n')
 
 
+def submit_jobs(kappa_vals,kd,shifts,run_prefix,**kwargs):
+    
+    for kappa in kapp_vals:
+        for kd in kds:
+            for shift in shifts:
+                print('kappa: ',str(kappa))
+                print('run_prefix: ',run_prefix)
+                print('kd: ',str(kd))
+                print('shift: ',shift)
+
+
     
 if __name__ == '__main__':
 
@@ -65,5 +78,10 @@ if __name__ == '__main__':
 
     submit_jobs(**values)
     
+    return locals()
+
+                
+    
+
 
 

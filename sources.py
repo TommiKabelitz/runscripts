@@ -10,6 +10,7 @@ dictionaries, though not required.
 Current sources available:
 point(pt),smeared(sm),Laplacian(lp),lpsm,lpxyz,xyz
 
+
 Adding sources requires addition here and in smearing.py.
 
 Function arguments:
@@ -57,6 +58,7 @@ def pt(src_loc, **kwargs):
     source['ns'] = source['u']
     
     return source
+
 
 
 

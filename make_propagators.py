@@ -13,6 +13,7 @@ import sources as src
 
 
 
+
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
@@ -23,9 +24,13 @@ tolerance = '1.0d-5'
 fermionAction = 'clover'
 U1FieldType = 'B'
 U1FieldQuanta = 'k'
+
 kappa_strange = 13665
 
 executable = '/home/a1724542/PhD/cola/trunk/cuda/quarkpropGPU.x'
+=======
+
+>>>>>>> 309ac3eb5ff744cf3977a91b8e0caaf828388de8
 
 
 def FieldCode(U1FieldType,U1FieldQuanta,kd,**kwargs):
@@ -38,6 +43,7 @@ def print_dict_to_file(filename,dictionary,order):
     with open(filename,'w') as f:
         for key in order:
             f.write(str(dictionary[key])+'\n')
+
 
 
 def make_source_input_file(filename,source_type,lapmodefile=None,**kwargs):
@@ -58,6 +64,7 @@ def make_source_input_file(filename,source_type,lapmodefile=None,**kwargs):
     #Extracting sourcetype_num
     sourcetype_num = formatted_values.pop('sourcetype_num')
 
+
     #Writing lists to file
     for quark,values in formatted_values.items():
         #Each set of values are in a list
@@ -75,14 +82,14 @@ def make_prop_input_file(filename,prop_input_dict):
 
 
     order = ['cfgFile',
-             'cfgFormat',#
-             'quarkPrefix',#
+             'cfgFormat',
+             'quarkPrefix',
              'propFormat',
              'parallelIO',
              'fermionAction',
              'kappa', 
              'shift', 
-             'U1FieldCode', 
+             'U1FieldCode',
              'tolerance',
              'sourcetype_num']
 
@@ -97,6 +104,7 @@ def make_prop_input_file(filename,prop_input_dict):
     print_dict_to_file(filename,into_file,order)
 
 #end function
+
 
 
 def make_propagator(inputFileBase,reportFile,numGPUs,**kwargs):
@@ -197,64 +205,3 @@ if __name__ == '__main__':
                 make_propagator(inputFileBase,reportFile,**rp.slurm_params())
 
 
-
-
-
-
-                                     
-# #testing source_input_file
-# source_type = 'smeared'
-# lapmodefile = ['0','1','2','3','4']
-# so_val = 2
-# filename = os.getcwd()+'/Inputs/QUARK.qpsrc_'+source_type
-# sourcetype_num = make_source_input_file(filename,source_type,so_val,lapmodefile)
-
-
-# #testing prop_input_file
-# d = {}
-# d['cfgFile'] = 'I am the config file'
-# d['cfgFormat'] = 'ildg'
-# d['quarkPrefix'] = 'I am a quark name'
-# d['kappa'] = 13770
-# d['shift'] = 'x16t8'
-# d['kd'] = 2
-# d['sourcetype_num'] = sourcetype_num
-# make_prop_input_file(os.getcwd()+'/Inputs/prop.quarkprop',d)
-
-
-
-    #cfgfile
-    #dquarkprefix
-    ##propfmt
-    ##parallel io (t/f)
-    ##clover
-    #kappa
-    #shift
-    #U1fieldcode - Just needs k_d
-    ##tolerance
-    #sourcetype_num
-
-    #So stuff to pass
-    #cfgfile
-    #quarkprefix (filename)
-    #kappa
-    #shift
-    #k_d
-    #sourcetype_num
-
-
-
-#def make_propagator(source_type,so_val=None,lapmodefile=None):
-
-
-
-
-
-
-#make_propagator('smeared',1,['1','2','3','4','5'])
-
-
-#quarkprop
-
-
-                                     

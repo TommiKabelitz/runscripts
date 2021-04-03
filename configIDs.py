@@ -72,6 +72,7 @@ def five(kappa,run_prefix):
         exit
 
 
+
 def configDetails(kappa,run_prefix):
     
     switch = {

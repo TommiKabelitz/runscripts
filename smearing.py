@@ -37,7 +37,6 @@ swps_fat = 10
 sink_smearcode = 'xyz'
 sink_value = 100
 
-
 def smearing_vals(smear_type,**kwargs):
     """
     Returns appropriate smearing values in a dictionary
@@ -138,12 +137,14 @@ def smearing_vals(smear_type,**kwargs):
         sink_type -- string: The type of sink
         """
 
+
         if 'sink_type' not in locals():#checking sink_type was passed
             raise TypeError("sink_smearing() missing 1 required positional argument: 'source_type'")
 
         #Setting all of the relevant variables to the 
         #desired value. By default from the global 
         #variable defined above.
+
         if sink_type == 'sm':
             smearcode = sink_smearcode
             sink_smear = 't'

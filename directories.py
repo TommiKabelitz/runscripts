@@ -1,9 +1,8 @@
 import os
 import pathlib
 import configIDs as cfg
-directories = {}
-#Base directory information                                                                                                                                             
 
+#Base directory information                                                                                                                                             
 #Base output directory
 baseOutputDir = '/hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/'
 #Run Specific directory                                                                                                                                                 
@@ -109,6 +108,3 @@ def CreateDirectory(Input):
             create(directory)
     else:
         raise TypeError()
-        
-
-
