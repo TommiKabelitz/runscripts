@@ -8,7 +8,7 @@ quark. Labelled u,d,s,n,ns. Recommend input from expanded
 dictionaries, though not required.
 
 Current sources available:
-point,smeared,lp,lpsm,lpxyz,xyz
+point(pt),smeared(sm),Laplacian(lp),lpsm,lpxyz,xyz
 
 Adding sources requires addition here and in smearing.py.
 
@@ -41,7 +41,7 @@ link_sm = [use_stout,alpha_fat,swps_fat]
 """
 
 
-def point(src_loc, **kwargs):
+def pt(src_loc, **kwargs):
     """
     Returns key information for a point source.
 
@@ -60,7 +60,7 @@ def point(src_loc, **kwargs):
 
 
 
-def smeared(src_loc, so_val, src_sm, link_sm, **kwargs):
+def sm(src_loc, so_val, src_sm, link_sm, **kwargs):
     """
     Returns key information for a normally smeared source.
     """

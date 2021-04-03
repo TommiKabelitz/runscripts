@@ -24,10 +24,10 @@ useUzero = 'f'
 u0_smsrc = 1.0
 src_smearing = [alpha_smsrc,useUzero,u0_smsrc] #src_sm
 #Laplacian projection related parameters
-numdim = 2          #nd
+numdim = 2   #nd
+source_value = 250  #so_val
 presmear = 't'
 lapsmear = 100
-
 #Link smearing related parameters - Stout link smearing
 use_stout = 't'
 alpha_fat = 0.1
@@ -35,7 +35,7 @@ swps_fat = 10
 
 #Sink smearing related parameters
 sink_smearcode = 'xyz'
-sink_smearlist = [0,100]
+sink_value = 100
 
 
 def smearing_vals(smear_type,**kwargs):
@@ -67,38 +67,40 @@ def smearing_vals(smear_type,**kwargs):
 
 
         if 'source_type' not in locals():#Checking source_type was passed
-            exit('''Error!\nFunction: smearing_vals.\
-            \n\tSource smearing requires source_type.
-            ''')
+            raise TypeError("source_smearing() missing 1 required positional argument: 'source_type'")
 
         #Setting all of the relevant variables to the 
         #desired value. By default from the global 
         #variable defined above.
-        elif source_type == 'point':
+        elif source_type == 'pt':
             src_loc = source_location            
-        elif source_type == 'smeared':
+        elif source_type == 'sm':
             src_loc = source_location   
+            so_val = source_value
             src_sm = src_smearing
         elif source_type == 'lp':
             src_loc = source_location
             nd = numdim
+            so_val = source_value
         elif source_type == 'xyz':
             lp_sm = ['xy'] 
-            src_loc = source_location 
+            src_loc = source_location
+            so_val = source_value
             src_sm = src_smearing
         elif source_type == 'lpsm':
             nd = numdim
+            so_val = source_value
             lp_sm = ['',presmear,lapsmear]
             src_loc = source_location
             src_sm = src_smearing
         elif source_type == 'lpxyz':
             lp_sm = ['z',presmear,lapsmear]
             nd = numdim
+            so_val = source_value
             src_loc = source_location
             src_sm = src_smearing
         else:
-            exit('''Error!\nFunction: smearing_vals\
-            \n\tInvalid source type: ''' + source_type)
+            raise ValueError("source_smearing() received an unexpected 'source_type'")
 
         #Deleting the local variables we do not wish to
         #return.
@@ -136,24 +138,20 @@ def smearing_vals(smear_type,**kwargs):
         sink_type -- string: The type of sink
         """
 
-        if sink_type not in locals():#checking sink_type was passed
-            exit('''Error!\nFunction: smearing_vals.\
-            \n\tSink smearing requires sink_type.
-            ''')
+        if 'sink_type' not in locals():#checking sink_type was passed
+            raise TypeError("sink_smearing() missing 1 required positional argument: 'source_type'")
 
         #Setting all of the relevant variables to the 
         #desired value. By default from the global 
         #variable defined above.
-        if sink_type == 'smeared':
+        if sink_type == 'sm':
             smearcode = sink_smearcode
             sink_smear = 't'
-            smearing_levels = sink_smearlist
-            nlevels = len(smearing_levels)
-        elif sink_type == 'Laplacian':
+            sink_val = sink_value
+        elif sink_type == 'lp':
             sink_smear = 'f'
         else:
-            exit('''Error!\nFunction: smearing_vals\
-            \n\tInvalid sink type: ''' + sink_type)
+            raise ValueError("sink_smearing() received an unexpected 'sink_type'")
 
         #Deleting the local variables we do not wish to
         #return.        

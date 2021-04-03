@@ -2,6 +2,7 @@
 
 test.py
 test.py~
-/Inputs/*
+/inputs/*
 /scripts/*
 /__pycache__/*
+/testing/*

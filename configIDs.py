@@ -72,7 +72,7 @@ def five(kappa,run_prefix):
         exit
 
 
-def configIDs(kappa,run_prefix):
+def configDetails(kappa,run_prefix):
     
     switch = {
         13700:one,
@@ -85,3 +85,16 @@ def configIDs(kappa,run_prefix):
     start, ncon = case(kappa,run_prefix)
     
     return start,ncon
+
+def configID(nth_con,run_prefix,start,**kwargs):
+
+    if run_prefix in ['a','b']:
+        gap = 10
+    elif run_prefix in ['gM','hM','iM','jM','kM']:
+        gap = 20
+    else:
+        print('abort')
+        exit()
+
+    ID = start + (nth_con-1)*gap
+    return f'-{run_prefix}-00{ID}'

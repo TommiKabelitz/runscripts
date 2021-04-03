@@ -24,12 +24,18 @@ def formatShift(entry):
     elif entrytype is dict:
         shift = entry['shift']
     else:
-        print("Function: formatShift\nUnexpected input format")
+        raise TypeError
 
     #Extracting all numbers according to the pattern
     xshift,tshift = pattern.findall(shift)
-        
-    output = 3*(xshift+' ')+tshift
+
+    #Casting to int removes zeros from start of shift
+    #i.e 00->0,01->1
+    xshift = int(xshift)
+    tshift = int(tshift)
+    
+    #Formatting as x y z t
+    output = 3*(str(xshift)+' ')+str(tshift)
 
     if entrytype is str:
         return output
@@ -48,6 +54,6 @@ def formatKappa(entry):
         entry['kappa'] = '0.'+str(kappa)
         return None
     else:
-        print("Function: formatKappa\nUnexpected input format")
+        raise TypeError
 
     
