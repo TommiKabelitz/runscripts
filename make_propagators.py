@@ -17,7 +17,8 @@ import sources as src
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
-cfgFormat = 'ildg' #set to 'U=1' for free field
+#cfgFormat = 'ildg' #set to 'U=1' for free field
+cfgFormat = 'U=1'
 propFormat = 'prop' #file extension without .
 parallelIO = 'F'
 tolerance = '1.0d-5'
@@ -25,12 +26,13 @@ fermionAction = 'clover'
 U1FieldType = 'B'
 U1FieldQuanta = 'k'
 
+Ns = 32
+Nt = 64
+c_sw = 1.715
+
 kappa_strange = 13665
 
 executable = '/home/a1724542/PhD/cola/trunk/cuda/quarkpropGPU.x'
-=======
-
->>>>>>> 309ac3eb5ff744cf3977a91b8e0caaf828388de8
 
 
 def FieldCode(U1FieldType,U1FieldQuanta,kd,**kwargs):
@@ -44,7 +46,17 @@ def print_dict_to_file(filename,dictionary,order):
         for key in order:
             f.write(str(dictionary[key])+'\n')
 
+def make_lattice_input_file(filename):
+        
+        lattice = [Ns,Ns,Ns,Nt]
+        with open(filename,'w') as f:
+                f.write('\n'.join(str(dim) for dim in lattice))
 
+def make_clover_input_file(filename):
+
+        values = [1.0,1.0,1.0,0.0,c_sw]
+        with open(filename,'w') as f:
+                f.write(']n'.join(str(val) for val in values))
 
 def make_source_input_file(filename,source_type,lapmodefile=None,**kwargs):
 
@@ -109,12 +121,19 @@ def make_prop_input_file(filename,prop_input_dict):
 
 def make_propagator(inputFileBase,reportFile,numGPUs,**kwargs):
         
-        #output = subprocess.call(['mpirun','-np',numGPUs,executable,'--solver="CGNE+S"','--itermax=1000000',inputFileBase],stdout=subprocess.PIPE)
-
         print(' '.join(['mpirun','-np',str(numGPUs),executable,'--solver="CGNE+S"','--itermax=1000000',inputFileBase]))
+        print()
+        #output = subprocess.run(['mpirun','-np',str(numGPUs),executable,'--solver="CGNE+S"','--itermax=1000000',inputFileBase],stdout=subprocess.PIPE)
+        #output = subprocess.run(['mpirun','-np',str(numGPUs),executable,'--solver=CGNE+S','--itermax=1000000',inputFileBase])
+        #output = subprocess.run(['mpirun','-np',str(numGPUs),executable+' --solver=CGNE+S --itermax=1000000 '+inputFileBase])
+        #subprocess.run(['mpirun','-np',str(numGPUs),executable+' --solver=CGNE+S --itermax=1000000',inputFileBase])
+        #output = subprocess.run(['mpirun','-np','1',executable+' --solver=CGNE+S --itermax=1000000'],stdout=subprocess.PIPE,input=inputFileBase,encoding='ascii')
+        subprocess.run([executable+' --solver=CGNE+S'+' --itermax=1000000'],text=True,input=inputFileBase+'\n',shell=True)
+
         
-        #convOutput = output.stdout.decode('utf-8')
-        #with open(reportFile,'w') as f:
+        
+        # convOutput = output.stdout.decode('utf-8')
+        # with open(reportFile,'w') as f:
         #        f.write(convOutput)
 
 
@@ -152,7 +171,7 @@ if __name__ == '__main__':
         stuff = sm.smearing_vals('source_smearing',source_type=values['source_type'])
         stuff2 = sm.smearing_vals('sink_smearing',sink_type=values['sink_type'])
         
-        values['cfgID'] = cfg.configID(**values)
+        values['cfgID'] = cfg.configID(**values) #must happen before kappa -> kappa_strange
         
         directories = dir.FullDirectories(**values,**stuff,**stuff2)
 
@@ -161,14 +180,13 @@ if __name__ == '__main__':
         filename = values['SLURM_ARRAY_JOB_ID'] + '_' + str(values['nth_con'])+'.QUARK'
         src_extension = '.qpsrc_' + values['source_type']
         src_file = directories['input'] + filename + src_extension
-        qprop_extension = '.qprop'
+        qprop_extension = '.quarkprop'
 
         #Making .qpsrc file, return sourcetype_num also
         values['sourcetype_num'] = make_source_input_file(src_file,**values)
 
 
         values['cfgFile'] = directories['cfgFile']
-
 
 
         
@@ -188,20 +206,27 @@ if __name__ == '__main__':
 
                 inputFileBase = directories['input'] + filename.replace('QUARK',quark)
                 reportFile = directories['report'].replace('QUARK',quark)
-                src_file =  inputFileBase + src_extension
+                lat_file = inputFileBase + '.lat'
+                clover_file = inputFileBase + '.fm_clover'
                 qprop_file = inputFileBase + qprop_extension
+                
+                make_lattice_input_file(lat_file)
+                make_clover_input_file(clover_file)
                 make_prop_input_file(qprop_file,quarkValues)
 
-                print(quark)
-                print(src_file)
-                print()
-                subprocess.call(['cat',src_file])
-                print()
-                print(qprop_file)
-                subprocess.call(['cat',qprop_file])
-                print()
+                print(f'Doing {quark} quark')
+                
+                ##full testing print statements
+                # print(quark)
+                # print(src_file)
+                # print()
+                # subprocess.call(['cat',src_file])
+                # print()
+                # print(qprop_file)
+                # subprocess.call(['cat',qprop_file])
+                # print()
 
 
                 make_propagator(inputFileBase,reportFile,**rp.slurm_params())
-
+                exit()
 

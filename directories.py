@@ -6,7 +6,7 @@ import configIDs as cfg
 #Base output directory
 baseOutputDir = '/hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/'
 #Run Specific directory                                                                                                                                                 
-runIdentifier = 'firstrun/'
+runIdentifier = 'testing/'
 #Output directory structure
 outputTree = 'KAPPA/BFKD/SHIFT/'
 
@@ -24,11 +24,11 @@ tagfileExt = '.tag'
 #Gauge config files
 configDir = '/hpcfs/groups/cssm-hpc-users/PACS-CS/'
 configFile = 'RC32x64_B1900Kud0KAPPA00Ks01364000C1715/RC32x64_B1900Kud0KAPPA00Ks01364000C1715CONFIGID'
-#Laplacian e-mode directory - probably get made early      
-lapModeDir = '/dir/'
-lapModeFile = 'file'
+#Laplacian e-mode directory      
+lapModeDir = '/hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/'
+lapModeFile = 'RC32x64_B1900Kud0KAPPA00Ks01364000C1715/as0nsm0/BFKD/KAPPAModess32t64kBKDCONFIGID.l2ev'
 
-
+directories = {}
 def GetBaseDirectories(directory=None):
 
     outputDir = baseOutputDir + runIdentifier + outputTree
@@ -42,10 +42,10 @@ def GetBaseDirectories(directory=None):
     directories['cfgFile'] = configDir + configFile
 
     #Laplacian e-modes
-    directories['lapmode'] = lapModeDir + lapModeFile
+    directories['lapMode'] = lapModeDir + lapModeFile
     
     #COLA input directory
-    directories['input'] = os.getcwd() + '/inputs/'
+    directories['input'] = os.getcwd() + '/Inputs/'
 
     if directory is None:
         return directories
@@ -57,7 +57,7 @@ def FullDirectories(kappa,kd,shift,source_type,so_val,sink_type,sink_val,cfgID,*
 
     directories = GetBaseDirectories()
 
-    for filetype in ['cfun','prop','report','tagfile']:
+    for filetype in ['cfun','prop','report','tagfile','cfgFile','lapMode']:
 
         replaced = directories[filetype].replace('KAPPA',str(kappa))
         replaced = replaced.replace('KD',str(kd))
@@ -67,14 +67,10 @@ def FullDirectories(kappa,kd,shift,source_type,so_val,sink_type,sink_val,cfgID,*
         replaced = replaced.replace('CONFIGID',cfgID)
         directories[filetype] = replaced
 
-    replaced = directories['cfgFile'].replace('KAPPA',str(kappa))
-    replaced = replaced.replace('CONFIGID',cfgID)
-    directories['cfgFile'] = replaced
-
     for key in directories:
         print("Making directory")
         print(directories[key])
-        #CreateDirectory(directories[key])
+        CreateDirectory(directories[key])
     
     return directories
     
