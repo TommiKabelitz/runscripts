@@ -5,31 +5,30 @@
 
 
 
-def anti_particle(input):
+def AntiParticle(arg):
 
-    def bar(particle):
+    def Bar(particle):
         if particle[-3:] == 'bar':
             return particle[:-3]
         else:
             return particle + 'bar'
 
         
-    in_type = type(input)
+    in_type = type(arg)
     if in_type is str:
-        return bar(input)
+        return Bar(arg)
         
     elif in_type is list:
-        for i,particle in enumerate(input):
-            input[i] = bar(particle)
+        for i,particle in enumerate(arg):
+            input[i] = Bar(particle)
                 
     elif in_type is dict:
-        particle_list = input['struct']
+        particle_list = arg['struct']
         for i,particle in enumerate(particle_list):
-            input['struct'][i] = bar(particle)
+            arg['struct'][i] = Bar(particle)
 
     else:
-        print('Error message')
-        exit()
+        raise TypeError
 
 
         

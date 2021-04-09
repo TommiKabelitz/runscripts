@@ -6,7 +6,7 @@ import configIDs as cfg
 import directories as dirs
 import runparams as rp
 
-def runvals():
+def RunValues():
     kappa_vals = [13770]
     kds = [1]   #field strengths
     shifts = ['x00t00']
@@ -17,7 +17,7 @@ def runvals():
 
 
 
-def submit_jobs(kappa_vals,kds,shifts,run_prefix,source_type,sink_type,**kwargs):
+def SubmitJobs(kappa_vals,kds,shifts,run_prefix,source_type,sink_type,**kwargs):
     
     #Creating directory for the runscript to go in
     directory = dirs.FullDirectories(directory='script')['script']
@@ -36,11 +36,11 @@ def submit_jobs(kappa_vals,kds,shifts,run_prefix,source_type,sink_type,**kwargs)
                 filename = directory + run_prefix + str(kappa) + str(kd) + shift
 
                 #Getting first ID eg. 1880 and num configurations eg. 400 for gauge fields
-                start, ncon = cfg.configDetails(kappa,run_prefix)
+                start, ncon = cfg.ConfigDetails(kappa,run_prefix)
                 print(f'(start,ncon):({start},{ncon})\n')
 
                 #Runscript to run with sbatch
-                make_runscript(filename,kappa,kd,shift,run_prefix,start,ncon,source_type,sink_type)
+                MakeRunscript(filename,kappa,kd,shift,run_prefix,start,ncon,source_type,sink_type)
                 subprocess.run(['chmod','+x',filename])
                 
                 #Submitting jobs
@@ -52,20 +52,19 @@ def submit_jobs(kappa_vals,kds,shifts,run_prefix,source_type,sink_type,**kwargs)
 
 
 
-def make_runscript(filename,kappa,kd,shift,run_prefix,start,ncon,source_type,sink_type):
+def MakeRunscript(filename,kappa,kd,shift,run_prefix,start,ncon,source_type,sink_type):
 
-    
     with open(filename,'w') as f:
 
-        slurm_details = rp.slurm_params()
-        write_slurm_details(f,**slurm_details)
-        set_memory_params(f)
+        slurm_details = rp.SlurmParams()
+        WriteSlurmDetails(f,**slurm_details)
+        SetMemoryParams(f)
 
         f.write(f'python /home/a1724542/PhD/runscripts/make_propagators.py {kappa} {kd} {shift} {run_prefix} {start} {ncon} {source_type} {sink_type} $SLURM_ARRAY_JOB_ID $SLURM_ARRAY_TASK_ID\n')
 
 
 
-def write_slurm_details(f,partition,nodes,ntasks,time,numGPUs,memory,qos,**kwargs):
+def WriteSlurmDetails(f,partition,nodes,ntasks,time,numGPUs,memory,qos,**kwargs):
     f.write(f'#!/bin/bash\n')
     f.write(f'#SBATCH --partition={partition}\n')
     f.write(f'#SBATCH --nodes={nodes}\n')
@@ -75,7 +74,7 @@ def write_slurm_details(f,partition,nodes,ntasks,time,numGPUs,memory,qos,**kwarg
     f.write(f'#SBATCH --mem={memory}GB\n')
     #f.write(f'#SBATCH --qos={qos}\n')
 
-def set_memory_params(f):
+def SetMemoryParams(f):
     
     f.write('echo Running on host `hostname`\n')
     f.write('echo Time is `date`\n')
@@ -87,6 +86,6 @@ def set_memory_params(f):
 if __name__ == '__main__':
 
     os.chdir(dirs.FullDirectories(directory='slurm')['slurm'])
-    values = runvals()
+    values = RunValues()
 
-    submit_jobs(**values)
+    SubmitJobs(**values)

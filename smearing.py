@@ -37,7 +37,7 @@ swps_fat = 10
 sink_smearcode = 'xyz'
 sink_value = 100
 
-def smearing_vals(smear_type,**kwargs):
+def SmearingVals(smear_type,**kwargs):
     """
     Returns appropriate smearing values in a dictionary
 
@@ -52,7 +52,7 @@ def smearing_vals(smear_type,**kwargs):
 
     #Local function definition
     #one for each type of smearing
-    def source_smearing(source_type,**kwargs):
+    def SourceSmearing(source_type,**kwargs):
         """
         Returns dictionary of values related to source smearing.
 
@@ -66,7 +66,7 @@ def smearing_vals(smear_type,**kwargs):
 
 
         if 'source_type' not in locals():#Checking source_type was passed
-            raise TypeError("source_smearing() missing 1 required positional argument: 'source_type'")
+            raise TypeError("SourceSmearing() missing 1 required positional argument: 'source_type'")
 
         #Setting all of the relevant variables to the 
         #desired value. By default from the global 
@@ -99,7 +99,7 @@ def smearing_vals(smear_type,**kwargs):
             src_loc = source_location
             src_sm = src_smearing
         else:
-            raise ValueError("source_smearing() received an unexpected 'source_type'")
+            raise ValueError("SourceSmearing() received an unexpected 'source_type'")
 
         #Deleting the local variables we do not wish to
         #return.
@@ -108,11 +108,11 @@ def smearing_vals(smear_type,**kwargs):
                  
 
 
-    def link_smearing(**kwargs):
+    def LinkSmearing(**kwargs):
         """
         Returns dictionary of values related to link smearing.
 
-        Works in the same manner as source_smearing, but requires
+        Works in the same manner as SourceSmearing, but requires
         no input as we only use stout link smearing presently.
         
         Arguments:
@@ -127,7 +127,7 @@ def smearing_vals(smear_type,**kwargs):
 
 
 
-    def sink_smearing(sink_type,**kwargs):
+    def SinkSmearing(sink_type,**kwargs):
         """
         Returns dictionary of values related to sink smearing.
 
@@ -139,8 +139,8 @@ def smearing_vals(smear_type,**kwargs):
 
 
         if 'sink_type' not in locals():#checking sink_type was passed
-            raise TypeError("sink_smearing() missing 1 required positional argument: 'source_type'")
-
+            raise TypeError("SinkSmearing() missing 1 required positional argument: 'source_type'")
+        
         #Setting all of the relevant variables to the 
         #desired value. By default from the global 
         #variable defined above.
@@ -152,7 +152,7 @@ def smearing_vals(smear_type,**kwargs):
         elif sink_type == 'lp':
             sink_smear = 'f'
         else:
-            raise ValueError("sink_smearing() received an unexpected 'sink_type'")
+            raise ValueError("SinkSmearing() received an unexpected 'sink_type'")
 
         #Deleting the local variables we do not wish to
         #return.        
@@ -165,10 +165,10 @@ def smearing_vals(smear_type,**kwargs):
     #Grabbing the appropriate function (source/link/sink)
     #to use based on the variable smear_type which was passed
     #from the locals() dictionary
-    function = locals()[smear_type]
+    Function = locals()[smear_type]
 
     #The kwargs dictionary here contains the key-word
     #arguments passed to smearing_vals. Should contain
     #the sink or source type variable required by the
     #relevant function.
-    return function(**kwargs)
+    return Function(**kwargs)

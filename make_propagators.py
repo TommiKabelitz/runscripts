@@ -17,8 +17,10 @@ import sources as src
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
-cfgFormat = 'ildg' #set to 'U=1' for free field
-cfgFormat = 'U=1'
+cfgFormat = 'ildg' 
+cfgFormat = 'U=1'   #Uncomment for free field (for testing)
+                    #Should otherwise be commented out
+
 propFormat = 'prop' #file extension without .
 parallelIO = 'F'
 tolerance = '1.0d-5'
@@ -40,30 +42,30 @@ def FieldCode(U1FieldType,U1FieldQuanta,kd,**kwargs):
 
 
 
-def print_dict_to_file(filename,dictionary,order):
+def PrintDictToFile(filename,dictionary,order):
     
     with open(filename,'w') as f:
         for key in order:
             f.write(str(dictionary[key])+'\n')
         f.write('\n')
-def make_lattice_input_file(filename):
+def MakeLatticeInputFile(filename):
         
         lattice = [Ns,Ns,Ns,Nt]
         with open(filename,'w') as f:
                 f.write('\n'.join(str(dim) for dim in lattice))
                 f.write('\n')
 
-def make_clover_input_file(filename):
+def MakeCloverInputFile(filename):
         #[bcx,bcy,bcz,bct,u0,c_sw]
         values = [1.0,1.0,1.0,0.0,1.0,c_sw]
         with open(filename,'w') as f:
                 f.write('\n'.join(str(val) for val in values))
                 f.write('\n')
 
-def make_source_input_file(filename,source_type,lapmodefile=None,**kwargs):
+def MakeSourceInputFile(filename,source_type,lapmodefile=None,**kwargs):
 
-    src_vals = sm.smearing_vals(smear_type='source_smearing',source_type=source_type)
-    link_vals = sm.smearing_vals(smear_type='link_smearing')
+    src_vals = sm.SmearingVals(smear_type='SourceSmearing',source_type=source_type)
+    link_vals = sm.SmearingVals(smear_type='LinkSmearing')
 
     smearing_values = {**src_vals,**link_vals}  #merging dictionaries
 
@@ -72,8 +74,8 @@ def make_source_input_file(filename,source_type,lapmodefile=None,**kwargs):
         smearing_values['lapmodefile'] = lapmodefile
 
     #Calling functions in sources.py
-    format_function = getattr(src,source_type)
-    formatted_values = format_function(**smearing_values)
+    FormatFunction = getattr(src,source_type)
+    formatted_values = FormatFunction(**smearing_values)
 
     #Extracting sourcetype_num
     sourcetype_num = formatted_values.pop('sourcetype_num')
@@ -93,8 +95,7 @@ def make_source_input_file(filename,source_type,lapmodefile=None,**kwargs):
 
 
 
-def make_prop_input_file(filename,prop_input_dict):
-
+def MakePropInputFile(filename,prop_input_dict):
 
     order = ['cfgFile',
              'cfgFormat',
@@ -113,18 +114,18 @@ def make_prop_input_file(filename,prop_input_dict):
     into_file = {**prop_input_dict,**globalvals}
 
     into_file['U1FieldCode'] = FieldCode(U1FieldType,U1FieldQuanta,**prop_input_dict)
-    shifts.formatShift(into_file)
-    shifts.formatKappa(into_file)
+    shifts.FormatShift(into_file)
+    shifts.FormatKappa(into_file)
 
-    print_dict_to_file(filename,into_file,order)
+    PrintDictToFile(filename,into_file,order)
 
 #end function
 
 
 
-def make_propagator(inputFileBase,reportFile,numGPUs,**kwargs):
+def MakePropagator(inputFileBase,reportFile,numGPUs,**kwargs):
         
-        print('mpi-running "'+' '.join([executable,'--solver="CGNE+S"','--itermax=1000000'])'"')
+        print('mpi-running "' + ' '.join([executable,'--solver="CGNE+S"','--itermax=1000000']) + '"')
         print(f'On {numGPUs} GPUs')
         print(f'The input filestub is "{inputFileBase}"')
         print()
@@ -139,11 +140,7 @@ def make_propagator(inputFileBase,reportFile,numGPUs,**kwargs):
 
 
 
-        
-
-        
-        
-def input():
+def Input():
 
         parser = argparse.ArgumentParser()
 
@@ -164,14 +161,14 @@ def input():
                 
 if __name__ == '__main__':
 
-        values = input()
+        values = Input()
         values['nth_con'] = values['SLURM_ARRAY_TASK_ID']
 
         #need soval,sinkval - going to hack a solution right now
-        stuff = sm.smearing_vals('source_smearing',source_type=values['source_type'])
-        stuff2 = sm.smearing_vals('sink_smearing',sink_type=values['sink_type'])
+        stuff = sm.SmearingVals('SourceSmearing',source_type=values['source_type'])
+        stuff2 = sm.SmearingVals('SinkSmearing',sink_type=values['sink_type'])
         
-        values['cfgID'] = cfg.configID(**values) #must happen before kappa -> kappa_strange
+        values['cfgID'] = cfg.ConfigID(**values) #must happen before kappa -> kappa_strange
         
         directories = dirs.FullDirectories(**values,**stuff,**stuff2)
 
@@ -183,11 +180,9 @@ if __name__ == '__main__':
         qprop_extension = '.quarkprop'
 
         #Making .qpsrc file, return sourcetype_num also
-        values['sourcetype_num'] = make_source_input_file(src_file,**values)
-
+        values['sourcetype_num'] = MakeSourceInputFile(src_file,**values)
 
         values['cfgFile'] = directories['cfgFile']
-
 
         
         for quark in ['u','d','s']: #Don't need neutral props, just use zero field d and s props
@@ -210,23 +205,12 @@ if __name__ == '__main__':
                 clover_file = inputFileBase + '.fm_clover'
                 qprop_file = inputFileBase + qprop_extension
                 
-                make_lattice_input_file(lat_file)
-                make_clover_input_file(clover_file)
-                make_prop_input_file(qprop_file,quarkValues)
+                MakeLatticeInputFile(lat_file)
+                MakeCloverInputFile(clover_file)
+                MakePropInputFile(qprop_file,quarkValues)
 
                 print(f'Doing {quark} quark')
                 
-                ##full testing print statements
-                # print(quark)
-                # print(src_file)
-                # print()
-                # subprocess.call(['cat',src_file])
-                # print()
-                # print(qprop_file)
-                # subprocess.call(['cat',qprop_file])
-                # print()
-
-
-                make_propagator(inputFileBase,reportFile,**rp.slurm_params())
+                MakePropagator(inputFileBase,reportFile,**rp.SlurmParams())
                 exit()
 

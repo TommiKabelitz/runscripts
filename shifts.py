@@ -1,7 +1,7 @@
 import re
 
 
-def formatShift(entry):
+def FormatShift(arg):
     """
     Returns the x and t shift from a string of form x24t36.
 
@@ -18,11 +18,11 @@ def formatShift(entry):
     #Pattern to grab the numbers from the string
     pattern = re.compile(r'\d+')
 
-    entrytype = type(entry)
-    if entrytype is str:
-        shift = entry
-    elif entrytype is dict:
-        shift = entry['shift']
+    inputType = type(arg)
+    if inputType is str:
+        shift = arg
+    elif inputType is dict:
+        shift = arg['shift']
     else:
         raise TypeError
 
@@ -37,21 +37,21 @@ def formatShift(entry):
     #Formatting as x y z t
     output = 3*(str(xshift)+' ')+str(tshift)
 
-    if entrytype is str:
+    if inputType is str:
         return output
     else:
-        entry['shift'] = output
+        arg['shift'] = output
         return None
 
 
-def formatKappa(entry):
+def FormatKappa(arg):
     
-    entrytype = type(entry)
-    if entrytype is int:
+    inputType = type(arg)
+    if inputType is int:
         return '0.'+str(kappa)
-    elif entrytype is dict:
-        kappa = entry['kappa']
-        entry['kappa'] = '0.'+str(kappa)
+    elif inputType is dict:
+        kappa = arg['kappa']
+        arg['kappa'] = '0.'+str(kappa)
         return None
     else:
         raise TypeError
