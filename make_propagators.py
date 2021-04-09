@@ -5,7 +5,7 @@ import pprint
 import subprocess
 
 import configIDs as cfg
-import directories as dir
+import directories as dirs
 import runparams as rp
 import shifts
 import smearing as sm
@@ -17,7 +17,7 @@ import sources as src
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
-#cfgFormat = 'ildg' #set to 'U=1' for free field
+cfgFormat = 'ildg' #set to 'U=1' for free field
 cfgFormat = 'U=1'
 propFormat = 'prop' #file extension without .
 parallelIO = 'F'
@@ -45,18 +45,20 @@ def print_dict_to_file(filename,dictionary,order):
     with open(filename,'w') as f:
         for key in order:
             f.write(str(dictionary[key])+'\n')
-
+        f.write('\n')
 def make_lattice_input_file(filename):
         
         lattice = [Ns,Ns,Ns,Nt]
         with open(filename,'w') as f:
                 f.write('\n'.join(str(dim) for dim in lattice))
+                f.write('\n')
 
 def make_clover_input_file(filename):
-
-        values = [1.0,1.0,1.0,0.0,c_sw]
+        #[bcx,bcy,bcz,bct,u0,c_sw]
+        values = [1.0,1.0,1.0,0.0,1.0,c_sw]
         with open(filename,'w') as f:
-                f.write(']n'.join(str(val) for val in values))
+                f.write('\n'.join(str(val) for val in values))
+                f.write('\n')
 
 def make_source_input_file(filename,source_type,lapmodefile=None,**kwargs):
 
@@ -84,6 +86,7 @@ def make_source_input_file(filename,source_type,lapmodefile=None,**kwargs):
         with open(quarkfile,'w') as f:
             #Convert to string and write to newline, elements of values
             f.write('\n'.join(str(line) for line in values))
+            f.write('\n')
 
     return sourcetype_num
 
@@ -121,21 +124,18 @@ def make_prop_input_file(filename,prop_input_dict):
 
 def make_propagator(inputFileBase,reportFile,numGPUs,**kwargs):
         
-        print(' '.join(['mpirun','-np',str(numGPUs),executable,'--solver="CGNE+S"','--itermax=1000000',inputFileBase]))
+        print('mpi-running "'+' '.join([executable,'--solver="CGNE+S"','--itermax=1000000'])'"')
+        print(f'On {numGPUs} GPUs')
+        print(f'The input filestub is "{inputFileBase}"')
         print()
-        #output = subprocess.run(['mpirun','-np',str(numGPUs),executable,'--solver="CGNE+S"','--itermax=1000000',inputFileBase],stdout=subprocess.PIPE)
-        #output = subprocess.run(['mpirun','-np',str(numGPUs),executable,'--solver=CGNE+S','--itermax=1000000',inputFileBase])
-        #output = subprocess.run(['mpirun','-np',str(numGPUs),executable+' --solver=CGNE+S --itermax=1000000 '+inputFileBase])
-        #subprocess.run(['mpirun','-np',str(numGPUs),executable+' --solver=CGNE+S --itermax=1000000',inputFileBase])
-        #output = subprocess.run(['mpirun','-np','1',executable+' --solver=CGNE+S --itermax=1000000'],stdout=subprocess.PIPE,input=inputFileBase,encoding='ascii')
-        subprocess.run([executable+' --solver=CGNE+S'+' --itermax=1000000'],text=True,input=inputFileBase+'\n',shell=True)
 
-        
-        
-        # convOutput = output.stdout.decode('utf-8')
-        # with open(reportFile,'w') as f:
-        #        f.write(convOutput)
+        runDetails = subprocess.run(['mpirun','-np',str(numGPUs),executable,'--solver=CGNE+S'+' --itermax=1000000'],text=True,input=inputFileBase+'\n',capture_output=True)
 
+        with open(reportFile,'w') as f:
+               f.write(runDetails.stdout)
+               if runDetails.stderr is not None:
+                       f.write(runDetails.stderr)
+        print(f'Report file is: {reportFile}')
 
 
 
@@ -173,7 +173,7 @@ if __name__ == '__main__':
         
         values['cfgID'] = cfg.configID(**values) #must happen before kappa -> kappa_strange
         
-        directories = dir.FullDirectories(**values,**stuff,**stuff2)
+        directories = dirs.FullDirectories(**values,**stuff,**stuff2)
 
 
         #prop input files
@@ -201,7 +201,7 @@ if __name__ == '__main__':
                 if quark == 'u':
                         quarkValues['kd']*=-2
 
-                if 's' in quark:
+                if quark == 's':
                         quarkValues['kappa'] = kappa_strange
 
                 inputFileBase = directories['input'] + filename.replace('QUARK',quark)

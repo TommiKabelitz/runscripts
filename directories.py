@@ -2,7 +2,9 @@ import os
 import pathlib
 import configIDs as cfg
 
-#Base directory information                                                                                                                                             
+#Base directory information 
+#Runscript directory
+runscriptDir = '/home/a1724542/PhD/runscripts/'
 #Base output directory
 baseOutputDir = '/hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/'
 #Run Specific directory                                                                                                                                                 
@@ -45,19 +47,28 @@ def GetBaseDirectories(directory=None):
     directories['lapMode'] = lapModeDir + lapModeFile
     
     #COLA input directory
-    directories['input'] = os.getcwd() + '/Inputs/'
+    directories['input'] = runscriptDir + 'Inputs/'
+
+    #Runscript directory
+    directories['script'] = runscriptDir + 'scripts/'
+
+    #slurm_output directory
+    directories['slurm'] = runscriptDir + 'slurm/'
 
     if directory is None:
         return directories
-    else:
-        return directories[directory]
+    elif type(directory) == str:
+        directory = [directory]
+    elif type(directory) != list:
+        raise TypeError
+    return {key:directories[key] for key in directory if key in directories.keys()}  
 
 
-def FullDirectories(kappa,kd,shift,source_type,so_val,sink_type,sink_val,cfgID,**kwargs):
+def FullDirectories(directory=None,kappa=0,kd=0,shift='',source_type='',so_val=0,sink_type='',sink_val=0,cfgID='',**kwargs):
 
-    directories = GetBaseDirectories()
+    directories = GetBaseDirectories(directory)
 
-    for filetype in ['cfun','prop','report','tagfile','cfgFile','lapMode']:
+    for filetype in directories.keys():
 
         replaced = directories[filetype].replace('KAPPA',str(kappa))
         replaced = replaced.replace('KD',str(kd))
@@ -104,3 +115,4 @@ def CreateDirectory(Input):
             create(directory)
     else:
         raise TypeError()
+

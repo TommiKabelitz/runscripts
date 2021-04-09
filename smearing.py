@@ -25,7 +25,7 @@ u0_smsrc = 1.0
 src_smearing = [alpha_smsrc,useUzero,u0_smsrc] #src_sm
 #Laplacian projection related parameters
 numdim = 2   #nd
-source_value = 250  #so_val
+source_value = 16  #so_val
 presmear = 't'
 lapsmear = 100
 #Link smearing related parameters - Stout link smearing
