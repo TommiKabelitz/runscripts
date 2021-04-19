@@ -12,8 +12,6 @@ import smearing as sm
 import sources as src
 
 
-
-
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
@@ -38,105 +36,135 @@ executable = '/home/a1724542/PhD/cola/trunk/cuda/quarkpropGPU.x'
 
 
 def FieldCode(U1FieldType,U1FieldQuanta,kd,**kwargs):
+        '''
+        Returns the formatted field code for the quarkprop input file
+
+        Arguments:
+        U1FieldType -- String: The type of field here, ie B
+        U1FieldQuanta -- String: The label used in the quantisation condition
+                                 ie. k
+        kd -- int: The field strength
+        
+        Should at some stage be impoved so that it can deal with more flexible
+        input.
+        '''
         return '['+U1FieldType+':'+U1FieldQuanta+'='+str(kd)+']'
 
 
 
-def PrintDictToFile(filename,dictionary,order):
-    
-    with open(filename,'w') as f:
-        for key in order:
-            f.write(str(dictionary[key])+'\n')
-        f.write('\n')
-def MakeLatticeInputFile(filename):
+def PrintDictToFile(filename,dictionary,order=None):
+        '''
+        Prints the values of dictionary to a file, 1 value per line
         
+        Warning: If order is not provided, the default order of the dictionary
+                 is used. This is the insertion order from python 3.7, before
+                 which that order cannot be guaranteed
+        Arguments:
+        filename -- string: The file to print to
+        dictionary -- dict: The dict to print
+        order -- List/tuple: List/tuple of keys in the order they should be printed
+        '''
+
+        #If order is unspecified, use default ordering
+        if order is None:
+                order = dictionary.keys()
+
+        with open(filename,'w') as f:
+                for key in order:
+                        f.write(str(dictionary[key])+'\n')
+
+
+
+def MakeLatticeInputFile(filename):
+        '''
+        Make the .lat input file for qpropGPU.x.
+
+        Note: Ns,Nt are global variables. Located at the top of the file.
+        Arguments:
+        filename -- string: The filename to write lattice details to.
+        '''
+
         lattice = [Ns,Ns,Ns,Nt]
         with open(filename,'w') as f:
                 f.write('\n'.join(str(dim) for dim in lattice))
                 f.write('\n')
 
+
+
 def MakeCloverInputFile(filename):
-        #[bcx,bcy,bcz,bct,u0,c_sw]
+        '''
+        Make the .fm_clover input file for qpropGPU.x.
+
+        Note: c_sw, the clover coefficient is a global variable. Located at
+              the top of this file.
+        Arguments:
+        filename -- string: The filename to write lattice details to.
+        '''
+
+        #       #[bcx,bcy,bcz,bct, u0,c_sw]
         values = [1.0,1.0,1.0,0.0,1.0,c_sw]
         with open(filename,'w') as f:
                 f.write('\n'.join(str(val) for val in values))
                 f.write('\n')
 
+
+
 def MakeSourceInputFile(filename,source_type,lapmodefile=None,**kwargs):
+        
+        src_vals = sm.SmearingVals(smear_type='SourceSmearing',source_type=source_type)
+        link_vals = sm.SmearingVals(smear_type='LinkSmearing')
 
-    src_vals = sm.SmearingVals(smear_type='SourceSmearing',source_type=source_type)
-    link_vals = sm.SmearingVals(smear_type='LinkSmearing')
+        smearing_values = {**src_vals,**link_vals}  #merging dictionaries
 
-    smearing_values = {**src_vals,**link_vals}  #merging dictionaries
+        #Adding in extras
+        if lapmodefile is not None:
+                smearing_values['lapmodefile'] = lapmodefile
 
-    #Adding in extras
-    if lapmodefile is not None:
-        smearing_values['lapmodefile'] = lapmodefile
+        #Calling functions in sources.py
+        FormatFunction = getattr(src,source_type)
+        formatted_values = FormatFunction(**smearing_values)
 
-    #Calling functions in sources.py
-    FormatFunction = getattr(src,source_type)
-    formatted_values = FormatFunction(**smearing_values)
-
-    #Extracting sourcetype_num
-    sourcetype_num = formatted_values.pop('sourcetype_num')
+        #Extracting sourcetype_num
+        sourcetype_num = formatted_values.pop('sourcetype_num')
 
 
-    #Writing lists to file
-    for quark,values in formatted_values.items():
-        #Each set of values are in a list
-        quarkfile = filename.replace('QUARK',quark)
-        with open(quarkfile,'w') as f:
-            #Convert to string and write to newline, elements of values
-            f.write('\n'.join(str(line) for line in values))
-            f.write('\n')
+        #Writing lists to file
+        for quark,values in formatted_values.items():
+                #Each set of values are in a list
+                quarkfile = filename.replace('QUARK',quark)
+                with open(quarkfile,'w') as f:
+                        #Convert to string and write to newline, elements of values
+                        f.write('\n'.join(str(line) for line in values))
+                        f.write('\n')
 
-    return sourcetype_num
+        return sourcetype_num
 
 
 
 
 def MakePropInputFile(filename,prop_input_dict):
 
-    order = ['cfgFile',
-             'cfgFormat',
-             'quarkPrefix',
-             'propFormat',
-             'parallelIO',
-             'fermionAction',
-             'kappa', 
-             'shift', 
-             'U1FieldCode',
-             'tolerance',
-             'sourcetype_num']
+        order = ['cfgFile',
+                 'cfgFormat',
+                 'quarkPrefix',
+                 'propFormat',
+                 'parallelIO',
+                 'fermionAction',
+                 'kappa', 
+                 'shift', 
+                 'U1FieldCode',
+                 'tolerance',
+        'sourcetype_num']
 
-    #grabbing the variables we care about from the global scope
-    globalvals = {key:globals()[key] for key in set(order).intersection(globals().keys())}
-    into_file = {**prop_input_dict,**globalvals}
+        #grabbing the variables we care about from the global scope
+        globalvals = {key:globals()[key] for key in set(order).intersection(globals().keys())}
+        into_file = {**prop_input_dict,**globalvals}
 
-    into_file['U1FieldCode'] = FieldCode(U1FieldType,U1FieldQuanta,**prop_input_dict)
-    shifts.FormatShift(into_file)
-    shifts.FormatKappa(into_file)
+        into_file['U1FieldCode'] = FieldCode(U1FieldType,U1FieldQuanta,**prop_input_dict)
+        shifts.FormatShift(into_file)
+        shifts.FormatKappa(into_file)
 
-    PrintDictToFile(filename,into_file,order)
-
-#end function
-
-
-
-def MakePropagator(inputFileBase,reportFile,numGPUs,**kwargs):
-        
-        print('mpi-running "' + ' '.join([executable,'--solver="CGNE+S"','--itermax=1000000']) + '"')
-        print(f'On {numGPUs} GPUs')
-        print(f'The input filestub is "{inputFileBase}"')
-        print()
-
-        runDetails = subprocess.run(['mpirun','-np',str(numGPUs),executable,'--solver=CGNE+S'+' --itermax=1000000'],text=True,input=inputFileBase+'\n',capture_output=True)
-
-        with open(reportFile,'w') as f:
-               f.write(runDetails.stdout)
-               if runDetails.stderr is not None:
-                       f.write(runDetails.stderr)
-        print(f'Report file is: {reportFile}')
+        PrintDictToFile(filename,into_file,order)
 
 
 
@@ -153,17 +181,77 @@ def Input():
         parser.add_argument('source_type',type=str)
         parser.add_argument('sink_type',type=str)
         parser.add_argument('SLURM_ARRAY_JOB_ID',type=str)
-        parser.add_argument('SLURM_ARRAY_TASK_ID',type=int)
+        parser.add_argument('SLURM_ARRAY_TASK_ID',type=str)
         
         args = parser.parse_args()
         values = vars(args)
         return values
+
+
+
+def CallMPI(inputFileBase,reportFile,numGPUs,**kwargs):
+
+        print('mpi-running "' + ' '.join([executable,'--solver="CGNE+S"','--itermax=1000000']) + '"')
+        print(f'On {numGPUs} GPUs')
+        print(f'The input filestub is "{inputFileBase}"')
+        print()
+
+        runDetails = subprocess.run(['mpirun','-np',str(numGPUs),executable,'--solver=CGNE+S'+'--itermax=1000000'],input=inputFileBase+'\n',text=True,capture_output=True)
+
+        with open(reportFile,'w') as f:
+               f.write(runDetails.stdout)
+               if runDetails.stderr is not None:
+                       f.write(runDetails.stderr)
+        print(f'Report file is: {reportFile}')
+
+
+def MakePropagator(quark,values,directories,filename,qprop_extension):
+
+        #Copying values dictionary. Deepcopy so that we can change items for
+        #this quark only.
+        quarkValues = copy.deepcopy(values)
+
+        #Adding prop filename to quarkValue dictionary
+        quarkValues['quarkPrefix'] = directories['prop'].replace('QUARK',quark)
+        
+        if pathlib.Path(quarkValues['quarkPrefix']).is_file():
+                print(f'Skipping {quark} quark. Propagator already exists')
+                return 
+                
+        #Adjusting for u and s quarks
+        if quark == 'u':
+                quarkValues['kd']*=-2
+        if quark == 's':
+                quarkValues['kappa'] = kappa_strange
+
+        #Filestub to pass to quarkpropgpu.x
+        inputFileBase = directories['input'] + filename.replace('QUARK',quark)
+        #The actual input filenames
+        lat_file = inputFileBase + '.lat'
+        clover_file = inputFileBase + '.fm_clover'
+        qprop_file = inputFileBase + qprop_extension
+        #Prop report file
+        reportFile = directories['report'].replace('QUARK',quark)        
+        
+        print(directories['report'])
+        
+
+        MakeLatticeInputFile(lat_file)
+        MakeCloverInputFile(clover_file)
+        MakePropInputFile(qprop_file,quarkValues)
+
+        print()
+        print(f'Doing {quark} quark')
+
+        CallMPI(inputFileBase,reportFile,**rp.SlurmParams())
+
+
                 
 if __name__ == '__main__':
-
+        
         values = Input()
-        values['nth_con'] = values['SLURM_ARRAY_TASK_ID']
-
+        values['nth_con'] = int(values['SLURM_ARRAY_TASK_ID'])
+        
         #need soval,sinkval - going to hack a solution right now
         stuff = sm.SmearingVals('SourceSmearing',source_type=values['source_type'])
         stuff2 = sm.SmearingVals('SinkSmearing',sink_type=values['sink_type'])
@@ -171,46 +259,20 @@ if __name__ == '__main__':
         values['cfgID'] = cfg.ConfigID(**values) #must happen before kappa -> kappa_strange
         
         directories = dirs.FullDirectories(**values,**stuff,**stuff2)
-
-
+        
         #prop input files
-        filename = values['SLURM_ARRAY_JOB_ID'] + '_' + str(values['nth_con'])+'.QUARK'
+        filename = values['SLURM_ARRAY_JOB_ID'] + '_' + values['SLURM_ARRAY_TASK_ID']+'.QUARK'
         src_extension = '.qpsrc_' + values['source_type']
         src_file = directories['input'] + filename + src_extension
         qprop_extension = '.quarkprop'
 
         #Making .qpsrc file, return sourcetype_num also
         values['sourcetype_num'] = MakeSourceInputFile(src_file,**values)
-
+        
         values['cfgFile'] = directories['cfgFile']
-
+        
         
         for quark in ['u','d','s']: #Don't need neutral props, just use zero field d and s props
-
-                values['quarkPrefix'] = directories['prop'].replace('QUARK',quark)
-                if pathlib.Path(values['quarkPrefix']).is_file():
-                        continue #skip existing props
+        
+                MakePropagator(quark,values,directories,filename,qprop_extension)
                 
-                quarkValues = copy.deepcopy(values)
-                
-                if quark == 'u':
-                        quarkValues['kd']*=-2
-
-                if quark == 's':
-                        quarkValues['kappa'] = kappa_strange
-
-                inputFileBase = directories['input'] + filename.replace('QUARK',quark)
-                reportFile = directories['report'].replace('QUARK',quark)
-                lat_file = inputFileBase + '.lat'
-                clover_file = inputFileBase + '.fm_clover'
-                qprop_file = inputFileBase + qprop_extension
-                
-                MakeLatticeInputFile(lat_file)
-                MakeCloverInputFile(clover_file)
-                MakePropInputFile(qprop_file,quarkValues)
-
-                print(f'Doing {quark} quark')
-                
-                MakePropagator(inputFileBase,reportFile,**rp.SlurmParams())
-                exit()
-

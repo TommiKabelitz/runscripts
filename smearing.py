@@ -14,7 +14,7 @@ here. Otherwise, specify them in the pertinent if statement.
 Consider the global values as 'default values.'
 """
 from sys import exit
-
+from directories import FullDirectories
 ##Global variables
 source_location = [1,1,1,16]
 
@@ -78,6 +78,7 @@ def SmearingVals(smear_type,**kwargs):
             so_val = source_value
             src_sm = src_smearing
         elif source_type == 'lp':
+            lapmodefile = FullDirectories('lapMode')
             src_loc = source_location
             nd = numdim
             so_val = source_value
@@ -87,12 +88,14 @@ def SmearingVals(smear_type,**kwargs):
             so_val = source_value
             src_sm = src_smearing
         elif source_type == 'lpsm':
+            lapmodefile = FullDirectories('lapMode')
             nd = numdim
             so_val = source_value
             lp_sm = ['',presmear,lapsmear]
             src_loc = source_location
             src_sm = src_smearing
         elif source_type == 'lpxyz':
+            lapmodefile = FullDirectories('lapMode')
             lp_sm = ['z',presmear,lapsmear]
             nd = numdim
             so_val = source_value

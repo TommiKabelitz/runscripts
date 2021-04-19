@@ -1,6 +1,10 @@
 import os
 import pathlib
+import pprint
+
 import configIDs as cfg
+
+pp = pprint.PrettyPrinter(indent=4).pprint 
 
 #Base directory information 
 #Runscript directory
@@ -30,8 +34,10 @@ configFile = 'RC32x64_B1900Kud0KAPPA00Ks01364000C1715/RC32x64_B1900Kud0KAPPA00Ks
 lapModeDir = '/hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/'
 lapModeFile = 'RC32x64_B1900Kud0KAPPA00Ks01364000C1715/as0nsm0/BFKD/KAPPAModess32t64kBKDCONFIGID.l2ev'
 
-directories = {}
+
 def GetBaseDirectories(directory=None):
+
+    directories = {}
 
     outputDir = baseOutputDir + runIdentifier + outputTree
 
@@ -67,7 +73,7 @@ def GetBaseDirectories(directory=None):
 def FullDirectories(directory=None,kappa=0,kd=0,shift='',source_type='',so_val=0,sink_type='',sink_val=0,cfgID='',**kwargs):
 
     directories = GetBaseDirectories(directory)
-
+    
     for filetype in directories.keys():
 
         replaced = directories[filetype].replace('KAPPA',str(kappa))
@@ -79,8 +85,6 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',source_type='',so_val=0
         directories[filetype] = replaced
 
     for key in directories:
-        print("Making directory")
-        print(directories[key])
         CreateDirectory(directories[key])
     
     return directories
@@ -101,8 +105,11 @@ def CreateDirectory(Input):
     def create(fullFilepath):
         index = fullFilepath.rfind('/')
         directory = fullFilepath[:index]
-        pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
-
+        
+        path = pathlib.Path(directory)
+        if path.exists() is False:
+            path.mkdir(parents=True, exist_ok=True)
+            print(f'Making directory {directory}')
 
     inputType = type(Input)
     if inputType is str:
