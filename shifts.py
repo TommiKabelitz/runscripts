@@ -1,8 +1,8 @@
 import re
 
 
-def FormatShift(arg):
-    """
+def FormatShift(shift,*args,**kwargs):
+    '''
     Returns the x and t shift from a string of form x24t36.
 
     Arguments:
@@ -11,49 +11,59 @@ def FormatShift(arg):
                      either the t or x shift is missing. 
                      Number of digits does not matter, 1,
                      2, or 3 are all fine.
-    
+                     Shift may also be a dictionary 
+                     containing a shift with the key "shift"
     Example Output: 24 24 24 36
     Requires regex module.
-    """
+    '''
+
     #Pattern to grab the numbers from the string
     pattern = re.compile(r'\d+')
 
-    inputType = type(arg)
+    #extracting shift from input
+    inputType = type(shifts)
     if inputType is str:
-        shift = arg
+        shift = shifts
     elif inputType is dict:
-        shift = arg['shift']
+        shift = shifts['shift']
     else:
-        raise TypeError
+        raise TypeError('FormatShift expects input of type str or dict')
 
     #Extracting all numbers according to the pattern
     xshift,tshift = pattern.findall(shift)
 
-    #Casting to int removes zeros from start of shift
+    #Casting to int to remove leading zeros
     #i.e 00->0,01->1
     xshift = int(xshift)
     tshift = int(tshift)
     
-    #Formatting as x y z t
+    #Formatting as 'x y z t'
     output = 3*(str(xshift)+' ')+str(tshift)
 
+    #returning output
     if inputType is str:
         return output
     else:
-        arg['shift'] = output
+        shifts['shift'] = output
         return None
 
 
-def FormatKappa(arg):
-    
-    inputType = type(arg)
-    if inputType is int:
-        return '0.'+str(kappa)
+def FormatKappa(kappa,*args,**kwargs):
+    '''
+    Formats a kappa value into the form 0.kappa .
+
+    Arguments:
+    kappa -- int,str: kappa value
+          -- dict:    dictionary containing kappa value
+                      with key "kappa" - modifies in place
+                      returns, None in this case.
+    '''
+    inputType = type(kappa)
+    if inputType in [int, str]:
+        return f'0.{kappa}'
     elif inputType is dict:
-        kappa = arg['kappa']
-        arg['kappa'] = '0.'+str(kappa)
+        value = kappa['kappa']
+        kappa['kappa'] = f'0.{value}'
         return None
     else:
         raise TypeError
-
-    
