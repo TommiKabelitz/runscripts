@@ -2,10 +2,10 @@
 Module for getting configuration IDs and configuration details.
 
 Contains two main functions.
- - ConfigDetails -- Returns the starting configuration number and total
+  ConfigDetails -- Returns the starting configuration number and total
                     number of configurations based on the run prefix and 
                     kappa value.
- - ConfigIDs     -- Returns the formatted configuration ID, eg -a-1880 
+  ConfigIDs     -- Returns the formatted configuration ID, eg -a-1880 
                     based on current (nth) configuration, starting config
                     and the run prefix
 

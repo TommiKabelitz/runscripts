@@ -1,24 +1,38 @@
 import pathlib
 
-def CreateDirectory(Input):
+def CreateDirectory(paths,*args,**kwargs):
+    '''
+    Given a path including the file, makes the parent directory.
 
+    Arguments:
+    paths -- string: the path to the file or directory to create.
+                     Create multiple at once by passing a list or
+                     dict of paths.
+    '''
     def create(fullFilepath):
+        '''
+        Sub-function to actually create the directory
+        '''
+        #Find the last / in the path
         index = fullFilepath.rfind('/')
+        #Slicing the string to isolate the directory
         directory = fullFilepath[:index]
         
+        #Creating the directory if it does not exist
         path = pathlib.Path(directory)
         if path.exists() is False:
             path.mkdir(parents=True, exist_ok=True)
             print(f'Making directory {directory}')
 
-    inputType = type(Input)
+    #Dealing with input type
+    inputType = type(paths)
     if inputType is str:
-        create(Input)
+        create(paths)
     elif inputType is list:
-        for directory in Input:
+        for directory in paths:
             create(directory)
     elif inputType is dict:
-        for key,directory in Input.values():
+        for key,directory in paths.values():
             create(directory)
     else:
         raise TypeError()
