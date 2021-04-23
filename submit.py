@@ -14,7 +14,7 @@ def RunValues():
     kds = [1]   #field strengths
     shifts = ['x00t00']
     run_prefix = 'a'
-    source_type = 'sm'
+    source_type = 'lp'
     sink_type = 'sm'
     return locals()
 
@@ -47,7 +47,7 @@ def SubmitJobs(kappa_vals,kds,shifts,run_prefix,source_type,sink_type,testing,**
                 subprocess.run(['chmod','+x',filename])
                 
                 #Submitting jobs
-                if testing is False:
+                if testing != 'headnode':
                     #subprocess.run(['sbatch',f'--array=0-{ncon}',filename])
                     subprocess.run(['sbatch',f'--array=1-1',filename])
                 else:
@@ -59,15 +59,21 @@ def SubmitJobs(kappa_vals,kds,shifts,run_prefix,source_type,sink_type,testing,**
 
 def MakeRunscript(filename,kappa,kd,shift,run_prefix,start,ncon,source_type,sink_type,testing):
 
+    partition = None
+    if testing =='testqueue':
+        partition = 'test'
+
     #Open the runscript
     with open(filename,'w') as f:
+
         #Getting slurm request details, ie. partition, num nodes, gpus etc.
-        slurm_details = rp.SlurmParams()
-        
-        WriteSlurmDetails(f,**slurm_details)
+        slurm_details = rp.SlurmParams(partition)
+
+        WriteSlurmDetails(f,testing,**slurm_details)
         WriteMemoryParams(f)
         
-        if testing is True:
+        #Simulating Slurm values for running on head node
+        if testing == 'headnode':
             f.write('SLURM_ARRAY_JOB_ID=1\n')
             f.write('SLURM_ARRAY_TASK_ID=1\n')
 
@@ -76,17 +82,23 @@ def MakeRunscript(filename,kappa,kd,shift,run_prefix,start,ncon,source_type,sink
 
 
 
-def WriteSlurmDetails(f,partition,nodes,ntasks,time,numGPUs,memory,qos,output,**kwargs):
+def WriteSlurmDetails(f,testing,partition,nodes,ntasks,time,numGPUs,memory,qos,output,**kwargs):
+
+    print( f'Partition: {partition}\n'
+          +f'Nodes: {nodes}\n'
+          +f'Time: {time}\n')
+
     f.write(f'#!/bin/bash\n')
     f.write(f'#SBATCH --partition={partition}\n')
     f.write(f'#SBATCH --nodes={nodes}\n')
     f.write(f'#SBATCH --ntasks={ntasks}\n')
     f.write(f'#SBATCH --time={time}\n')
-    f.write(f'#SBATCH --gres=gpu:{numGPUs}\n')
     f.write(f'#SBATCH --mem={memory}GB\n')
     #f.write(f'#SBATCH --qos={qos}\n')
     f.write(f'#SBATCH --output={output}\n')
-
+    if testing is None:
+        f.write(f'#SBATCH --gres=gpu:{numGPUs}\n')
+    
 
 
 def WriteMemoryParams(f):
@@ -101,9 +113,9 @@ def WriteMemoryParams(f):
     
 def Input():
     
-    parser = argparse.ArgumentParser(description='Submits jobs to the queue. Produces propagators and correlation functions')
+    parser = argparse.ArgumentParser(description='Submits jobs to the queue. Produces propagators and correlation functions.')
 
-    parser.add_argument('-t','--testing',help='Skips queue submission, runs on head node',action='store_true')
+    parser.add_argument('-t','--testing',help='run in testing mode, either on head node, or to test queue',choices=['headnode','testqueue'])
     args = parser.parse_args()
     return vars(args)
     

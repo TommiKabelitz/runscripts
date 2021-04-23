@@ -21,16 +21,16 @@ def FormatShift(shift,*args,**kwargs):
     pattern = re.compile(r'\d+')
 
     #extracting shift from input
-    inputType = type(shifts)
+    inputType = type(shift)
     if inputType is str:
-        shift = shifts
+        string = shift
     elif inputType is dict:
-        shift = shifts['shift']
+        string = shift['shift']
     else:
         raise TypeError('FormatShift expects input of type str or dict')
 
     #Extracting all numbers according to the pattern
-    xshift,tshift = pattern.findall(shift)
+    xshift,tshift = pattern.findall(string)
 
     #Casting to int to remove leading zeros
     #i.e 00->0,01->1
@@ -44,7 +44,7 @@ def FormatShift(shift,*args,**kwargs):
     if inputType is str:
         return output
     else:
-        shifts['shift'] = output
+        shift['shift'] = output
         return None
 
 

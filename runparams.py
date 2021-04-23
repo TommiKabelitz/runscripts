@@ -24,7 +24,9 @@ def SlurmParams(partition=None,*args,**kwargs):
         memory = 16 #in GB
 
     qos = 'gxl'
+
     #Put slurm output files into subdirectory of runscripts file.
     # %A is $SLURM_ARRAY_JOB_ID, %a is $SLURM_ARRAY_TASK_ID
     output = dirs.FullDirectories(directory='slurm')['slurm']+'slurm-%A_%a.out'
+
     return locals()

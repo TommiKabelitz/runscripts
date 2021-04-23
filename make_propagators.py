@@ -10,7 +10,7 @@ import runparams as rp
 import shifts
 import smearing as sm
 import sources as src
-
+from utilities import PrintDictToFile
 
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
@@ -52,29 +52,6 @@ def FieldCode(U1FieldType,U1FieldQuanta,kd,**kwargs):
 
 
 
-def PrintDictToFile(filename,dictionary,order=None):
-        '''
-        Prints the values of dictionary to a file, 1 value per line
-        
-        Warning: If order is not provided, the default order of the dictionary
-                 is used. This is the insertion order from python 3.7, before
-                 which that order cannot be guaranteed
-        Arguments:
-        filename -- string: The file to print to
-        dictionary -- dict: The dict to print
-        order -- List/tuple: List/tuple of keys in the order they should be printed
-        '''
-
-        #If order is unspecified, use default ordering
-        if order is None:
-                order = dictionary.keys()
-
-        with open(filename,'w') as f:
-                for key in order:
-                        f.write(str(dictionary[key])+'\n')
-
-
-
 def MakeLatticeInputFile(filename):
         '''
         Make the .lat input file for qpropGPU.x.
@@ -109,16 +86,17 @@ def MakeCloverInputFile(filename):
 
 
 
-def MakeSourceInputFile(filename,source_type,lapmodefile=None,**kwargs):
+def MakeSourceInputFile(filename,source_type,**kwargs):
         
         src_vals = sm.SmearingVals(smear_type='SourceSmearing',source_type=source_type)
         link_vals = sm.SmearingVals(smear_type='LinkSmearing')
 
-        smearing_values = {**src_vals,**link_vals}  #merging dictionaries
+        #Getting the eigenmode file. Only used for some sources.
+        #kwargs should provide kappa,kd,cfgID
+        lapmodefile = dirs.FullDirectories(directory='lapMode',**kwargs)['lapMode']
 
-        #Adding in extras
-        if lapmodefile is not None:
-                smearing_values['lapmodefile'] = lapmodefile
+        #merging dictionaries
+        smearing_values = {**src_vals,**link_vals,'lapmodefile':lapmodefile}  
 
         #Calling functions in sources.py
         FormatFunction = getattr(src,source_type)
@@ -129,13 +107,10 @@ def MakeSourceInputFile(filename,source_type,lapmodefile=None,**kwargs):
 
 
         #Writing lists to file
-        for quark,values in formatted_values.items():
-                #Each set of values are in a list
-                quarkfile = filename.replace('QUARK',quark)
-                with open(quarkfile,'w') as f:
-                        #Convert to string and write to newline, elements of values
-                        f.write('\n'.join(str(line) for line in values))
-                        f.write('\n')
+        with open(filename,'w') as f:
+                #Convert to string and write to newline, elements of values
+                f.write('\n'.join(str(line) for line in formatted_values['values']))
+                f.write('\n')
 
         return sourcetype_num
 
@@ -205,7 +180,7 @@ def CallMPI(inputFileBase,reportFile,numGPUs,**kwargs):
         print(f'Report file is: {reportFile}')
 
 
-def MakePropagator(quark,values,directories,filename,qprop_extension):
+def MakePropagator(quark,values,directories,filename,src_extenstion,qprop_extension):
 
         #Copying values dictionary. Deepcopy so that we can change items for
         #this quark only.
@@ -217,6 +192,24 @@ def MakePropagator(quark,values,directories,filename,qprop_extension):
         if pathlib.Path(quarkValues['quarkPrefix']).is_file():
                 print(f'Skipping {quark} quark. Propagator already exists')
                 return 
+
+        ##Constructing Input file paths files
+        #Filestub to pass to quarkpropgpu.x
+        inputFileBase = directories['input'] + filename.replace('QUARK',quark)
+        #The actual input filenames
+        lat_file = inputFileBase + '.lat'
+        clover_file = inputFileBase + '.fm_clover'
+        src_file = inputFileBase + src_extension
+        qprop_file = inputFileBase + qprop_extension
+        #Prop report file
+        reportFile = directories['report'].replace('QUARK',quark)        
+        
+        #Making input files - Source files need to be made before u and s
+        #adjustments due to the lapmodefiles
+        MakeLatticeInputFile(lat_file)
+        MakeCloverInputFile(clover_file)
+        quarkValues['sourcetype_num'] = MakeSourceInputFile(src_file,**quarkValues)
+
                 
         #Adjusting for u and s quarks
         if quark == 'u':
@@ -224,20 +217,7 @@ def MakePropagator(quark,values,directories,filename,qprop_extension):
         if quark == 's':
                 quarkValues['kappa'] = kappa_strange
 
-        #Filestub to pass to quarkpropgpu.x
-        inputFileBase = directories['input'] + filename.replace('QUARK',quark)
-        #The actual input filenames
-        lat_file = inputFileBase + '.lat'
-        clover_file = inputFileBase + '.fm_clover'
-        qprop_file = inputFileBase + qprop_extension
-        #Prop report file
-        reportFile = directories['report'].replace('QUARK',quark)        
-        
-        print(directories['report'])
-        
-
-        MakeLatticeInputFile(lat_file)
-        MakeCloverInputFile(clover_file)
+        #Propagator input file needs to be made after adjustments due to u and s
         MakePropInputFile(qprop_file,quarkValues)
 
         print()
@@ -263,16 +243,13 @@ if __name__ == '__main__':
         #prop input files
         filename = values['SLURM_ARRAY_JOB_ID'] + '_' + values['SLURM_ARRAY_TASK_ID']+'.QUARK'
         src_extension = '.qpsrc_' + values['source_type']
-        src_file = directories['input'] + filename + src_extension
         qprop_extension = '.quarkprop'
 
-        #Making .qpsrc file, return sourcetype_num also
-        values['sourcetype_num'] = MakeSourceInputFile(src_file,**values)
         
         values['cfgFile'] = directories['cfgFile']
         
         
         for quark in ['u','d','s']: #Don't need neutral props, just use zero field d and s props
         
-                MakePropagator(quark,values,directories,filename,qprop_extension)
+                MakePropagator(quark,values,directories,filename,src_extension,qprop_extension)
                 
