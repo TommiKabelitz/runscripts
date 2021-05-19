@@ -4,8 +4,12 @@ test.py
 test.py~
 make_noise*
 testscript
-/Inputs/*
+/archived_slurm_output/*
+/cfunInput/*
+/LandauModes/*
+/propInput/*
 /scripts/*
 /slurm/*
-/__pycache__/*
 /testing/*
+/__pycache__/*
+

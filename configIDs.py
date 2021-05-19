@@ -23,9 +23,10 @@ NOTE: SOME START AND NCON VALUES DIFFER FROM THOSE ON THE PACS-CS SITE.
 #in ConfigDetails.
 #Function names are not more explicit because I couldn't think of anything
 #better.
+
 #13700
-def One(kappa,run_prefix):
-    if run_prefix == 'b':
+def One(kappa,runPrefix):
+    if runPrefix == 'b':
         start = 2510
         ncon = 399
         return start, ncon
@@ -33,8 +34,8 @@ def One(kappa,run_prefix):
         raise ValueError("Invalid (kappa,prefix) combination. Terminating")
 
 #13727
-def Two(kappa,run_prefix):
-    if run_prefix == 'b':
+def Two(kappa,runPrefix):
+    if runPrefix == 'b':
         start = 1310
         ncon = 397
         return start, ncon
@@ -42,12 +43,12 @@ def Two(kappa,run_prefix):
         raise ValueError("Invalid (kappa,prefix) combination. Terminating")
 
 #13754
-def Three(kappa,run_prefix):
-    if run_prefix == 'a':
+def Three(kappa,runPrefix):
+    if runPrefix == 'a':
         start = 2510
         ncon = 200
         return start, ncon
-    elif run_prefix == 'b':
+    elif runPrefix == 'b':
         start = 2510
         ncon = 249
         return start, ncon
@@ -55,12 +56,12 @@ def Three(kappa,run_prefix):
         raise ValueError("Invalid (kappa,prefix) combination. Terminating")
 
 #13770
-def Four(kappa,run_prefix):
-    if run_prefix == 'a':
+def Four(kappa,runPrefix):
+    if runPrefix == 'a':
         start = 1880
         ncon = 400
         return start, ncon
-    elif run_prefix == 'b':
+    elif runPrefix == 'b':
         start = 1780
         ncon = 399
         return start, ncon
@@ -68,38 +69,51 @@ def Four(kappa,run_prefix):
         raise ValueError("Invalid (kappa,prefix) combination. Terminating")
 
 #13781
-def Five(kappa,run_prefix):
-        if run_prefix == 'gM':
+def Five(kappa,runPrefix):
+        if runPrefix == 'gM':
             start = 1200
             ncon = 44
             return start, ncon
-        elif run_prefix == 'hM':
+        elif runPrefix == 'hM':
             start = 1240
             ncon = 22
             return start, ncon
-        elif run_prefix == 'iM':
+        elif runPrefix == 'iM':
             start = 870
             ncon = 44 
             return start, ncon
-        elif run_prefix == 'jM':
+        elif runPrefix == 'jM':
             start = 260
             ncon = 44
             return start, ncon
-        elif run_prefix == 'kM':
+        elif runPrefix == 'kM':
             start = 1090
             ncon = 43
             return start, ncon
         else:
             raise ValueError("Invalid (kappa,prefix) combination. Terminating")
 
-def ConfigDetails(kappa,run_prefix,*args,**kwargs):
+
+#12400
+def Six(kappa,runPrefix):
+    '''
+    This is for free field testing, the start point and number of configurations are arbitrary
+    '''
+    start = 1000
+    ncon = 5
+    return start,ncon
+
+
+
+
+def ConfigDetails(kappa,runPrefix,*args,**kwargs):
     '''
     Returns the starting configuration number and total number of configurations
 
     Function arguments:
     kappa -- Integer:        The kappa value, relating to the light quark mass 
                              of the configuration
-    run_prefix -- Character: The run_prefix or series name within the
+    runPrefix -- Character: The runPrefix or series name within the
                              configuration set.
 
     Returns:
@@ -111,35 +125,36 @@ def ConfigDetails(kappa,run_prefix,*args,**kwargs):
         13727:Two,
         13754:Three,
         13770:Four,
-        13781:Five
+        13781:Five,
+        12400:Six
     }
     case = switch[kappa]
-    start, ncon = case(kappa,run_prefix)
+    start, ncon = case(kappa,runPrefix)
     
     return start,ncon
 
-def ConfigID(nth_con,run_prefix,start,*args,**kwargs):
+def ConfigID(nthCon,runPrefix,start,*args,**kwargs):
     '''
     Returns a formatted configuration ID, eg -a-1880
     
     Function arguments:
-    nth_con -- Integer:      The current configuration. Eg the 1st or 10th
+    nthCon -- Integer:      The current configuration. Eg the 1st or 10th
                              configuration to be used.
     start -- Integer:        The first configuration number. Eg 1880
-    run_prefix -- Character: The run_prefix or series name within the
+    runPrefix -- Character: The runPrefix or series name within the
                              configuration set.
     
     Returns:
-    Formatted ID suffix, ie -a-1880.
+    Formatted ID suffix, ie -a-001880.
     '''
-    #Different series types (run_prefix) have different gaps between 
+    #Different series types (runPrefix) have different gaps between 
     #configuration numbers.
-    if run_prefix in ['a','b']:
+    if runPrefix in ['a','b']:
         gap = 10
-    elif run_prefix in ['gM','hM','iM','jM','kM']:
+    elif runPrefix in ['gM','hM','iM','jM','kM']:
         gap = 20
     else:
         raise ValueError('Invalid run prefix')
     
-    ID = start + (nth_con-1)*gap
-    return f'-{run_prefix}-00{ID}'
+    ID = start + (nthCon-1)*gap
+    return f'-{runPrefix}-00{ID}'

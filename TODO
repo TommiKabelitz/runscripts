@@ -1,0 +1,4 @@
+Add slurm job id numbers to tagfiles and report files within python script
+Write Comments into input files
+Skip either u or d prop for zero field
+sort our loop props

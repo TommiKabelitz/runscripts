@@ -2,53 +2,43 @@ import argparse
 import os
 import pathlib
 import subprocess
+from datetime import datetime
 
 import configIDs as cfg
 import directories as dirs
-import runparams as rp
+import parameters as params
 
-script = '/home/a1724542/PhD/runscripts/make_propagators.py'
+script = '/home/a1724542/PhD/runscripts/manageJob.py'
 
-def RunValues():
-    kappa_vals = [13770]
-    kds = [1]   #field strengths
-    shifts = ['x00t00']
-    run_prefix = 'a'
-    source_type = 'lp'
-    sink_type = 'sm'
-    return locals()
+def SubmitJobs(kappaValues,kds,shifts,runPrefix,sourceType,sinkType,testing,**kwargs):
 
-
-
-def SubmitJobs(kappa_vals,kds,shifts,run_prefix,source_type,sink_type,testing,**kwargs):
-    
     #Creating directory for the runscript to go in
     directory = dirs.FullDirectories(directory='script')['script']
 
     #Looping over list of parameters to submit
-    for kappa in kappa_vals:
+    for kappa in kappaValues:
         for kd in kds:        
             for shift in shifts:
 
                 print('\nkappa: ',str(kappa))
                 print('kd: ',str(kd))
                 print('shift: ',shift)
-                print('run_prefix: ',run_prefix)
+                print('runPrefix: ',runPrefix)
 
                 #sbatch runscript file
-                filename = directory + run_prefix + str(kappa) + str(kd) + shift
+                filename =f'{directory}{runPrefix}{kappa}BF{kd}{shift}'
 
                 #Getting first ID eg. 1880 and num configurations eg. 400 for gauge fields
-                start, ncon = cfg.ConfigDetails(kappa,run_prefix)
+                start, ncon = cfg.ConfigDetails(kappa,runPrefix)
                 print(f'(start,ncon):({start},{ncon})')
 
                 #Runscript to run with sbatch
-                MakeRunscript(filename,kappa,kd,shift,run_prefix,start,ncon,source_type,sink_type,testing)
+                MakeRunscript(filename,kappa,kd,shift,runPrefix,start,ncon,sourceType,sinkType,testing)
                 subprocess.run(['chmod','+x',filename])
-                
+            
                 #Submitting jobs
                 if testing != 'headnode':
-                    #subprocess.run(['sbatch',f'--array=0-{ncon}',filename])
+                    #subprocess.run(['sbatch',f'--array=1-{ncon}',filename])
                     subprocess.run(['sbatch',f'--array=1-1',filename])
                 else:
                     subprocess.run([filename])
@@ -57,7 +47,7 @@ def SubmitJobs(kappa_vals,kds,shifts,run_prefix,source_type,sink_type,testing,**
 
 
 
-def MakeRunscript(filename,kappa,kd,shift,run_prefix,start,ncon,source_type,sink_type,testing):
+def MakeRunscript(filename,kappa,kd,shift,runPrefix,start,ncon,sourceType,sinkType,testing):
 
     partition = None
     if testing =='testqueue':
@@ -67,9 +57,11 @@ def MakeRunscript(filename,kappa,kd,shift,run_prefix,start,ncon,source_type,sink
     with open(filename,'w') as f:
 
         #Getting slurm request details, ie. partition, num nodes, gpus etc.
-        slurm_details = rp.SlurmParams(partition)
+        slurm_details = params.params()['slurmParams']
+        
+        output = dirs.FullDirectories(directory='slurm')['slurm']+'slurm-%A_%a.out'
 
-        WriteSlurmDetails(f,testing,**slurm_details)
+        WriteSlurmDetails(f,testing,output=output,**slurm_details)
         WriteMemoryParams(f)
         
         #Simulating Slurm values for running on head node
@@ -78,11 +70,12 @@ def MakeRunscript(filename,kappa,kd,shift,run_prefix,start,ncon,source_type,sink
             f.write('SLURM_ARRAY_TASK_ID=1\n')
 
         #Write the propagator execution line
-        f.write(f'python {script} {kappa} {kd} {shift} {run_prefix} {start} {ncon} {source_type} {sink_type} $SLURM_ARRAY_JOB_ID $SLURM_ARRAY_TASK_ID\n')
+        f.write(f'python {script} {kappa} {kd} {shift} $SLURM_ARRAY_JOB_ID $SLURM_ARRAY_TASK_ID\n')
+        #f.write(f'python {script} {kappa} {kd} {shift} {runPrefix} {start} {ncon} {sourceType} {sinkType} $SLURM_ARRAY_JOB_ID $SLURM_ARRAY_TASK_ID\n')
 
 
 
-def WriteSlurmDetails(f,testing,partition,nodes,ntasks,time,numGPUs,memory,qos,output,**kwargs):
+def WriteSlurmDetails(f,testing,partition,nodes,numCPUs,time,numGPUs,memory,output,**kwargs):
 
     print( f'Partition: {partition}\n'
           +f'Nodes: {nodes}\n'
@@ -91,10 +84,9 @@ def WriteSlurmDetails(f,testing,partition,nodes,ntasks,time,numGPUs,memory,qos,o
     f.write(f'#!/bin/bash\n')
     f.write(f'#SBATCH --partition={partition}\n')
     f.write(f'#SBATCH --nodes={nodes}\n')
-    f.write(f'#SBATCH --ntasks={ntasks}\n')
+    f.write(f'#SBATCH --ntasks={numCPUs}\n')
     f.write(f'#SBATCH --time={time}\n')
     f.write(f'#SBATCH --mem={memory}GB\n')
-    #f.write(f'#SBATCH --qos={qos}\n')
     f.write(f'#SBATCH --output={output}\n')
     if testing is None:
         f.write(f'#SBATCH --gres=gpu:{numGPUs}\n')
@@ -103,7 +95,6 @@ def WriteSlurmDetails(f,testing,partition,nodes,ntasks,time,numGPUs,memory,qos,o
 
 def WriteMemoryParams(f):
     f.write('echo Running on host `hostname`\n')
-    f.write('echo Time is `date`\n')
     f.write('source /home/a1724542/pho_modules.sh\n')
     f.write('ulimit -s unlimited\n')
     f.write('ulimit -c 0\n')
@@ -123,8 +114,10 @@ def Input():
 
 if __name__ == '__main__':
 
-    values = {**RunValues(),**Input()}
+    print(f'Time is {datetime.now()}')
+
+    values = {**params.params()['runValues'],**Input()}
 
     SubmitJobs(**values)
     
-    subprocess.run('echo Time is `date`',shell=True)
+

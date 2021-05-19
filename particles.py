@@ -31,42 +31,95 @@ def AntiParticle(arg):
         raise TypeError
 
 
-        
-#Partially neutral
-def ddnl():
 
-    props['struct'] = ['d','d','nl']
-    
-def ddnh():
+#Baryons        
 
-    props['struct'] = ['d','d','nh']
-
-def nlnld():
-
-    props['struct'] = ['nl','nl','d']
-
-def nhnhd():
-
-    props['struct'] = ['nh','nh','d']
-
-#"Real" Baryons
 def proton():
 
-    props['struct'] = ['u','u','d']
+    props = {}
 
-def neutron():
+    props['lorentz_indices'] = []
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['a;b;c']
+    props['cfun_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) d^{b}] (I) u^{c}']
+    return props
 
-    props['struct'] = ['d','d','u']
+def protonbar():
 
-def sigma_p():
+    props = {}
 
-    props['struct'] = ['u','u','s']
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['ap;bp;cp']
+    props['cfun_terms'] = ['-1.0 * Au^{cp} (I) [Ad^{bp} (C\gamma_{5}) Au^{ap}]']
+    return props
 
-#"Real" Mesons
-def pi_p():
 
-    props['struct'] = ['u','dbar']
+def sigmap():
 
-def pi_m():
+    props = {}
 
-    props['struct'] = ['d','ubar']
+    props['lorentz_indices'] = []
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['a;b;c']
+    props['cfun_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) s^{b}] (I) u^{c}']
+    return props
+
+def sigmapbar():
+
+    props = {}
+
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['ap;bp;cp']
+    props['cfun_terms'] = ['-1.0 * Au^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap}]']
+    return props
+
+
+#Mesons
+
+def pip():
+
+    props = {}
+
+    props['lorentz_indices'] = []
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = []
+    props['cfun_terms'] = ['1.0 * [Ad^{e} (\gamma_{5}) u^{e}]']
+    return props
+
+def pipbar():
+
+    props = {}
+
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = []
+    props['cfun_terms'] = ['-1.0 * [Au^{ep} (\gamma_{5}) d^{ep}']
+    return props
+
+
+def QuarkCharge(quark,*args,**kwargs):
+    
+    if quark == 'u':
+        return 2
+    elif quark in ['d','s']:
+        return -1
+    elif 'n' in quark:
+        return 0
+    else:
+        raise NotImplementedError(f'{quark} is not implemented')
+
+
+def HadronicCharge(kd,particle,structure,*args,**kwargs):
+    
+    counts = []
+    for quark in ['u','d','s']:
+        counts.append(globals()[particle]()['cfun_terms'][0].count(quark))
+        
+    charge = 0
+    for quark,count in zip(structure,counts):
+        charge += QuarkCharge(quark)*count
+        
+    if 'bar' in particle:
+        return -1*charge*kd
+    else:
+        return charge*kd
+

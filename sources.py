@@ -15,24 +15,24 @@ point(pt),smeared(sm),Laplacian(lp),lpsm,lpxyz,xyz
 Adding sources requires addition here and in smearing.py.
 
 Function arguments:
-src_loc -- Integer list: the x,y,z,t coordinates of the source
+sourceLocation -- Integer list: the x,y,z,t coordinates of the source
 so_val -- Integer: The 'source value,' ie. 
                    -for smeared sources, the number of smeared
                     sources
                    -for lp, number of emodes projected at 
                     the source
 lapmodefile -- String: Location of the eigenmodes for the quark.
-nd -- Integer: Related to the Laplacian projection. Number of 
+nDim_lpsrc -- Integer: Related to the Laplacian projection. Number of 
                    dimensions.
-lp_sm = [smearcode,presmear,lapsmear]
+lp_sm = [smearcode,preSmear_lpsmsrc,lapsmear]
             -- List [str,bool,int]: Parameters related to Laplacian 
                    smearing. In order, smearing directions,
-                   presmear (smear before or after projection),
+                   preSmear_lpsmsrc (smear before or after projection),
                    number of laplacian smearing sweeps.
-src_sm = [alpha_smsrc,useUzero,u0_smsrc]
+src_sm = [alpha_smsrc,useUzero,u0_smsrc] 
             -- List [float,bool,float]: Parameters related to the 
                    smearing of the source. See /src/sourcetypes.f90
-link_sm = [use_stout,alpha_fat,swps_fat]
+link_sm = [useStout_lnk,alphaFat_lnk,swpsFat_lnk]
             -- List [bool,float,int]: Parameters related to link
                    smearing. In order, whether to do stout
                    link smearing, the alpha value and the
@@ -41,36 +41,36 @@ link_sm = [use_stout,alpha_fat,swps_fat]
 '''
 
 
-def pt(src_loc, **kwargs):
+def pt(sourceLocation, *args, **kwargs):
     '''
     Returns key information for a point source.
 
-    Point source is no smearing.
+    Point source is no smearing or projection.
     '''
 
     source = {}
     source['sourcetype_num'] = 1
-    source['values'] = src_loc
+    source['values'] = sourceLocation
     
     return source
 
 
 
 
-def sm(src_loc, so_val, src_sm, link_sm, **kwargs):
+def sm(sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
     '''
     Returns key information for a normally smeared source.
     '''
 
     source = {}
     source['sourcetype_num'] = 3
-    source['values'] = src_loc + [ so_val ] + src_sm + link_sm
+    source['values'] = sourceLocation + [ sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk ]
     
     return source
 
 
 
-def lp(lapmodefile, nd, so_val, src_loc, **kwargs):
+def lp(lapmodefile, nDim_lpsrc, nModes_lpsrc, sourceLocation, *args, **kwargs):
     '''
     Returns key information for Laplacian source.
 
@@ -80,56 +80,54 @@ def lp(lapmodefile, nd, so_val, src_loc, **kwargs):
 
     source = {}
     source['sourcetype_num'] = 7
-    source['values'] = [ lapmodefile,nd,so_val ] + src_loc
+    source['values'] = [ lapmodefile, nDim_lpsrc, nModes_lpsrc ] + sourceLocation
 
     return source
 
-def xyz(lp_sm, src_loc, so_val, src_sm, link_sm, **kwargs):
+def xyz(sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
     '''
     Returns key information for the xyz source
 
-    Does no projection and smears only in the direction(s) 
-    provided by smearcode in src_sm.
+    Does no projection and smears only in the x and y directions
+    (Not 100% on smearing directions)
     '''
-    smearcode = lp_sm[0]     #unpacking
+    smearcode = 'xy'
     source = {}
     source['sourcetype_num'] = 8
-    source['values'] = [smearcode] + src_loc + [ so_val ] + src_sm + link_sm
+    source['values'] = [smearcode] + sourceLocation + [ sweeps_smsrc, alpha_smsrc,useUzero_smsrc,u0_smsrc + useStout_lnk,alphaFat_lnk,swpsFat_lnk ]
 
     return source
 
 
 
-def lpsm(lapmodefile, nd, so_val, lp_sm, src_loc, src_sm, link_sm, **kwargs):
+def lpsm(lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
     '''
     Returns key information for the Laplacian, smeared source.
 
     Does Laplacian projection and smears in all spatial directions (we think).
-    Is passed smearcode through src_sm, but ignores it.
     '''
 
-    smearcode,presmear,lapsmear=lp_sm     #unpacking
     source = {}
     source['sourcetype_num'] = 9
-    source['values'] = [ lapmodefile,nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
+    source['values'] = [ lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc ] + sourceLocation + [ sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk]
     
     return source
 
 
 
 
-def lpxyz(lp_sm, lapmodefile, nd, so_val, src_loc, src_sm, link_sm, **kwargs):
+def lpxyz(lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
     '''
     Returns key information for the Laplacian, xyz source.
 
     Laplacian xyz source does Laplacian projection and smearing.
-    Smears only in direction provided by smearcode, string in src_sm.
+    Smears only in direction(s) provided by smearcode.
     '''
 
-    smearcode,presmear,lapsmear=lp_sm     #unpacking
+    smearcode = 'z'
+
     source = {}
     source['sourcetype_num'] = 10
-    source['values'] = [ smearcode,lapmodefile,nd,so_val,presmear ] + src_loc + [ lapsmear ] + src_sm + link_sm
+    source['values'] = [ smearcode,lapmodefile,nDim_lpsrc,nModes_lpsrc,preSmear_lpsmsrc ] + sourceLocation + [ sweeps_smsrc,alpha_smsrc,useUzero_smsrc,u0_smsrc, useStout_lnk,alphaFat_lnk,swpsFat_lnk ]
     
     return source
-

@@ -1,5 +1,12 @@
 import pathlib
 
+def WriteListLengthnList(fileObject,listToWrite):
+    length = len(listToWrite)
+    fileObject.write(f'{length}\n')
+    for element in listToWrite:
+        fileObject.write(f'{element}\n')
+
+
 def CreateDirectory(paths,*args,**kwargs):
     '''
     Given a path including the file, makes the parent directory.
@@ -9,20 +16,20 @@ def CreateDirectory(paths,*args,**kwargs):
                      Create multiple at once by passing a list or
                      dict of paths.
     '''
-    def create(fullFilepath):
+    def create(fullFilePath):
         '''
         Sub-function to actually create the directory
         '''
-        #Find the last / in the path
-        index = fullFilepath.rfind('/')
-        #Slicing the string to isolate the directory
-        directory = fullFilepath[:index]
-        
+        directory = IsolateDirectory(fullFilePath)
         #Creating the directory if it does not exist
         path = pathlib.Path(directory)
         if path.exists() is False:
-            path.mkdir(parents=True, exist_ok=True)
             print(f'Making directory {directory}')
+            try:
+                path.mkdir(parents=True, exist_ok=True)
+            except PermissionError:
+                print(f'Permission to create {directory} denied')
+
 
     #Dealing with input type
     inputType = type(paths)
@@ -36,6 +43,16 @@ def CreateDirectory(paths,*args,**kwargs):
             create(directory)
     else:
         raise TypeError()
+
+
+def IsolateDirectory(fullFilePath,*args,**kwargs):
+    '''
+    Takes a file path and returns only the directory in which the file is located.
+    '''
+    #Find the last / in the path
+    index = fullFilePath.rfind('/')
+    #Slicing the string to isolate the directory
+    return fullFilePath[:index]
 
 
 
@@ -59,3 +76,4 @@ def PrintDictToFile(filename,dictionary,order=None):
         with open(filename,'w') as f:
                 for key in order:
                         f.write(str(dictionary[key])+'\n')
+

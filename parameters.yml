@@ -1,0 +1,118 @@
+
+runValues:
+  kappaValues: [13770]
+  kds: [1]
+  shifts: [x00t00]
+  runPrefix: a
+  sourceType: sm
+  sinkType: laplacian
+  structureList: [['u','d','s']]
+  particleList: [['proton','protonbar'],['pip','pipbar']]
+
+#time format is D-HH:MM:SS, must be in quotes
+#memory in GB
+slurmParams:
+  partition: batch
+  nodes: 1
+  numCPUs: 4
+  time: '02:00:00'
+  numGPUs: 2
+  memory: 64
+
+
+#All caps sections are replaced with the relevant value at the appropriate time
+#Currently KAPPA,SOURCE,SINK,CONFIGID,KD,SHIFT are available for replacement
+directories:
+  runscriptDir: /home/a1724542/PhD/runscripts/
+  baseOutputDir: /hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/
+  runIdentifier: testing/
+  outputTree: kKAPPA/BFKD/shSHIFT/
+
+  propFileBase: QUARK_SOSOURCE_CFGCONFIGID
+  propFormat: prop
+  cfunFileBase: STRUCTURE_SOSOURCE_SISINK_icfg
+  cfunFormat: gencf
+  
+  configDir: /hpcfs/groups/cssm-hpc-users/PACS-CS/
+  configFile: RC32x64_B1900Kud0KAPPA00Ks01364000C1715/RC32x64_B1900Kud0KAPPA00Ks01364000C1715CONFIGID
+  configFormat: ildg
+
+  lapModeDir: /hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/
+  lapModeFile: RC32x64_B1900Kud0KAPPA00Ks01364000C1715/as0nsm0/BFKD/KAPPAModess32t64kBKDCONFIGID.l2ev
+
+  landauDir: /home/a1724542/PhD/runscripts/LandauModes/
+  landauFile: LandauModeBasisRealSourcenM18nxNXnyNYx00y00kBKH.dat
+
+
+
+sourcesink:
+  #[x,y,z,t]
+  sourceLocation: [1,1,1,16]
+
+  #Smeared source related parameters
+  #sweeps_smsrc also used for smeared Laplacian sources
+  alpha_smsrc: 0.7
+  useUzero_smsrc: f
+  u0_smsrc: 1.0
+  sweeps_smsrc: 250
+  
+  #Laplacian source related parameters
+  nDim_lpsrc: 2
+  nModes_lpsrc: 250
+  preSmear_lpsmsrc: t
+
+  #Link smearing related parameters
+  useStout_lnk: t
+  alphaFat_lnk: 0.1
+  swpsFat_lnk: 10
+
+  #Sink smearing related parameters. 
+  sweeps_smsnk: [0,250]
+  sinkSmearcode: xyz
+  alpha_smsnk: 0.7
+  u0_smsnk: 1.0
+  
+  #Laplacian sink related parameters. sinkCode is optional label that cfungen
+  #appends in cfun filename. Should be '' if not desired
+  nDim_lpsnk: 2
+  sinkCode: ''  
+  nModes_lpsnk: 96
+
+  
+
+cfun:
+  su3FlavLimit: f
+  parallelIO: f
+  gmaRep: sakurai
+  gellMannRep: fundamental
+  doUstar: f
+  quarkList: [u,d,s,n,ns]
+  executable: /home/a1724542/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
+  
+lattice:
+  extent: [32,32,32,64]
+
+
+propagator:
+  tolerance: '1.0d-5'
+  fermionAction: clover
+  U1FieldType: B
+  U1FieldQuanta: k
+  C_SW: 1.1715
+  strangeKappa: 13665
+  executable: /home/a1724542/PhD/cola/trunk/cuda/quarkpropGPU.x
+  
+
+
+hadronicProjection:
+  fourier:
+    projection: Fourier
+    useLandau: f
+    fullLandauFile: Fourier
+    pmin: 0
+    pmax: 0
+
+  landau:
+    useLandau: t
+    pmin: -1
+  
