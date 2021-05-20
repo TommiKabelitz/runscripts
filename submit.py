@@ -8,11 +8,20 @@ import configIDs as cfg
 import directories as dirs
 import parameters as params
 
+#Script to be called within the job
 script = '/home/a1724542/PhD/runscripts/manageJob.py'
 
-def SubmitJobs(kappaValues,kds,shifts,runPrefix,sourceType,sinkType,testing,**kwargs):
 
-    #Creating directory for the runscript to go in
+
+def SubmitJobs(kappaValues,kds,shifts,runPrefix,testing,*args,**kwargs):
+    '''
+    Submits jobs to the queue.
+
+    kappaValues, kds, shifts are looped over
+    Arguments:
+    kappaValues -- int list: kappa values to loop over
+    '''
+    #Getting the directory for the runscript
     directory = dirs.FullDirectories(directory='script')['script']
 
     #Looping over list of parameters to submit
@@ -20,12 +29,13 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,sourceType,sinkType,testing,**kw
         for kd in kds:        
             for shift in shifts:
 
-                print('\nkappa: ',str(kappa))
+                print()
+                print('kappa: ',str(kappa))
                 print('kd: ',str(kd))
                 print('shift: ',shift)
                 print('runPrefix: ',runPrefix)
 
-                #sbatch runscript file
+                #Compiling the runscript filename
                 filename =f'{directory}{runPrefix}{kappa}BF{kd}{shift}'
 
                 #Getting first ID eg. 1880 and num configurations eg. 400 for gauge fields
@@ -33,35 +43,36 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,sourceType,sinkType,testing,**kw
                 print(f'(start,ncon):({start},{ncon})')
 
                 #Runscript to run with sbatch
-                MakeRunscript(filename,kappa,kd,shift,runPrefix,start,ncon,sourceType,sinkType,testing)
+                MakeRunscript(filename,kappa,kd,shift,testing)
                 subprocess.run(['chmod','+x',filename])
             
                 #Submitting jobs
-                if testing != 'headnode':
-                    #subprocess.run(['sbatch',f'--array=1-{ncon}',filename])
+                if testing is None:
+                    subprocess.run(['sbatch',f'--array=1-{ncon}',filename])
+                elif testing in ['fullqueue','testqueue']:
                     subprocess.run(['sbatch',f'--array=1-1',filename])
-                else:
+                elif testing == 'headnode':
                     subprocess.run([filename])
                 
 
 
 
 
-def MakeRunscript(filename,kappa,kd,shift,runPrefix,start,ncon,sourceType,sinkType,testing):
+def MakeRunscript(filename,kappa,kd,shift,testing):
 
-    partition = None
+    #Getting slurm request details, ie. partition, num nodes, gpus etc.
+    slurmDetails = params.params()['slurmParams']
+
     if testing =='testqueue':
-        partition = 'test'
+        slurmDetails['partition'] = 'test'
+        slurmDetails['time'] = '00:30:00'
+        slurmDetails['memory'] = 16
 
     #Open the runscript
     with open(filename,'w') as f:
-
-        #Getting slurm request details, ie. partition, num nodes, gpus etc.
-        slurm_details = params.params()['slurmParams']
         
         output = dirs.FullDirectories(directory='slurm')['slurm']+'slurm-%A_%a.out'
-
-        WriteSlurmDetails(f,testing,output=output,**slurm_details)
+        WriteSlurmDetails(f,output=output,**slurmDetails)
         WriteMemoryParams(f)
         
         #Simulating Slurm values for running on head node
@@ -69,13 +80,13 @@ def MakeRunscript(filename,kappa,kd,shift,runPrefix,start,ncon,sourceType,sinkTy
             f.write('SLURM_ARRAY_JOB_ID=1\n')
             f.write('SLURM_ARRAY_TASK_ID=1\n')
 
-        #Write the propagator execution line
+        #Write the line which calls the python job script
         f.write(f'python {script} {kappa} {kd} {shift} $SLURM_ARRAY_JOB_ID $SLURM_ARRAY_TASK_ID\n')
-        #f.write(f'python {script} {kappa} {kd} {shift} {runPrefix} {start} {ncon} {sourceType} {sinkType} $SLURM_ARRAY_JOB_ID $SLURM_ARRAY_TASK_ID\n')
 
 
 
-def WriteSlurmDetails(f,testing,partition,nodes,numCPUs,time,numGPUs,memory,output,**kwargs):
+
+def WriteSlurmDetails(f,partition,nodes,numCPUs,time,numGPUs,memory,output,**kwargs):
 
     print( f'Partition: {partition}\n'
           +f'Nodes: {nodes}\n'
@@ -88,7 +99,7 @@ def WriteSlurmDetails(f,testing,partition,nodes,numCPUs,time,numGPUs,memory,outp
     f.write(f'#SBATCH --time={time}\n')
     f.write(f'#SBATCH --mem={memory}GB\n')
     f.write(f'#SBATCH --output={output}\n')
-    if testing is None:
+    if partition != 'test':
         f.write(f'#SBATCH --gres=gpu:{numGPUs}\n')
     
 
@@ -106,7 +117,7 @@ def Input():
     
     parser = argparse.ArgumentParser(description='Submits jobs to the queue. Produces propagators and correlation functions.')
 
-    parser.add_argument('-t','--testing',help='run in testing mode, either on head node, or to test queue',choices=['headnode','testqueue'])
+    parser.add_argument('-t','--testing',help='run in testing mode. Runs on head node (no GPUs). Else submits only 1 configuration to either the test queue (no GPUs) or the full queue.',choices=['headnode','testqueue','fullqueue'])
     args = parser.parse_args()
     return vars(args)
     

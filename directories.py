@@ -47,13 +47,10 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     directories['prop'] = outputDir + 'props/' +  base.propFileBase
     directories['propReport'] = outputDir + 'reports/' +  base.propFileBase + '.proprep'
     directories['cfunReport'] = outputDir +'reports/' + base.cfunFileBase + '.cfunrep'
-    directories['tagFile'] = outputDir + 'tagfiles/' + base.cfunFileBase
-
+    
     ##Saving other file paths and directories to directories dictionary
     #Configuration Files
     directories['cfgFile'] = base.configDir + base.configFile
-    #Laplacian e-modes
-    #directories['lapMode'] = base.lapModeDir + base.lapModeFile
     #COLA input directories
     directories['propInput'] = base.runscriptDir + 'propInput/'
     directories['cfunInput'] = base.runscriptDir + 'cfunInput/'
@@ -77,7 +74,7 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     return {key:directories[key] for key in directory if key in directories.keys()}  
 
 
-def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sweeps_smsrc=0,nModes_lpsrc=0,cfgID='',structure=[],kH=0,*args,**kwargs):
+def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=0,nModes_lpsnk=0,cfgID='',kH=0,*args,**kwargs):
     '''
     Replaces placeholders in paths, makes directories and returns file paths.
     
@@ -92,20 +89,28 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sweeps_sm
     
     parameters = params.params()
 
+    sourceVal = 0
+    sinkVal = 0
     if sourceType in ['sm','lpsm','lpxyz','xyz']:
-        so_val = sweeps_smsrc
+        sourceVal = sweeps_smsrc
     else:
-        so_val = nModes_lpsrc
+        sourceVal = nModes_lpsrc
+    
+    if sinkType in ['smeared']:
+        sinkVal = sweeps_smsnk
+        sinkType = 'sm'
+    elif sinkType in ['laplacian']:
+        sinkVal = nModes_lpsnk
+        sinkType = 'lp'
     
     #Replace all possible placeholders
     for filetype in directories.keys():
         replaced = directories[filetype].replace('KAPPA',str(kappa))
         replaced = replaced.replace('KD',str(kd))
         replaced = replaced.replace('SHIFT',shift)
-        replaced = replaced.replace('SOURCE',sourceType+str(so_val))
-        #replaced = replaced.replace('SINK',sinkType+str(sink_val))
+        replaced = replaced.replace('SOURCE',sourceType+str(sourceVal))
+        replaced = replaced.replace('SINK',sinkType+str(sinkVal))
         replaced = replaced.replace('CONFIGID',cfgID)
-        replaced = replaced.replace('STRUCTURE',''.join(structure))
         replaced = replaced.replace('KH',str(kH))
         replaced = replaced.replace('NX',str(parameters['lattice']['extent'][0]))
         replaced = replaced.replace('NY',str(parameters['lattice']['extent'][1]))

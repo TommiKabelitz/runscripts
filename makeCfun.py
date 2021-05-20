@@ -98,10 +98,9 @@ def MakeSpecificFiles(filestub,structure,particleList,propDict,jobValues,paramet
     else:
         isospinSym = 'f'
         
-
     #Correlation function filepath
-    cfunPrefix = dirs.FullDirectories(directory='cfun',structure=structure,**jobValues,**parameters['sourcesink'])['cfun']
-
+    cfunPrefix = dirs.FullDirectories(directory='cfun',**jobValues,**parameters['sourcesink'])['cfun']
+    
     #Writing number of operator pairs to the particle_stubs file
     files.AppendPartStub( filestub,numParticlePairs=len(particleList) )
     #Looping over operator pairs

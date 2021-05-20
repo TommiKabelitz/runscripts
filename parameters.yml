@@ -1,7 +1,7 @@
 
 runValues:
   kappaValues: [13770]
-  kds: [1]
+  kds: [-1,0,1]
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
@@ -25,12 +25,12 @@ slurmParams:
 directories:
   runscriptDir: /home/a1724542/PhD/runscripts/
   baseOutputDir: /hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/
-  runIdentifier: testing/
+  runIdentifier: PhDRunOne/
   outputTree: kKAPPA/BFKD/shSHIFT/
 
-  propFileBase: QUARK_SOSOURCE_CFGCONFIGID
+  propFileBase: QUARK_SOSOURCE_icfgCONFIGID
   propFormat: prop
-  cfunFileBase: STRUCTURE_SOSOURCE_SISINK_icfg
+  cfunFileBase: SOSOURCE_SISINK_icfg
   cfunFormat: gencf
   
   configDir: /hpcfs/groups/cssm-hpc-users/PACS-CS/

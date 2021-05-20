@@ -1,4 +1,6 @@
 Add slurm job id numbers to tagfiles and report files within python script
-Write Comments into input files
 Skip either u or d prop for zero field
-sort our loop props
+sort our loop props (not looking required)
+Check if neutral props are required and make them if they are
+Scatter more print statements about so that it is clear what is happening
+Fix the replacing of the sink value in the output cfun path
