@@ -1,3 +1,8 @@
+'''
+
+
+'''
+
 import argparse
 from datetime import datetime
 
@@ -14,25 +19,50 @@ def main():
     jobValues = {**inputValues,**params.params()['runValues']}
     jobValues['start'],jobValues['ncon'] = cfg.ConfigDetails(**jobValues)
     jobValues['nthCon'] = int(jobValues['SLURM_ARRAY_TASK_ID'])
-    jobValues['cfgID'] = cfg.ConfigID(**jobValues) #must happen before kappa -> kappa_strange
+    jobValues['cfgID'] = cfg.ConfigID(**jobValues)
         
     
-    print()        
+    print(50*'_')
+    print()
+    PrintJobValues(jobValues)
+
+    print(50*'_')
+    print()
     print('Making propagators')
     print(f'Time is {datetime.now()}')
     makePropagator.main(jobValues)
-    print("Propagators done")
+    print("\nPropagators done")
     print(f'Time is {datetime.now()}')
+    print(50*'_')
 
     print()        
-    print('Making correlationfunctions')
+    print('Making correlation functions')
     print(f'Time is {datetime.now()}')    
     makeCfun.main(jobValues)
     print("Correlation functions done")
     print(f'Time is {datetime.now()}')
+    print(50*'_')
     print()
 
+
+def PrintJobValues(jobValues):
     
+    valuesToPrint = ['cfgID',
+                     'kappa',
+                     'kd',
+                     'shift',
+                     'sinkType',
+                     'sourceType',
+                     'structureList']
+
+    print('JobValues:')
+
+    for key in valuesToPrint:
+
+        try:
+            print(f'{key}: {jobValues[key]}')
+        except KeyError:
+            print(f'{key} not in JobValues')
 
 def Input():
 

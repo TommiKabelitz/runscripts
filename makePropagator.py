@@ -162,62 +162,77 @@ def CallMPI(inputFileBase,reportFile,numGPUs,**kwargs):
         print(f'Time is {datetime.now()}')
 
 
-def MakePropagator(quark,values,directories,filename,src_extension,qprop_extension):
+def MakePropagator(quark,values,filename,src_extension,qprop_extension,parameters,*args,**kwargs):
 
         #Copying values dictionary. Deepcopy so that we can change items for
         #this quark only.
         quarkValues = copy.deepcopy(values)
 
+        if quark == 'n':
+                quarkLabel = 'd'
+                quarkValues['kd'] = 0
+        elif quark == 'ns':
+                quarkLabel = 's'
+                quarkValues['kd'] = 0
+        elif quark == 'u' and quarkValues['kd'] == 0:
+                quarkLabel = 'd'
+                print('At zero field strength, u and d quarks are the same. So just use the d quark.')
+        else:
+                quarkLabel = quark
+
+
+        directories = dirs.FullDirectories(**quarkValues,**parameters['sourcesink'])
+
         #Adding prop filename to quarkValue dictionary
-        quarkValues['quarkPrefix'] = directories['prop'].replace('QUARK',quark)
+        quarkValues['quarkPrefix'] = directories['prop'].replace('QUARK',quarkLabel)
 
         ##Constructing Input file paths files
         #Filestub to pass to quarkpropgpu.x
-        inputFileBase = directories['propInput'] + filename.replace('QUARK',quark)
+        inputFileBase = directories['propInput'] + filename.replace('QUARK',quarkLabel)
         #The actual input filenames
-        lat_file = inputFileBase + '.lat'
-        clover_file = inputFileBase + '.fm_clover'
-        src_file = inputFileBase + src_extension
-        qprop_file = inputFileBase + qprop_extension
+        latFile = inputFileBase + '.lat'
+        cloverFile = inputFileBase + '.fm_clover'
+        srcFile = inputFileBase + src_extension
+        qpropFile = inputFileBase + qprop_extension
         #Prop report file
-        reportFile = directories['propReport'].replace('QUARK',quark)
+        reportFile = directories['propReport'].replace('QUARK',quarkLabel)
 
         
         #Making input files - Source files need to be made before u and s
         #adjustments due to the lapmodefiles
-        MakeLatticeInputFile(lat_file)
-        MakeCloverInputFile(clover_file)
+        MakeLatticeInputFile(latFile)
+        MakeCloverInputFile(cloverFile)
 
-        quarkValues['sourcetype_num'] = MakeSourceInputFile(src_file,quark,**quarkValues)
+        #Quark is for the Laplacian Eigenmode file, so needs to be the actual quark
+        #not just the label.
+        quarkValues['sourcetype_num'] = MakeSourceInputFile(srcFile,quark,**quarkValues)
 
                 
         #Adjusting for u and s quarks
         if quark == 'u':
                 quarkValues['kd']*=-2
-        if quark == 's':
+        elif quark in ['s','ns']:
                 quarkValues['kappa'] = kappa_strange
 
         #Propagator input file needs to be made after adjustments due to u and s
-        MakePropInputFile(qprop_file,quarkValues)
+        MakePropInputFile(qpropFile,quarkValues)
 
+        print()
+        print(f'Doing {quark} quark')
         #Checking whether propagator exists before calling quarkpropGPU
         fullQuarkPath = f'{quarkValues["quarkPrefix"]}k{quarkValues["kappa"]}.{propFormat}'
+        print(f'Quark to make is: \n{fullQuarkPath}')
+
         if pathlib.Path(fullQuarkPath).is_file():
                 print(f'Skipping {quark} quark. Propagator already exists')
                 return 
 
-
-        print()
-        print(f'Doing {quark} quark')
-
-        CallMPI(inputFileBase,reportFile,**rp.SlurmParams())
+        CallMPI(inputFileBase,reportFile,**parameters['slurmParams'])
 
 
 def main(jobValues,*args,**kwargs):
 
         parameters = params.params()
-
-        directories = dirs.FullDirectories(**jobValues,**parameters['sourcesink'])
 
         #prop input files
         filestub = 'prop' + jobValues['SLURM_ARRAY_JOB_ID'] + '_' + jobValues['SLURM_ARRAY_TASK_ID']+'.QUARK'
@@ -225,10 +240,15 @@ def main(jobValues,*args,**kwargs):
         qprop_extension = '.quarkprop'
 
         
-        jobValues['cfgFile'] = directories['cfgFile']
+        jobValues['cfgFile'] = dirs.FullDirectories(directory='cfgFile',**jobValues)['cfgFile']
 
 
-        for quark in ['u','d','s']: #Don't need neutral props, just use zero field d and s props
-        
-                MakePropagator(quark,jobValues,directories,filestub,src_extension,qprop_extension)
+        for structure in parameters['runValues']['structureList']: 
+                
+                print()
+                print(f'Making propagators for structure set: {structure}')
+
+                for quark in structure:
+
+                        MakePropagator(quark,jobValues,filestub,src_extension,qprop_extension,parameters)
 

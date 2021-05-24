@@ -133,10 +133,15 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
 
     baseModePath = baseModeDir+baseModeFile
 
-    if quark is not None:
-        quarkList = list(quark)
-    else:
+    if quark is None:
         quarkList = parameters['cfun']['quarkList']
+    elif type(quark) is list:
+        quarkList = quark
+    elif type(quark) is str:
+        quarkList = [quark]
+    else:
+        raise TypeError('Expected "quark" to be of type str or list')
+        
 
     lapModeFiles = {}
 
@@ -152,5 +157,3 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
     
         kd = temp
     return lapModeFiles
-
-

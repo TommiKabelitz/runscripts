@@ -65,7 +65,7 @@ def MakeConfigIDsFile(filestub,start,ncon,runPrefix,*args,**kwargs):
 
 
 
-def MakePropCfunInfoFile(filestub,cfunPrefix,propList,propFormat,cfunFormat,parallelIO,gmaRep,gellMannRep,pmin,pmax,doUstar,sinkType,useLandau,fullLandauFile,nLandauModes,*args,**kwargs):
+def MakePropCfunInfoFile(filestub,cfunPrefix,propList,propFormat,cfunFormat,parallelIO,gmaRep,gellMannRep,pmin,pmax,doUstar,sinkType,useLandau,fullLandauFile='',nLandauModes=0,*args,**kwargs):
     extension = '.prop_cfun_info'
 
     if sinkType in ['smeared']:

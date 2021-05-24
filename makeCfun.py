@@ -22,7 +22,14 @@ def MakeCorrelationFunctions(filestub,jobValues):
     MakeReusableFiles(filestub,parameters,jobValues)
     
     for structure in parameters['runValues']['structureList']:
-        
+
+        print(f'\nDoing structure set: {structure}\n')
+
+        print(f'Quark paths are: ')
+        for quark in structure:
+            print(f'{quark}: {propDict[quark]}')
+
+        print('Making structure specific files')
         MakeSpecificFiles(filestub,structure,particleList,propDict,jobValues,parameters)
         
         executable = parameters['cfun']['executable']
@@ -52,6 +59,9 @@ def CompilePropPaths(jobValues,parameters):
             kappa = parameters['propagator']['strangeKappa']
             quarkProp = quark
 
+        elif quark == 'u' and kd_original == 0:
+            kappa = jobValues['kappa']
+            quarkProp = 'd'
         else:
             kappa = jobValues['kappa']
             quarkProp = quark
@@ -143,6 +153,7 @@ def HadronicProjection(kd,parameters,particle,structure,*args,**kwargs):
 
 def CallMPI(filestub,executable,reportFile,numGPUs,*args,**kwargs):
 
+    print()
     print(f'mpi-running "{executable}"')
     print(f'On {numGPUs} GPUs')
     print(f'The input filestub is "{filestub}"')

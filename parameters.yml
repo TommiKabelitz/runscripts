@@ -1,12 +1,11 @@
-
 runValues:
   kappaValues: [13770]
-  kds: [-1,0,1]
+  kds: [1]
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
   sinkType: laplacian
-  structureList: [['u','d','s']]
+  structureList: [['ns','u','s'],['u','d','s']]
   particleList: [['proton','protonbar'],['pip','pipbar']]
 
 #time format is D-HH:MM:SS, must be in quotes
@@ -43,7 +42,7 @@ directories:
   landauDir: /home/a1724542/PhD/runscripts/LandauModes/
   landauFile: LandauModeBasisRealSourcenM18nxNXnyNYx00y00kBKH.dat
 
-
+  modules: /home/a1724542/PhD/runscripts/pho_modules.sh
 
 sourcesink:
   #[x,y,z,t]
