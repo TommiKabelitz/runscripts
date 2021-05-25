@@ -95,7 +95,7 @@ def MakePropCfunInfoFile(filestub,cfunPrefix,propList,propFormat,cfunFormat,para
 
 def MakeLatticeFile(filestub,extent):
     '''
-    Make the .lat input file for qpropGPU.x.
+    Make the .lat input file for cfungenGPU.x.
     
     Arguments:
     filestub -- string: The filename, without the .lat extension

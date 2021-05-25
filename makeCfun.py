@@ -32,7 +32,7 @@ def MakeCorrelationFunctions(filestub,jobValues):
         print('Making structure specific files')
         MakeSpecificFiles(filestub,structure,particleList,propDict,jobValues,parameters)
         
-        executable = parameters['cfun']['executable']
+        executable = parameters['propcfun']['cfgenExecutable']
         numGPUs = parameters['slurmParams']['numGPUs']
         reportFile = dirs.FullDirectories(directory='cfunReport',structure=structure,**jobValues,**parameters['sourcesink'])['cfunReport']
         CallMPI(filestub,executable,reportFile,numGPUs)
@@ -44,7 +44,7 @@ def CompilePropPaths(jobValues,parameters):
 
     propDict = {}
 
-    for quark in parameters['cfun']['quarkList']:
+    for quark in parameters['propcfun']['quarkList']:
         if quark == 'n':
             kappa = jobValues['kappa']
             jobValues['kd'] = 0
@@ -53,10 +53,10 @@ def CompilePropPaths(jobValues,parameters):
         elif quark == 'ns':
             jobValues['kd'] = 0
             quarkProp = 's'
-            kappa = parameters['propagator']['strangeKappa']
+            kappa = parameters['propcfun']['strangeKappa']
 
         elif quark == 's':
-            kappa = parameters['propagator']['strangeKappa']
+            kappa = parameters['propcfun']['strangeKappa']
             quarkProp = quark
 
         elif quark == 'u' and kd_original == 0:
@@ -88,7 +88,7 @@ def MakeReusableFiles(filestub,parameters,jobValues):
         
     files.MakeConfigIDsFile(filestub,**jobValues)
 
-    configFile = dirs.FullDirectories(directory='cfgFile',**jobValues)['cfgFile']
+    configFile = dirs.FullDirectories(directory='configFile',**jobValues)['configFile']
     files.MakeGFSFile(filestub,parameters['directories']['configFormat'],configFile)
 
     files.MakePropSmearingFile(filestub,**parameters['sourcesink'],**jobValues)
@@ -117,7 +117,7 @@ def MakeSpecificFiles(filestub,structure,particleList,propDict,jobValues,paramet
     for chi,chibar in particleList:
         partstub = filestub + chi + chibar
         
-        files.MakeInterpFile(partstub,chi,chibar,structure,cfunPrefix,isospinSym,**parameters['cfun'])
+        files.MakeInterpFile(partstub,chi,chibar,structure,cfunPrefix,isospinSym,**parameters['propcfun'])
 
         files.AppendPartStub(filestub,partstub=partstub)
 
@@ -133,7 +133,7 @@ def MakeSpecificFiles(filestub,structure,particleList,propDict,jobValues,paramet
         ##DIFFERENT LANDAU FILES FOR EACH OPERATOR - AT THE MOMENT, THE PARTICLE
         ##PAIR LAST IN THE PAIR LIST IS USED - AND I THINK IT IS BROKEN FOR 
         ##CORRELATION MATRICES
-        files.MakePropCfunInfoFile(filestub,cfunPrefix,propList,**parameters['directories'],**parameters['cfun'],**parameters['runValues'],**hadronicProjection)
+        files.MakePropCfunInfoFile(filestub,cfunPrefix,propList,**parameters['directories'],**parameters['propcfun'],**parameters['runValues'],**hadronicProjection)
 
 
 def HadronicProjection(kd,parameters,particle,structure,*args,**kwargs):

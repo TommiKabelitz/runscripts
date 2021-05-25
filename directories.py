@@ -50,7 +50,7 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     
     ##Saving other file paths and directories to directories dictionary
     #Configuration Files
-    directories['cfgFile'] = base.configDir + base.configFile
+    directories['configFile'] = base.configDir + base.configFilename
     #COLA input directories
     directories['propInput'] = base.runscriptDir + 'propInput/'
     directories['cfunInput'] = base.runscriptDir + 'cfunInput/'
@@ -134,7 +134,7 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
     baseModePath = baseModeDir+baseModeFile
 
     if quark is None:
-        quarkList = parameters['cfun']['quarkList']
+        quarkList = parameters['propcfun']['quarkList']
     elif type(quark) is list:
         quarkList = quark
     elif type(quark) is str:

@@ -41,93 +41,135 @@ link_sm = [useStout_lnk,alphaFat_lnk,swpsFat_lnk]
 '''
 
 
-def pt(sourceLocation, *args, **kwargs):
+def pt(filestub,sourceLocation, *args, **kwargs):
     '''
-    Returns key information for a point source.
-
-    Point source is no smearing or projection.
-    '''
-
-    source = {}
-    source['sourcetype_num'] = 1
-    source['values'] = sourceLocation
     
-    return source
-
-
-
-
-def sm(sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
     '''
-    Returns key information for a normally smeared source.
-    '''
+    sourcetype_num = 1
+    extension = '.qpsrc_pt'
 
-    source = {}
-    source['sourcetype_num'] = 3
-    source['values'] = sourceLocation + [ sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk ]
+    with open(filestub+extension,'w') as f:
+        for dim in sourceLocation:
+            f.write(f'{dim}\n')
     
-    return source
+    return sourcetype_num
 
 
 
-def lp(lapmodefile, nDim_lpsrc, nModes_lpsrc, sourceLocation, *args, **kwargs):
-    '''
-    Returns key information for Laplacian source.
 
-    Laplacian source does no smearing. Instead projects only to
-    the Laplacian operator.
+def sm(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
     '''
 
-    source = {}
-    source['sourcetype_num'] = 7
-    source['values'] = [ lapmodefile, nDim_lpsrc, nModes_lpsrc ] + sourceLocation
-
-    return source
-
-def xyz(sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
     '''
-    Returns key information for the xyz source
+    sourcetype_num = 3
+    extension = '.qpsrc_pt'
 
-    Does no projection and smears only in the x and y directions
-    (Not 100% on smearing directions)
+    with open(filestub+extension,'w') as f:
+        for dim in sourceLocation:
+            f.write(f'{dim}\n')
+        f.write(f'{sweeps_smsrc}\n')
+        f.write(f'{alpha_smsrc}\n')
+        f.write(f'{useUzero_smsrc}\n')
+        f.write(f'{u0_smsrc}\n')
+        f.write(f'{useStout_lnk}\n')
+        f.write(f'{alphaFat_lnk}\n')
+        f.write(f'{swpsFat_lnk}\n')
+
+    return sourcetype_num
+
+
+
+def lp(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, sourceLocation, *args, **kwargs):
     '''
+
+    '''
+    sourcetype_num = 7
+    extension = 'qpsrc_lp'
+
+    with open(filestub+extension,'w') as f:
+        f.write(f'{lapmodefile}\n')
+        f.write(f'{ndim_lpsrc}\n')
+        f.write(f'{nModes_lpsrc}')
+        for dim in sourceLocation:
+            f.write(f'{dim}\n')
+
+    return sourcetype_num
+
+
+
+def xyz(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
+    '''
+
+    '''
+    sourcetype_num = 8
+    extension = 'qpsrc_xyz'
+
     smearcode = 'xy'
-    source = {}
-    source['sourcetype_num'] = 8
-    source['values'] = [smearcode] + sourceLocation + [ sweeps_smsrc, alpha_smsrc,useUzero_smsrc,u0_smsrc + useStout_lnk,alphaFat_lnk,swpsFat_lnk ]
+    with open(filestub+extension,'w') as f:
+        f.write(f'{smearcode}\n')
+        for dim in sourceLocation:
+            f.write(f'{dim}\n')
+        f.write(f'{sweeps_smsrc}\n')
+        f.write(f'{alpha_smsrc}\n')
+        f.write(f'{useUzero_smsrc}\n')
+        f.write(f'{u0_smsrc}\n')
+        f.write(f'{useStout_lnk}\n')
+        f.write(f'{alphaFat_lnk}\n')
+        f.write(f'{swpsFat_lnk}\n')
 
-    return source
+    return sourcetype_num
 
 
 
-def lpsm(lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
+def lpsm(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
     '''
-    Returns key information for the Laplacian, smeared source.
-
-    Does Laplacian projection and smears in all spatial directions (we think).
-    '''
-
-    source = {}
-    source['sourcetype_num'] = 9
-    source['values'] = [ lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc ] + sourceLocation + [ sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk]
     
-    return source
-
-
-
-
-def lpxyz(lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
     '''
-    Returns key information for the Laplacian, xyz source.
+    sourcetype_num = 9
+    extension = 'qpsrc_lpsm'
 
-    Laplacian xyz source does Laplacian projection and smearing.
-    Smears only in direction(s) provided by smearcode.
+    with open(filestub+extension,'w') as f:
+        f.write(f'{lapmodefile}\n')
+        f.write(f'{ndim_lpsrc}\n')
+        f.write(f'{nModes_lpsrc}')
+        f.write(f'{preSmear_lpsmsrc}')
+        for dim in sourceLocation:
+            f.write(f'{dim}\n')
+        f.write(f'{sweeps_smsrc}\n')
+        f.write(f'{alpha_smsrc}\n')
+        f.write(f'{useUzero_smsrc}\n')
+        f.write(f'{u0_smsrc}\n')
+        f.write(f'{useStout_lnk}\n')
+        f.write(f'{alphaFat_lnk}\n')
+        f.write(f'{swpsFat_lnk}\n')
+
+    return sourcetype_num
+
+
+
+
+def lpxyz(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
     '''
+    
+    '''
+    sourcetype_num = 10
+    extension = 'qpsrc_lpxyz'
 
     smearcode = 'z'
+    with open(filestub+extension,'w') as f:
+        f.write(f'{smearcode}\n')
+        f.write(f'{lapmodefile}\n')
+        f.write(f'{ndim_lpsrc}\n')
+        f.write(f'{nModes_lpsrc}')
+        f.write(f'{preSmear_lpsmsrc}')
+        for dim in sourceLocation:
+            f.write(f'{dim}\n')
+        f.write(f'{sweeps_smsrc}\n')
+        f.write(f'{alpha_smsrc}\n')
+        f.write(f'{useUzero_smsrc}\n')
+        f.write(f'{u0_smsrc}\n')
+        f.write(f'{useStout_lnk}\n')
+        f.write(f'{alphaFat_lnk}\n')
+        f.write(f'{swpsFat_lnk}\n')
 
-    source = {}
-    source['sourcetype_num'] = 10
-    source['values'] = [ smearcode,lapmodefile,nDim_lpsrc,nModes_lpsrc,preSmear_lpsmsrc ] + sourceLocation + [ sweeps_smsrc,alpha_smsrc,useUzero_smsrc,u0_smsrc, useStout_lnk,alphaFat_lnk,swpsFat_lnk ]
-    
-    return source
+    return sourcetype_num

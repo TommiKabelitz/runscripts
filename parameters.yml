@@ -33,7 +33,7 @@ directories:
   cfunFormat: gencf
   
   configDir: /hpcfs/groups/cssm-hpc-users/PACS-CS/
-  configFile: RC32x64_B1900Kud0KAPPA00Ks01364000C1715/RC32x64_B1900Kud0KAPPA00Ks01364000C1715CONFIGID
+  configFilename: RC32x64_B1900Kud0KAPPA00Ks01364000C1715/RC32x64_B1900Kud0KAPPA00Ks01364000C1715CONFIGID
   configFormat: ildg
 
   lapModeDir: /hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/
@@ -77,30 +77,34 @@ sourcesink:
   sinkCode: ''  
   nModes_lpsnk: 96
 
-  
 
-cfun:
+propcfun:
+  #quarkprop related parameters
+  tolerance: '1.0d-5'
+  fermionAction: clover
+  U1FieldType: B
+  U1FieldQuanta: k
+  strangeKappa: 13665
+  qpropExecutable: /home/a1724542/PhD/cola/trunk/cuda/quarkpropGPU.x
+  clover:
+    bcx: 1.0
+    bcy: 1.0
+    bcz: 1.0
+    bct: 0.0
+    u0: 1.0
+    C_SW: 1.715
+    
+  #cfgen (mainly) related parameters
   su3FlavLimit: f
   parallelIO: f
   gmaRep: sakurai
   gellMannRep: fundamental
   doUstar: f
   quarkList: [u,d,s,n,ns]
-  executable: /home/a1724542/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
+  cfgenExecutable: /home/a1724542/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
   
 lattice:
   extent: [32,32,32,64]
-
-
-propagator:
-  tolerance: '1.0d-5'
-  fermionAction: clover
-  U1FieldType: B
-  U1FieldQuanta: k
-  C_SW: 1.1715
-  strangeKappa: 13665
-  executable: /home/a1724542/PhD/cola/trunk/cuda/quarkpropGPU.x
-  
 
 
 hadronicProjection:
