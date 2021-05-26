@@ -1,7 +1,7 @@
 '''
 Manages the job, calling makePropagator.py and makeCfun.py.
 
-Is called by the basic slurm runscript after modules are loaded 
+Is called by the basic slurm runscript in ./scripts after modules are loaded 
 and memory requirements are dealt with.
 
 Should not be called manually from the command line.
