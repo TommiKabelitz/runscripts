@@ -55,14 +55,12 @@ def MakeInterpFile(part_stub,chi,chibar,structure,cfunPrefix,isospinSym,su3FlavL
 
 
 
-def MakeConfigIDsFile(filestub,start,ncon,runPrefix,*args,**kwargs):
+def MakeConfigIDsFile(filestub,cfgID,**kwargs):
     extension = '.cfg_ids'
 
-    current_config = start
     with open(filestub+extension,'w') as f:
-        for nthCon in range(ncon):
-            f.write(ConfigID(nthCon+1,runPrefix,start)+'\n')
-
+        f.write(f'{cfgID}\n')
+    
 
 
 def MakePropCfunInfoFile(filestub,cfunPrefix,propList,propFormat,cfunFormat,parallelIO,gmaRep,gellMannRep,pmin,pmax,doUstar,sinkType,useLandau,fullLandauFile='',nLandauModes=0,*args,**kwargs):

@@ -1,6 +1,0 @@
-&+              U^{ca^{\prime}}(x,0)C\gamma_{5}D^{bb^{\prime{T}}}(x,0)C\gamma_{5}U^{ac^{\prime}}(x,0)\\
-&-                  U^{cc^{\prime}}(x,0)\mathrm{Tr}\big[C\gamma_{5}D^{bb^{\prime}}(x,0)C\gamma_{5}\nonumber\\& \qquad\qquad\qquad\qquad{\times\textrm{ }}U^{aa^{\prime{T}}}(x,0)\big]\\
-&-              U^{ca^{\prime}}(x,0)C\gamma_{5}D^{ab^{\prime{T}}}(x,0)C\gamma_{5}U^{bc^{\prime}}(x,0)\\
-&-                  U^{cc^{\prime}}(x,0)\mathrm{Tr}\big[C\gamma_{5}D^{aa^{\prime}}(x,0)C\gamma_{5}\nonumber\\& \qquad\qquad\qquad\qquad{\times\textrm{ }}U^{bb^{\prime{T}}}(x,0)\big]\\
-&+            \mathrm{Tr}\big[\gamma_{5}U^{ee^{\prime}}(x,0)\gamma_{5}D^{e^{\prime}e}(0,x)\big]\\
-&+            \mathrm{Tr}\big[\gamma_{5}U^{ee^{\prime}}(x,0)\gamma_{5}D^{e^{\prime}e}(0,x)\big]\\

@@ -1,12 +1,12 @@
 runValues:
   kappaValues: [13770]
-  kds: [1]
+  kds: [0,1]
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
   sinkType: laplacian
-  structureList: [['ns','u','s'],['u','d','s']]
-  particleList: [['proton','protonbar'],['pip','pipbar']]
+  structureList: [['u','d','s']]
+  particleList: [['pip','pipbar']]
 
 #time format is D-HH:MM:SS, must be in quotes
 #memory in GB

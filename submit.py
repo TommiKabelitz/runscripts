@@ -67,7 +67,7 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,testing=None,*args,**kwargs):
                     subprocess.run(['sbatch',f'--array=1-{ncon}',filename])
                 elif testing in ['fullqueue','testqueue']:
                     #submitting only 1 configuration
-                    subprocess.run(['sbatch',f'--array=1-1',filename])
+                    subprocess.run(['sbatch',f'--array=2-2',filename])
                 elif testing == 'headnode':
                     #just running on the head node
                     subprocess.run([filename])
