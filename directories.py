@@ -46,7 +46,7 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     directories['cfun'] = outputDir + 'cfuns/' + base.cfunFileBase
     directories['prop'] = outputDir + 'props/' +  base.propFileBase
     directories['propReport'] = outputDir + 'reports/' +  base.propFileBase + '.proprep'
-    directories['cfunReport'] = outputDir +'reports/' + base.cfunFileBase + '.cfunrep'
+    directories['cfunReport'] = outputDir +'reports/' + base.cfunFileBase + 'CONFIGID_STRUCTURE.cfunrep'
     
     ##Saving other file paths and directories to directories dictionary
     #Configuration Files
@@ -74,7 +74,7 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     return {key:directories[key] for key in directory if key in directories.keys()}  
 
 
-def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=0,nModes_lpsnk=0,cfgID='',kH=0,*args,**kwargs):
+def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=0,nModes_lpsnk=0,cfgID='',structure=[],kH=0,*args,**kwargs):
     '''
     Replaces placeholders in paths, makes directories and returns file paths.
     
@@ -111,6 +111,7 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
         replaced = replaced.replace('SOURCE',sourceType+str(sourceVal))
         replaced = replaced.replace('SINK',sinkType+str(sinkVal))
         replaced = replaced.replace('CONFIGID',cfgID)
+        replaced = replaced.replace('STRUCTURE',''.join(structure))        
         replaced = replaced.replace('KH',str(kH))
         replaced = replaced.replace('NX',str(parameters['lattice']['extent'][0]))
         replaced = replaced.replace('NY',str(parameters['lattice']['extent'][1]))
