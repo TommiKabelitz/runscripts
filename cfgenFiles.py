@@ -164,7 +164,7 @@ def MakePropCfunInfoFile(filestub,cfunPrefix,propList,propFormat,cfunFormat,para
     gellMannRep    -- str: Gell Mann matrix representation
     pmin           -- int: Minimimum hadronic projection momentum
     pmax           -- int: Maximimum hadronic projection momentum
-    doUstar        -- char: Boolean character, need to check exactly what this is
+    doUstar        -- char: Boolean character, whether to do the U star trick
     sinkType       -- str: Type of sink
     useLandau      -- char: Whether hadronic landau projection is being used
     fullLandauFile -- str: The full Landau mode file
@@ -246,28 +246,59 @@ def MakeLPSinkFile(filestub,nDim_lpsnk,lapModeFiles,sinkCode,nModes_lpsnk,*args,
     Makes the Laplacian sink file.
 
     Arguments:
-    
+    filestub     -- str: Base filename to write details to
+    nDim_lpSnk   -- int: Number of dimensions that we project
+                         the Laplacian sink to
+    lapModeFiles -- str list: List containing paths to eigenmode
+                         files. In order u,d,s
+    sinkCode     -- str: Label inserted into the correlation 
+                         function filename. Can be used to store
+                         sink information
+    nModes_lpsnk -- int: Number of modes to truncate the Laplacian
+                         at.
     
     '''
-
+    
+    #File extension
     extension = '.qpsnk_lp'
-
+    
+    #Number of distinct nModes_lpsnk values to use
     nSnk_lp = 1
+    #Writing to the file
     with open(filestub+extension,'w') as f:
         f.write(f'{nDim_lpsnk}\n')
         for modeFile in lapModeFiles:
             f.write(f'{modeFile}\n')
         f.write(f'{nSnk_lp}\n')
         f.write(f'{sinkCode}\n')
+        #COLA requires nModes in x,y,z dirs
         f.write(3*f'{nModes_lpsnk} '+'\n')
         
 
 
 def MakePropSmearingFile(filestub,sinkSmearcode,alpha_smsnk,u0_smsnk,kd,swpsFat_lnk,useStout_lnk,alphaFat_lnk,sweeps_smsnk,*args,**kwargs):
-    extension = '.prop_sm_params'
+    '''
+    Makes the input file related to smearing (sink and link).
 
+    Arguments:
+    filestub      -- str: Base filename to write details to
+    sinkSmearCode -- str: Which dimensions to smear
+    alpha_smsnk   -- float: Sink smearing intensity
+    u0_smsnk      -- float: Mean-field improvement factor
+    kd            -- int: Field strength
+    swpsFat_lnk   -- int: Number of fat link smearing sweeps
+    useStout_lnk  -- char: Whether to do stout link smearing
+    alphaFat_lnk  -- float: Link smearing intensity
+    sweeps_smsnk  -- int: Number of sink smearing sweeps
+    '''
+
+    #File extension
+    extension = '.prop_sm_params'
+    
+    #Number of different sweep values
     nsnk = len(sweeps_smsnk)
 
+    #Writing to the file
     with open(filestub+extension,'w') as f:
         f.write(f'{sinkSmearcode}\n')
         f.write(f'{alpha_smsnk}\n')
@@ -279,19 +310,4 @@ def MakePropSmearingFile(filestub,sinkSmearcode,alpha_smsnk,u0_smsnk,kd,swpsFat_
         f.write(f'{swpsFat_lnk}\n')
         f.write(f'{useStout_lnk}\n')
         f.write(f'{alphaFat_lnk}\n')
-
-
-# ###Alternative implementation of the particle stubs function above
-
-
-# def MakeParticlesFile(filestub='',particlestubs=[],*args,**kwargs):
-#     extension = '.partstubs'
-
-#     num_particles = len(particlestubs)
-
-#     with(filestub+extension,'w') as f:
-#         f.write(f'{num_particles}\n')
-#         for stub in particlestubs:
-#             f.write(f'{stub}\n')
-
 
