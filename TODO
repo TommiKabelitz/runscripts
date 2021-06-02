@@ -1,8 +1,5 @@
 Add slurm job id numbers to tagfiles and report files within python script #Not 100% decided whether this is worth it
 sort out loop props (not looking required)
-Scatter more print statements about so that it is clear what is happening
-Get rest of interp field in to get full particle set
 Set up separate particle hadronic landau projections (when COLA updates)
-Clean up makePropagator.py
 Clean up directories.py
-Document everything
+Document everything - (Mostly done)

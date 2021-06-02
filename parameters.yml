@@ -101,7 +101,7 @@ propcfun:
   gellMannRep: fundamental
   doUstar: f
   quarkList: [u,d,s,n,ns]
-  cfgenExecutable: /home/a1724542/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
+  cfgenExecutable: /home/a1724542/PhD/cola/badtrunk/cfgen/cuda/cfungenGPU.x
   
 lattice:
   extent: [32,32,32,64]

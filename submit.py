@@ -8,12 +8,14 @@ and correlation functions.
 The bash scripts will call manageJob.py which manages the running of the 
 job on the node.
 
-Optional command line arguments are available for testing purposes.
+Optional command line arguments are available for testing purposes and 
+re-submitting jobs where correlation functions are missing.
 
 '''
 
 #standard library modules
 import argparse                      #input parsing
+import os                            #for checking file existence
 import subprocess                    #for running scripts
 from datetime import datetime        #for writing out the time
 
@@ -21,20 +23,22 @@ from datetime import datetime        #for writing out the time
 import configIDs as cfg
 import directories as dirs
 import parameters as params
+from utilities import ceiling_division
 
-
-def SubmitJobs(kappaValues,kds,shifts,runPrefix,testing=None,*args,**kwargs):
+def SubmitJobs(kappaValues,kds,shifts,runPrefix,submitmissing,testing=None,*args,**kwargs):
     '''
     Submits jobs to the queue.
 
     kappaValues, kds, shifts are looped over. 
 
     Arguments:
-    kappaValues -- int list: kappa values to loop over
-    kds         -- int list: field strength to loop over
-    shifts      -- str list: lattice shifts to loop over
-    runPrefix   -- char:     PACS-CS configuration label
-    testing     -- str:      what type of testing submission to do
+    kappaValues   -- int list: kappa values to loop over
+    kds           -- int list: field strength to loop over
+    shifts        -- str list: lattice shifts to loop over
+    runPrefix     -- char: PACS-CS configuration label
+    submitmissing -- bool: Whether we are submitting only the subset of 
+                           missing correlation functions
+    testing       -- str: what type of testing submission to do
     '''
 
     #Getting the directory for the runscript
@@ -42,6 +46,9 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,testing=None,*args,**kwargs):
 
     #Looping over parameters to submit
     for kappa in kappaValues:
+        #Getting first ID eg. 1880 and num configurations eg. 400 for gauge fields
+        start, ncon = cfg.ConfigDetails(kappa,runPrefix)
+
         for kd in kds:        
             for shift in shifts:
 
@@ -50,26 +57,32 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,testing=None,*args,**kwargs):
                 print('kd: ',str(kd))
                 print('shift: ',shift)
                 print('runPrefix: ',runPrefix)
+                print(f'(start,ncon):({start},{ncon})')
 
                 #Compiling the runscript filename
                 filename =f'{directory}{runPrefix}{kappa}BF{kd}{shift}'
-
-                #Getting first ID eg. 1880 and num configurations eg. 400 for gauge fields
-                start, ncon = cfg.ConfigDetails(kappa,runPrefix)
-                print(f'(start,ncon):({start},{ncon})')
 
                 #Making the runscript
                 MakeRunscript(filename,kappa,kd,shift,testing)
                 subprocess.run(['chmod','+x',filename]) #executable permission
             
                 #Submitting jobs
-                if testing is None: #normal array submission
+                if testing is None and submitmissing is False: 
+                    #Normal array submission
                     subprocess.run(['sbatch',f'--array=1-{ncon}',filename])
+
+                elif testing is None and submitmissing is True:
+                    #Submission of only missing correlation functions
+                    jobList = MissingCfunList(kappa,kd,shift,runPrefix,start,ncon)
+                    print(f'Submitting {ceiling_division(len(jobList),2)} missing jobs')
+                    subprocess.run(['sbatch',f'--array={jobList}',filename])
+
                 elif testing in ['fullqueue','testqueue']:
-                    #submitting only 1 configuration
+                    #Submitting only 1 configuration
                     subprocess.run(['sbatch',f'--array=2-2',filename])
+
                 elif testing == 'headnode':
-                    #just running on the head node
+                    #Just running on the head node
                     subprocess.run([filename])
                 
 
@@ -185,15 +198,55 @@ def WriteOtherDetails(fileObject,modules,*args,**kwargs):
     fileObject.write('ulimit -a\n')
     
 
-    
+def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
+    '''
+    Returns a list of configurations for which cfuns are missing.
+
+    Returned list is comma separated string of integers. Integers are not
+    configuration IDs, the i'th integer is the i'th missing configuration.
+    Ready to be passed to sbatch --array=
+
+    Arguments:
+    kappa     -- int: kappa value of the particular job
+    kd        -- int: field strength of the particular job
+    shift     -- str: lattice shift of the particular job
+    runPrefix -- char: PACS-CS configuration label
+    start     -- int: The first configuration number. Eg 1880
+    ncon      -- int: The total number of configurations
+
+    Returns:
+    missingJobs -- str: comma separated, integer list of configurations.
+    '''
+    parameters = params.params()
+
+    cfunPrefix = dirs.FullDirectories(directory='cfun',kappa=kappa,kd=kd,shift=shift,**parameters['runValues'],**parameters['sourcesink'])['cfun']
+    #SOsm250_SIlp96_icfg-a-005870.pippipbar_uds.u.2cf
+    missing = []
+    for structure in parameters['runValues']['structureList']:
+        for particlePair in parameters['runValues']['particleList']:
+            
+            particleName = ''.join(particlePair)
+            structureString = ''.join(structure)
+            baseCfunPath = f'{cfunPrefix}CONFIGID.{particleName}_{structureString}.u.2cf'
+            
+            for i in range(1,ncon+1):
+                ID = cfg.ConfigID(i,runPrefix,start)
+                cfunPath = baseCfunPath.replace('CONFIGID',ID)
+                if os.path.isfile(cfunPath) is False and i not in missing:
+                    missing.append(str(i))
+
+    return ','.join(missing)
+
+
+
 def Input():
     '''
     Parses input from the command line.
 
-    Only needed for testing purposes.
     Returns:
-    inputDict -- dict: Contains only one pair. Key is testing. Value is None or
-                       one of the choices given below.
+    inputDict -- dict: Dictionary of input given. testing key will have
+                       value None or one of the choices given below.
+                       submitmissing is False by default
 
     '''
 
@@ -202,6 +255,9 @@ def Input():
 
     #Adding the testing argument
     parser.add_argument('-t','--testing',help='run in testing mode. Runs on head node (no GPUs). Else submits only 1 configuration to either the test queue (no GPUs) or the full queue.',choices=['headnode','testqueue','fullqueue'])
+    
+    #Adding the argument for submitting only missing jobs
+    parser.add_argument('-m','--submitmissing',help='checks for missing correlation functions, then submits only those configurations.',action='store_true')
 
     #Parsing the arguments from the command line
     args = parser.parse_args()

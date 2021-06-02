@@ -111,14 +111,14 @@ def ConfigDetails(kappa,runPrefix,*args,**kwargs):
     Returns the starting configuration number and total number of configurations
 
     Function arguments:
-    kappa -- Integer:        The kappa value, relating to the light quark mass 
-                             of the configuration
-    runPrefix -- Character: The runPrefix or series name within the
-                             configuration set.
+    kappa     -- int: The kappa value, relating to the light quark mass 
+                      of the configuration
+    runPrefix -- char: The runPrefix or series name within the
+                      configuration set.
 
     Returns:
-    start -- Integer:        The first configuration number
-    ncon -- Integer:         The total number of configurations
+    start -- int: The first configuration number. Eg 1880
+    ncon  -- int: The total number of configurations
     '''
     switch = {
         13700:One,
@@ -138,14 +138,14 @@ def ConfigID(nthCon,runPrefix,start,*args,**kwargs):
     Returns a formatted configuration ID, eg -a-1880
     
     Function arguments:
-    nthCon -- Integer:      The current configuration. Eg the 1st or 10th
-                             configuration to be used.
-    start -- Integer:        The first configuration number. Eg 1880
-    runPrefix -- Character: The runPrefix or series name within the
-                             configuration set.
+    nthCon    -- int: The current configuration. Eg the 1st or 10th
+                      configuration to be used.
+    start     -- int: The first configuration number. Eg 1880
+    runPrefix -- char: The runPrefix or series name within the
+                       configuration set.
     
     Returns:
-    Formatted ID suffix, ie -a-001880.
+    configID -- str: Formatted ID suffix, ie -a-001880.
     '''
     #Different series types (runPrefix) have different gaps between 
     #configuration numbers.
