@@ -78,17 +78,3 @@ def PrintDictToFile(filename,dictionary,order=None):
                         f.write(str(dictionary[key])+'\n')
 
 
-
-def ceiling_division(n, d):
-    '''
-    Does division, rounding the result up.
-
-    Abuses the floor division operator. 
-    Arguments:
-    n -- int/float: numerator
-    d -- int/float: denominator
-    Returns:
-    result -- int: division result
-    '''
-
-    return -(n // -d)

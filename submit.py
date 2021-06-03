@@ -23,7 +23,7 @@ from datetime import datetime        #for writing out the time
 import configIDs as cfg
 import directories as dirs
 import parameters as params
-from utilities import ceiling_division
+
 
 def SubmitJobs(kappaValues,kds,shifts,runPrefix,submitmissing,testing=None,*args,**kwargs):
     '''
@@ -73,9 +73,13 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,submitmissing,testing=None,*args
 
                 elif testing is None and submitmissing is True:
                     #Submission of only missing correlation functions
-                    jobList = MissingCfunList(kappa,kd,shift,runPrefix,start,ncon)
-                    print(f'Submitting {ceiling_division(len(jobList),2)} missing jobs')
-                    subprocess.run(['sbatch',f'--array={jobList}',filename])
+                    print('Checking for missing correlation functions')
+                    missingJobs = MissingCfunList(kappa,kd,shift,runPrefix,start,ncon)
+                    print(f'{len(missingJobs)} jobs need to be re-run.')
+                    #Only submitting with user's permission
+                    if input('Enter y to submit:\n') == 'y':
+                        formattedList = ','.join(missingJobs)
+                        subprocess.run(['sbatch',f'--array={formattedList}',filename])
 
                 elif testing in ['fullqueue','testqueue']:
                     #Submitting only 1 configuration
@@ -204,7 +208,6 @@ def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
 
     Returned list is comma separated string of integers. Integers are not
     configuration IDs, the i'th integer is the i'th missing configuration.
-    Ready to be passed to sbatch --array=
 
     Arguments:
     kappa     -- int: kappa value of the particular job
@@ -215,27 +218,39 @@ def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
     ncon      -- int: The total number of configurations
 
     Returns:
-    missingJobs -- str: comma separated, integer list of configurations.
+    missingJobs -- int list: integer list of configurations.
     '''
+
+    #Loading parameters
     parameters = params.params()
 
+    #Getting base cfun directory
     cfunPrefix = dirs.FullDirectories(directory='cfun',kappa=kappa,kd=kd,shift=shift,**parameters['runValues'],**parameters['sourcesink'])['cfun']
-    #SOsm250_SIlp96_icfg-a-005870.pippipbar_uds.u.2cf
+
+    #initialising output list
     missing = []
+    #Looping through structures and particles
     for structure in parameters['runValues']['structureList']:
         for particlePair in parameters['runValues']['particleList']:
             
+            #Compiling cfun filename and path
             particleName = ''.join(particlePair)
             structureString = ''.join(structure)
             baseCfunPath = f'{cfunPrefix}CONFIGID.{particleName}_{structureString}.u.2cf'
             
+            #Looping through configurations
             for i in range(1,ncon+1):
+                #If configuration is already seen to be missing, don't need to check again
+                if i in missing:
+                    continue
+                #Replacing base path with specific config ID
                 ID = cfg.ConfigID(i,runPrefix,start)
                 cfunPath = baseCfunPath.replace('CONFIGID',ID)
-                if os.path.isfile(cfunPath) is False and i not in missing:
+                #Checking cfun existence
+                if os.path.isfile(cfunPath) is False:
                     missing.append(str(i))
 
-    return ','.join(missing)
+    return missing
 
 
 
