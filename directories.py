@@ -1,9 +1,6 @@
 '''
 Module for constructing the required directory and file paths.
 
-Global variables are intended to be easy access ways of changing relevant 
-parameters
-
 Main functions:
   GetBaseDirectories   -- Constructs the directory paths without replacement of
                           value placeholders
@@ -11,13 +8,14 @@ Main functions:
 
 
 '''
-import pathlib
-import parameters as params
-import pprint
-from argparse import Namespace
+
+import os.path                        #For getting directories from filepaths
+import pathlib                        #For making directories
+import pprint                         #For nice printing of dictionaries
+from argparse import Namespace        #For converting dictionaries to namespaces
 
 import configIDs as cfg
-from utilities import CreateDirectory
+import parameters as params
 
 #Just for nice printing of dictionaries. print -> pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
@@ -33,10 +31,14 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     Returns:
     directories -- dictionary:        The full file paths.
     '''
+
     #Initialising empty output directory
     directories = {}
 
+    #Reading in parameters from parameters.yml
     baseDirectories = params.params()
+    #Converting directories dictionary to a namespace.
+    #Enables easier access via base.variable_name
     base = Namespace(**baseDirectories['directories'])
 
     #Constructing directory tree
@@ -89,6 +91,8 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
     
     parameters = params.params()
 
+    #Setting up which value will be included in the filename with the 
+    #source and sink types
     sourceVal = 0
     sinkVal = 0
     if sourceType in ['sm','lpsm','lpxyz','xyz']:
@@ -119,8 +123,15 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
 
     #Create directories that do not exist - CreateDirectory in utilities.py
     for key in directories:
-        CreateDirectory(directories[key])
-    
+        #Extracting just the directory path
+        path = os.path.dirname(directories[key])
+        
+        print(f'Making directory {path}')
+        try:
+            pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            print(f'Permission to create {directory} denied')
+   
     return directories
     
 
