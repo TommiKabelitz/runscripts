@@ -126,35 +126,62 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
 
 
 def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
+    '''
+    Returns dictionary of Laplacian eigenmode files.
 
+    If quark is not specified, the quark list in parameters.yml
+    is used.
+    Arguments:
+    kappa -- int: Kappa value for the eigenmodes
+    kd    -- int: The field strength
+    cfgID -- str: The configuration identifier
+    quark -- str or list of str: The quark, or list of quarks to 
+                  return
+
+    Returns:
+    lapModeFiles -- dict: Dictionary of eigenmode file paths.
+                          Quarks as keys.
+    '''
+
+    #Loading the parameters files
     parameters = params.params()
 
+    #Grabbing the base eigenmode filepath
     baseModeDir = parameters['directories']['lapModeDir']
     baseModeFile = parameters['directories']['lapModeFile']
-
     baseModePath = baseModeDir+baseModeFile
 
+    #Setting up the quark list depending on quark input
     if quark is None:
+        #Full list from parameters.yml
         quarkList = parameters['propcfun']['quarkList']
     elif type(quark) is list:
+        #Using passed list
         quarkList = quark
     elif type(quark) is str:
+        #Converting string to list
         quarkList = [quark]
     else:
         raise TypeError('Expected "quark" to be of type str or list')
         
-
+    #Initialising output dict
     lapModeFiles = {}
 
+    #Will need to adjust field strength for neutral quarks, so saving
+    #field strength so that it can be reset
     temp = kd
+    #Looping through quarks
     for quark in quarkList:
-
+        
+        #Setting field strength to zero for neutral quarks
         if 'n' in quark:
             kd=0
 
+        #Replacing kappa,configID, field strength and saving to dict
         modeFile = baseModePath.replace('KAPPA',str(kappa))
         modeFile = modeFile.replace('CONFIGID',cfgID)
         lapModeFiles[quark] = modeFile.replace('KD',str(kd)) 
     
+        #Resetting field strength
         kd = temp
     return lapModeFiles
