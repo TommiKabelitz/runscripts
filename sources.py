@@ -62,7 +62,7 @@ def sm(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_sm
 
     '''
     sourcetype_num = 3
-    extension = '.qpsrc_pt'
+    extension = '.qpsrc_sm'
 
     with open(filestub+extension,'w') as f:
         for dim in sourceLocation:
