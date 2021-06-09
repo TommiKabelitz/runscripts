@@ -28,7 +28,7 @@ def MakeCloverFile(filestub,bcx,bcy,bcz,bct,u0,C_SW,*args,**kwargs):
         Arguments:
         filename -- string: The filename to write lattice details to.
         '''
-        extension = 'fm_clover'
+        extension = '.fm_clover'
 
         with open(filestub+extension,'w') as f:
                 f.write(f'{bcx}\n')
