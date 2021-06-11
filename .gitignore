@@ -1,13 +1,11 @@
 /*~
 fort.100
 make_noise*
-pho_modules.sh
-test.py
-test.py~
 testscript
 /archived_slurm_output/*
 /cfunInput/*
 /LandauModes/*
+/parameters/*
 /propInput/*
 /scripts/*
 /slurm/*

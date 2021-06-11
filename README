@@ -1,0 +1,35 @@
+#Description
+
+COLA runscripts is a library for running COLA (Colour Oriented Linear Algebra) which
+makes propagators and correlation functions.
+
+#Usage
+
+- Set desired parameters in parameters.yml
+- Run 
+	python submit.py
+
+- Use option -m to make only missing correlation functions 
+- Various testing options also available
+- No other scripts are intended to be run
+
+#Features
+
+- Easy submission of only missing correlation functions is available
+- Can make correlation functions using any structure of quarks
+- Custom source types are available
+- Addition of custom particle operators easily available
+- Only minimal propagators are made
+- Existing propagators are not re-made
+
+#Current problems
+
+- Particle combinations with different hadronic charges cannot be submitted
+as one job. The must be separated out. This is to be fixed.
+
+#TODO
+
+- Fix particle hadronic Landau projections (when COLA updates)
+- Create Laplacian Eigenmodes dynamically within the job
+- Add support for GADI job scheduler
+- Implement production and use of loop props
