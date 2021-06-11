@@ -43,7 +43,7 @@ def main(jobValues,*args,**kwargs):
         '''
         
         #Grabbing parameters from parameters.yml
-        parameters = params.params()
+        parameters = params.Load()
 
         #File stub for propagator input files. QUARK to be autoreplaced
         filestub = 'prop' + jobValues['SLURM_ARRAY_JOB_ID'] + '_' + jobValues['SLURM_ARRAY_TASK_ID']+'.QUARK'

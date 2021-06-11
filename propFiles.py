@@ -42,7 +42,7 @@ def MakeCloverFile(filestub,bcx,bcy,bcz,bct,u0,C_SW,*args,**kwargs):
 
 def MakeSourceFile(filestub,quark,quarkValues,*args,**kwargs):
         
-        sourceVals = params.params()['sourcesink']
+        sourceVals = params.Load()['sourcesink']
 
         #Getting the eigenmode file. Only used for some sources.
         lapmodefile = dirs.LapModeFiles(quark=quark,**quarkValues)[quark]

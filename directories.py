@@ -36,7 +36,7 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     directories = {}
 
     #Reading in parameters from parameters.yml
-    baseDirectories = params.params()
+    baseDirectories = params.Load()
     #Converting directories dictionary to a namespace.
     #Enables easier access via base.variable_name
     base = Namespace(**baseDirectories['directories'])
@@ -62,8 +62,8 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     directories['slurm'] = base.runscriptDir + 'slurm/'
     #landau file
     directories['landau'] = base.landauDir + base.landauFile
-    
-    
+    #parameter file copies
+    directories['parameters'] = base.runscriptDir + 'parameters/'
     #Returning only the specified directory(ies). Default behaviour is all.
     if directory is None:
         return directories
@@ -89,7 +89,7 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
     #Get a dictionary of directory(ies) before replacement of placeholders
     directories = GetBaseDirectories(directory)
     
-    parameters = params.params()
+    parameters = params.Load()
 
     #Setting up which value will be included in the filename with the 
     #source and sink types
@@ -125,12 +125,12 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
     for key in directories:
         #Extracting just the directory path
         path = os.path.dirname(directories[key])
-        
-        print(f'Making directory {path}')
-        try:
-            pathlib.Path(path).mkdir(parents=True, exist_ok=True)
-        except PermissionError:
-            print(f'Permission to create {directory} denied')
+        if pathlib.Path(path).is_dir() is False:
+            print(f'Making directory {path}')
+            try:
+                pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+            except PermissionError:
+                print(f'Permission to create {directory} denied')
    
     return directories
     
@@ -155,7 +155,7 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
     '''
 
     #Loading the parameters files
-    parameters = params.params()
+    parameters = params.Load()
 
     #Grabbing the base eigenmode filepath
     baseModeDir = parameters['directories']['lapModeDir']

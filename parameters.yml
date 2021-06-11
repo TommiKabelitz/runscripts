@@ -1,6 +1,6 @@
 runValues:
   kappaValues: [13770]
-  kds: [0,1]
+  kds: [-2]
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
@@ -42,7 +42,7 @@ directories:
   landauDir: /home/a1724542/PhD/runscripts/LandauModes/
   landauFile: LandauModeBasisRealSourcenM18nxNXnyNYx00y00kBKH.dat
 
-  modules: /home/a1724542/PhD/runscripts/pho_modules.sh
+  modules: /home/a1724542/PhD/runscripts/phoenix_modules.sh
 
 sourcesink:
   #[x,y,z,t]
@@ -101,7 +101,7 @@ propcfun:
   gellMannRep: fundamental
   doUstar: f
   quarkList: [u,d,s,n,ns]
-  cfgenExecutable: /home/a1724542/PhD/cola/badtrunk/cfgen/cuda/cfungenGPU.x
+  cfgenExecutable: /home/a1724542/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
   
 lattice:
   extent: [32,32,32,64]

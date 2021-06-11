@@ -36,7 +36,7 @@ def main(jobValues,*args,**kwargs):
 
     '''
 
-    #compiling the filestub to feed to cfungen
+    #compiling the filestub for the input files to feed to cfungen
     filestub = dirs.FullDirectories(directory='cfunInput')['cfunInput'] + jobValues['SLURM_ARRAY_JOB_ID'] + '_' + jobValues['SLURM_ARRAY_TASK_ID']
     
     #Calling the function that does all the work
@@ -47,7 +47,7 @@ def main(jobValues,*args,**kwargs):
 def MakeCorrelationFunctions(filestub,jobValues):
     
     #Grabbing the parameters from parameter.yml
-    parameters = params.params()
+    parameters = params.Load()
     
     #Getting a dictionary of paths to all possible props
     #(props don't necessarily exist unless required)

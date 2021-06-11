@@ -14,11 +14,12 @@ re-submitting jobs where correlation functions are missing.
 '''
 
 #standard library modules
-import argparse                      #input parsing
-import os                            #for checking file existence
-import subprocess                    #for running scripts
-from datetime import datetime        #for writing out the time
-
+import argparse                       #input parsing
+import os                             #for checking file existence
+import subprocess                     #for running scripts
+from datetime import datetime         #for writing out the time
+from os.path import dirname, realpath #for grabbing the directory of this script
+                                     
 #local modules
 import configIDs as cfg
 import directories as dirs
@@ -67,30 +68,37 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,submitmissing,testing=None,*args
                 subprocess.run(['chmod','+x',filename]) #executable permission
             
                 #Submitting jobs
+                #Normal array submission
                 if testing is None and submitmissing is False: 
-                    #Normal array submission
-                    subprocess.run(['sbatch',f'--array=1-{ncon}',filename])
+                    out = subprocess.run(['sbatch',f'--array=1-{ncon}',filename],text=True,capture_output=True)
 
+                #Submission of only missing correlation functions
                 elif testing is None and submitmissing is True:
-                    #Submission of only missing correlation functions
                     print('Checking for missing correlation functions')
                     missingJobs = MissingCfunList(kappa,kd,shift,runPrefix,start,ncon)
                     print(f'{len(missingJobs)} jobs need to be re-run.')
-                    #Only submitting with user's permission
+
+                    #Checking for user's permission
                     if input('Enter y to submit:\n') == 'y':
                         formattedList = ','.join(missingJobs)
-                        subprocess.run(['sbatch',f'--array={formattedList}',filename])
-
+                        out = subprocess.run(['sbatch',f'--array={formattedList}',filename],text=True,capture_output=True)
+                    
+                #Submitting only 1 configuration
                 elif testing in ['fullqueue','testqueue']:
-                    #Submitting only 1 configuration
-                    subprocess.run(['sbatch',f'--array=2-2',filename])
+                    out = subprocess.run(['sbatch',f'--array=1-1',filename],text=True,capture_output=True)
 
+                #Just running on the head node
                 elif testing == 'headnode':
-                    #Just running on the head node
                     subprocess.run([filename])
                 
-
-
+                try:
+                    print(out.stdout)
+                    print(out.stderr)
+                    SLURM_ARRAY_JOB_ID = out.stdout[-8:-1]
+                except NameError:
+                    SLURM_ARRAY_JOB_ID = ''
+                                
+                params.CopyParamsFile(SLURM_ARRAY_JOB_ID)
 
 
 def MakeRunscript(filename,kappa,kd,shift,testing=None,*args,**kwargs):
@@ -108,13 +116,14 @@ def MakeRunscript(filename,kappa,kd,shift,testing=None,*args,**kwargs):
     testing  -- str: type of test submission
 
     '''
+    parameters = params.Load()
     #Getting slurm request details, ie. partition, num nodes, gpus etc.
-    slurmDetails = params.params()['slurmParams']
+    slurmDetails = parameters['slurmParams']
     
     #Job management script
-    script = params.params()['directories']['runscriptDir'] + 'manageJob.py'
+    script = parameters['directories']['runscriptDir'] + 'manageJob.py'
     #Script to load modules
-    modules = params.params()['directories']['modules']
+    modules = parameters['directories']['modules']
 
     #adjusting some slurm parameters for submission to the test queue
     if testing =='testqueue':
@@ -124,14 +133,11 @@ def MakeRunscript(filename,kappa,kd,shift,testing=None,*args,**kwargs):
     
     #The location for the slurm output files to be dumped
     output = dirs.FullDirectories(directory='slurm')['slurm']+'slurm-%A_%a.out'
-
+    
     #Open the runscript
     with open(filename,'w') as f:
         #Writing the slurm details to the script
         WriteSlurmDetails(f,output=output,**slurmDetails)
-        
-        #Writing other stuff to the script.
-        WriteOtherDetails(f,modules)
         
         #Simulating Slurm values for running on head node
         #The scheduler assigns the TASK and JOB ids to each job
@@ -140,6 +146,9 @@ def MakeRunscript(filename,kappa,kd,shift,testing=None,*args,**kwargs):
             f.write('SLURM_ARRAY_JOB_ID=1\n')
             f.write('SLURM_ARRAY_TASK_ID=1\n')
 
+        #Writing other stuff to the script. Output directory is made here
+        WriteOtherDetails(f,modules)
+        
         #Write the line which calls the python job script
         f.write(f'python {script} {kappa} {kd} {shift} $SLURM_ARRAY_JOB_ID $SLURM_ARRAY_TASK_ID\n')
 
@@ -200,7 +209,8 @@ def WriteOtherDetails(fileObject,modules,*args,**kwargs):
     fileObject.write('ulimit -c 0\n')
     #Showing status of stack and core dump limits
     fileObject.write('ulimit -a\n')
-    
+
+
 
 def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
     '''
@@ -222,7 +232,7 @@ def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
     '''
 
     #Loading parameters
-    parameters = params.params()
+    parameters = params.Load()
 
     #Getting base cfun directory
     cfunPrefix = dirs.FullDirectories(directory='cfun',kappa=kappa,kd=kd,shift=shift,**parameters['runValues'],**parameters['sourcesink'])['cfun']
@@ -251,6 +261,8 @@ def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
                     missing.append(str(i))
 
     return missing
+
+
 
 
 
@@ -287,7 +299,7 @@ if __name__ == '__main__':
 
     #Combining the run parameters from the parameters.yml file with
     #the input specifications from the command line
-    values = {**params.params()['runValues'],**Input()}
+    values = {**params.Load()['runValues'],**Input()}
 
 
     SubmitJobs(**values)

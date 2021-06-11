@@ -28,7 +28,7 @@ def main():
     inputValues = Input()
     
     #Combining job specific values with the runValues from parameters.yml
-    jobValues = {**inputValues,**params.params()['runValues']}
+    jobValues = {**inputValues,**params.Load()['runValues']}
     
     ##Getting details about the configurations to use
     #Starting number and total number of configurations for the specified 
