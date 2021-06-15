@@ -1,50 +1,37 @@
 '''
 Module containing the different sources that can be used.
 
-Orders the inputs into a list ready to be printed to the 
-COLA input files. Actual input values go in smearing.py. 
-All functions return a dictionary. One entry the 
-sourcetype_num. The other the list. 
-Recommend input from expanded dictionaries, though not 
+- Recommend input from expanded dictionaries, though not 
 required.
+- All sources have a sourcetype number which identifies them in
+COLA. Hard coded into the functions.
+- The functions return the sourcetype number in addition to making
+the file.
 
 Current sources available:
 point(pt),smeared(sm),Laplacian(lp),lpsm,lpxyz,xyz
 
+All function arguments:
 
-Adding sources requires addition here and in smearing.py.
+filestub         -- str: Input filestub
+sourceLocation   -- int list: x,y,z,t location of the source
+lapmodefile      -- str: Path to Laplacian eigenmode file
+nDim_lpsrc       -- int: Number of dimensions for Laplacian projection
+nModes_lpsrc     -- int: Number of modes to truncate Laplacian operator at
+preSmear_lpsmsrc -- char: Whether to smear Laplacian source first
+sweeps_smsrc     -- int: Sweeps of source smearing
+alpha_smsrc      -- float: Alpha value for source smearing
+useUzero_smsrc   -- char: Whether to use U0 smeared source
+u0_smsrc         -- float: u0 value for smeared source
+useStout_lnk     -- char: Whether to do stout link smearing
+alphaFat_lnk     -- float: Alpha value for link smearing
+swpsFat_lnk      -- int: Number of link smearing sweeps
 
-Function arguments:
-sourceLocation -- Integer list: the x,y,z,t coordinates of the source
-so_val -- Integer: The 'source value,' ie. 
-                   -for smeared sources, the number of smeared
-                    sources
-                   -for lp, number of emodes projected at 
-                    the source
-lapmodefile -- String: Location of the eigenmodes for the quark.
-nDim_lpsrc -- Integer: Related to the Laplacian projection. Number of 
-                   dimensions.
-lp_sm = [smearcode,preSmear_lpsmsrc,lapsmear]
-            -- List [str,bool,int]: Parameters related to Laplacian 
-                   smearing. In order, smearing directions,
-                   preSmear_lpsmsrc (smear before or after projection),
-                   number of laplacian smearing sweeps.
-src_sm = [alpha_smsrc,useUzero,u0_smsrc] 
-            -- List [float,bool,float]: Parameters related to the 
-                   smearing of the source. See /src/sourcetypes.f90
-link_sm = [useStout_lnk,alphaFat_lnk,swpsFat_lnk]
-            -- List [bool,float,int]: Parameters related to link
-                   smearing. In order, whether to do stout
-                   link smearing, the alpha value and the
-                   number of sweeps. Boolean must be in form
-                   of just 'T' or 'F'. Case insensitive.
 '''
 
 
 def pt(filestub,sourceLocation, *args, **kwargs):
-    '''
-    
-    '''
+
     sourcetype_num = 1
     extension = '.qpsrc_pt'
 
@@ -58,9 +45,7 @@ def pt(filestub,sourceLocation, *args, **kwargs):
 
 
 def sm(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
-    '''
 
-    '''
     sourcetype_num = 3
     extension = '.qpsrc_sm'
 
@@ -80,9 +65,7 @@ def sm(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_sm
 
 
 def lp(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, sourceLocation, *args, **kwargs):
-    '''
 
-    '''
     sourcetype_num = 7
     extension = 'qpsrc_lp'
 
@@ -98,9 +81,7 @@ def lp(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, sourceLocation, *args, **
 
 
 def xyz(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
-    '''
 
-    '''
     sourcetype_num = 8
     extension = 'qpsrc_xyz'
 
@@ -122,9 +103,7 @@ def xyz(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_s
 
 
 def lpsm(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
-    '''
-    
-    '''
+
     sourcetype_num = 9
     extension = 'qpsrc_lpsm'
 
@@ -149,9 +128,7 @@ def lpsm(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourc
 
 
 def lpxyz(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
-    '''
-    
-    '''
+
     sourcetype_num = 10
     extension = 'qpsrc_lpxyz'
 

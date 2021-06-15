@@ -1,6 +1,14 @@
-from configIDs import ConfigID
-import particles
-import utilities as ut
+'''
+Functions to make the files required by cfungen.
+
+All functions require the input filestub and the relevant
+parameters which they print to file.
+
+'''
+
+from colarunscripts.configIDs import ConfigID
+from colarunscripts import particles
+from colarunscripts import utilities as ut
 
 
 def MakePropPathFiles(filestub,propDict,structure,*args,**kwargs):

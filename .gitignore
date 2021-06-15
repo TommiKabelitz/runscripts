@@ -1,14 +1,7 @@
 /*~
 fort.100
-make_noise*
-testscript
-/archived_slurm_output/*
-/cfunInput/*
+/colarunscripts/__pycache__/*
 /LandauModes/*
-/parameters/*
-/propInput/*
-/scripts/*
-/slurm/*
-/testing/*
+/runFiles/*
 /__pycache__/*
-
+/COLA_runscripts.egg-info/*

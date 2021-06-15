@@ -14,8 +14,8 @@ import pathlib                        #For making directories
 import pprint                         #For nice printing of dictionaries
 from argparse import Namespace        #For converting dictionaries to namespaces
 
-import configIDs as cfg
-import parameters as params
+from colarunscripts import configIDs as cfg
+from colarunscripts import parameters as params
 
 #Just for nice printing of dictionaries. print -> pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
@@ -44,6 +44,9 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     #Constructing directory tree
     outputDir = base.baseOutputDir + base.runIdentifier + base.outputTree
 
+    #Directory for holding run specific files
+    runFileDir = base.runscriptDir + 'runFiles/'
+
     #Appending output file names and saving to directories dictionary
     directories['cfun'] = outputDir + 'cfuns/' + base.cfunFileBase
     directories['prop'] = outputDir + 'props/' +  base.propFileBase
@@ -54,16 +57,16 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     #Configuration Files
     directories['configFile'] = base.configDir + base.configFilename
     #COLA input directories
-    directories['propInput'] = base.runscriptDir + 'propInput/'
-    directories['cfunInput'] = base.runscriptDir + 'cfunInput/'
+    directories['propInput'] = runFileDir + 'propInput/'
+    directories['cfunInput'] = runFileDir + 'cfunInput/'
     #Runscript directory
-    directories['script'] = base.runscriptDir + 'scripts/'
+    directories['script'] = runFileDir + 'scripts/'
     #slurm_output directory
-    directories['slurm'] = base.runscriptDir + 'slurm/'
+    directories['slurm'] = runFileDir + 'slurm/'
     #landau file
     directories['landau'] = base.landauDir + base.landauFile
     #parameter file copies
-    directories['parameters'] = base.runscriptDir + 'parameters/'
+    directories['parameters'] = runFileDir + 'parameters/'
     #Returning only the specified directory(ies). Default behaviour is all.
     if directory is None:
         return directories
@@ -121,7 +124,7 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
         replaced = replaced.replace('NY',str(parameters['lattice']['extent'][1]))
         directories[filetype] = replaced
 
-    #Create directories that do not exist - CreateDirectory in utilities.py
+    #Create directories that do not exist
     for key in directories:
         #Extracting just the directory path
         path = os.path.dirname(directories[key])

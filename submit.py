@@ -21,9 +21,9 @@ from datetime import datetime         #for writing out the time
 from os.path import dirname, realpath #for grabbing the directory of this script
                                      
 #local modules
-import configIDs as cfg
-import directories as dirs
-import parameters as params
+import colarunscripts.configIDs as cfg
+import colarunscripts.directories as dirs
+import colarunscripts.parameters as params
 
 
 def SubmitJobs(kappaValues,kds,shifts,runPrefix,submitmissing,testing=None,*args,**kwargs):
@@ -97,8 +97,9 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,submitmissing,testing=None,*args
                     SLURM_ARRAY_JOB_ID = out.stdout[-8:-1]
                 except NameError:
                     SLURM_ARRAY_JOB_ID = ''
-                                
+
                 params.CopyParamsFile(SLURM_ARRAY_JOB_ID)
+
 
 
 def MakeRunscript(filename,kappa,kd,shift,testing=None,*args,**kwargs):
@@ -121,7 +122,7 @@ def MakeRunscript(filename,kappa,kd,shift,testing=None,*args,**kwargs):
     slurmDetails = parameters['slurmParams']
     
     #Job management script
-    script = parameters['directories']['runscriptDir'] + 'manageJob.py'
+    script = parameters['directories']['runscriptDir'] + 'colarunscripts/manageJob.py'
     #Script to load modules
     modules = parameters['directories']['modules']
 

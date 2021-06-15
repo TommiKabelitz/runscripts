@@ -1,3 +1,10 @@
+'''
+Module for parsing the field shift string into its components.
+
+Also contains a function for formatting the kappa value.
+
+'''
+
 import re
 
 

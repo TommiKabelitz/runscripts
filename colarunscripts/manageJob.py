@@ -16,10 +16,10 @@ import argparse                      #input parsing
 from datetime import datetime        #for writing out the time
 
 #local modules
-import configIDs as cfg
-import makePropagator
-import makeCfun
-import parameters as params
+from colarunscripts import configIDs as cfg
+from colarunscripts import makePropagator
+from colarunscripts import makeCfun
+from colarunscripts import parameters as params
 
 
 def main():

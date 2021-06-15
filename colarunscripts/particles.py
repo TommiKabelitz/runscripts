@@ -1,37 +1,14 @@
-#todo
-#charge conjugation form
-#mass?
-#other properties?
+'''
+Module of particle operators to be used.
 
+Added particles should follow the same format as those already
+present. Particles with multiple terms in their interpolating 
+field should have each term added as an item in a list. 
 
+There are also a couple of utility functions at the bottom
+QuarkCharge, HadronicCharge
 
-def AntiParticle(arg):
-
-    def Bar(particle):
-        if particle[-3:] == 'bar':
-            return particle[:-3]
-        else:
-            return particle + 'bar'
-
-        
-    in_type = type(arg)
-    if in_type is str:
-        return Bar(arg)
-        
-    elif in_type is list:
-        for i,particle in enumerate(arg):
-            input[i] = Bar(particle)
-                
-    elif in_type is dict:
-        particle_list = arg['struct']
-        for i,particle in enumerate(particle_list):
-            arg['struct'][i] = Bar(particle)
-
-    else:
-        raise TypeError
-
-
-
+'''
 ########################################Baryons        
 
 def proton():
@@ -155,6 +132,7 @@ def cascadembar():
 
 
 #####Mixing baryons
+
 def sigma0():
 
     props = {}
@@ -225,8 +203,16 @@ def pipbar():
     return props
 
 
+#Actual utility functions
+
 def QuarkCharge(quark,*args,**kwargs):
-    
+    '''
+    Returns the charge of a given quark.
+
+    Arguments:
+    quark -- char: quark in question
+    '''
+
     if quark == 'u':
         return 2
     elif quark in ['d','s']:
@@ -238,15 +224,35 @@ def QuarkCharge(quark,*args,**kwargs):
 
 
 def HadronicCharge(kd,particle,structure,*args,**kwargs):
-    
+    '''
+    Calculates the hadronic charge of a particle.
+
+    Takes into account the particle, the quark structure being used
+    and the relative background field strength.
+
+    Arguments:
+    kd        -- int: Background field strength
+    particle  -- str: The particle to calculate
+    structure -- char list: The quark structure in form [u,d,s]
+    '''
+
+    #Initialising a list of number of u,d,s quarks in the particle's
+    #interpolating field
     counts = []
+    #Looping over quarks
     for quark in ['u','d','s']:
-        counts.append(globals()[particle]()['cfun_terms'][0].count(quark))
-        
+        particleInterp = globals()[particle]()['cfun_terms'][0]
+        #Counting and appending appearances
+        counts.append(particleInterp.count(quark))
+        #Note: for particles with multiple terms, only need one term
+        #as all terms contain the same overall quark structure.
+
+    #Counting up total charge by looping through structure and counts
     charge = 0
     for quark,count in zip(structure,counts):
         charge += QuarkCharge(quark)*count
         
+    #Allowing for antiparticles
     if 'bar' in particle:
         return -1*charge*kd
     else:

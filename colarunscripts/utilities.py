@@ -1,9 +1,9 @@
+import os.path
+
 '''
 Some utility functions.
 
 '''
-
-import pathlib
 
 def WriteListLengthnList(fileObject,listToWrite):
     '''
@@ -29,9 +29,10 @@ def PrintDictToFile(filename,dictionary,order=None):
                  which that order cannot be guaranteed
 
         Arguments:
-        filename -- string: The file to print to
+        filename   -- string: The file to print to
         dictionary -- dict: The dict to print
-        order -- List/tuple: List/tuple of keys in the order they should be printed
+        order      -- list/tuple: List/tuple of keys in the order they should 
+                                  be printed
         '''
 
         #If order is unspecified, use default ordering
@@ -43,3 +44,16 @@ def PrintDictToFile(filename,dictionary,order=None):
                         f.write(str(dictionary[key])+'\n')
 
 
+
+def Parent(path,levels=1,*args,**kwargs):
+    '''
+    Returns the nth level, parent directory.
+
+    Arguments:
+    path --  str: The base path
+    level -- int: The level of parent directory, defaults to one level
+    '''
+    for i in range(levels):
+        path = os.path.dirname(path)
+
+    return path

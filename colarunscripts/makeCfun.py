@@ -14,12 +14,11 @@ import subprocess                   #for calling cfungenGPU.x
 from datetime import datetime       #for writing out the time
 
 #local modules
-import configIDs as cfg
-import directories as dirs
-import cfgenFiles as files
-import parameters as params
-import particles as part
-import utilities as ut
+from colarunscripts import configIDs as cfg
+from colarunscripts import directories as dirs
+from colarunscripts import cfgenFiles as files
+from colarunscripts import parameters as params
+from colarunscripts import particles as part
 
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 

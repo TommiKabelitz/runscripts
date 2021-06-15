@@ -1,6 +1,6 @@
 runValues:
   kappaValues: [13770]
-  kds: [-2]
+  kds: [2]
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
@@ -57,7 +57,7 @@ sourcesink:
   
   #Laplacian source related parameters
   nDim_lpsrc: 2
-  nModes_lpsrc: 250
+  nModes_lpsrc: 96
   preSmear_lpsmsrc: t
 
   #Link smearing related parameters

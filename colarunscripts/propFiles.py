@@ -1,7 +1,14 @@
-import directories as dirs
-import parameters as params
-import shifts
-import sources as src
+'''
+Functions to make the files required by quarkprop.
+
+All functions require the input filestub and the relevant
+parameters which they print to file.
+
+'''
+from colarunscripts import directories as dirs
+from colarunscripts import parameters as params
+from colarunscripts import shifts
+from colarunscripts import sources as src
 
 def MakeLatticeFile(filestub,extent,*args,**kwargs):
     '''

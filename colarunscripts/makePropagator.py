@@ -16,13 +16,11 @@ import subprocess                   #for calling quarkpropGPU.x
 from datetime import datetime       #for writing out the time
 
 #local modules
-import configIDs as cfg
-import directories as dirs
-import parameters as params
-import propFiles as files
-import shifts
-import sources as src
-from utilities import PrintDictToFile
+from colarunscripts import configIDs as cfg
+from colarunscripts import directories as dirs
+from colarunscripts import parameters as params
+from colarunscripts import propFiles as files
+from colarunscripts import shifts
 
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
