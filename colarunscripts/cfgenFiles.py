@@ -149,7 +149,7 @@ def MakeConfigIDsFile(filestub,cfgID,*args,**kwargs):
     
 
 
-def MakePropCfunInfoFile(filestub,cfunPrefix,propList,propFormat,cfunFormat,parallelIO,gmaRep,gellMannRep,pmin,pmax,doUstar,sinkType,useLandau,fullLandauFile='',nLandauModes=0,*args,**kwargs):
+def MakePropCfunInfoFile(filestub,propList,propFormat,cfunFormat,parallelIO,gmaRep,gellMannRep,pmin,pmax,doUstar,sinkType,useLandau,fullLandauFile='',nLandauModes=0,*args,**kwargs):
     '''
     Makes the file containing information relevant to props and cfuns.
 
@@ -162,7 +162,6 @@ def MakePropCfunInfoFile(filestub,cfunPrefix,propList,propFormat,cfunFormat,para
 
     Arguments:
     filestub       -- str: Base filename to write information to
-    cfunPrefix     -- str: Base correlation function filename (no cfgID,particles)
     propList       -- str list: List of propagator filenames containing 
                            propagator file paths
     propFormat     -- str: The propagator file extension

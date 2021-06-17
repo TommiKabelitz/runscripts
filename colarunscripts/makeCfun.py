@@ -227,7 +227,7 @@ def MakeSpecificFiles(filestub,structure,propDict,jobValues,parameters):
         ##DIFFERENT LANDAU FILES FOR EACH OPERATOR - AT THE MOMENT, THE PARTICLE
         ##PAIR LAST IN THE PAIR LIST IS USED - AND I THINK IT IS BROKEN FOR 
         ##CORRELATION MATRICES
-        files.MakePropCfunInfoFile(filestub,cfunPrefix,propList,**parameters['directories'],**parameters['propcfun'],**parameters['runValues'],**hadronicProjection)
+        files.MakePropCfunInfoFile(filestub,propList,**parameters['directories'],**parameters['propcfun'],**parameters['runValues'],**hadronicProjection)
 
 
 def HadronicProjection(kd,particle,structure,parameters,*args,**kwargs):
