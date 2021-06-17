@@ -258,7 +258,7 @@ def HadronicProjection(kd,particle,structure,parameters,*args,**kwargs):
         details['nLandauModes'] = abs(kH)
         details['pmax'] = abs(kH) + 1
         #Use the hadronic charge to get the correct Landau file
-        details['fullLandauFile'] = dirs.FullDirectories(directory='landau',kH=kH)['landau']
+        details['fullLandauFile'] = dirs.FullDirectories(directory='landau',kH=abs(kH))['landau']
         return details
     
 

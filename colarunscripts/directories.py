@@ -79,7 +79,7 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     return {key:directories[key] for key in directory if key in directories.keys()}  
 
 
-def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=0,nModes_lpsnk=0,cfgID='',structure=[],kH=0,*args,**kwargs):
+def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=[0],nModes_lpsnk=0,cfgID='',structure=[],kH=0,*args,**kwargs):
     '''
     Replaces placeholders in paths, makes directories and returns file paths.
     
@@ -104,7 +104,7 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
         sourceVal = nModes_lpsrc
     
     if sinkType in ['smeared']:
-        sinkVal = sweeps_smsnk
+        sinkVal = sweeps_smsnk[0]
         sinkType = 'sm'
     elif sinkType in ['laplacian']:
         sinkVal = nModes_lpsnk
