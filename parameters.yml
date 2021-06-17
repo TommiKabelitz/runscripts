@@ -4,7 +4,7 @@ runValues:
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
-  sinkType: smeared
+  sinkType: laplacian
   structureList: [['u','d','s']]
   particleList: [['pip','pipbar']]
 

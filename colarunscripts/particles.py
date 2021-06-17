@@ -236,25 +236,39 @@ def HadronicCharge(kd,particle,structure,*args,**kwargs):
     structure -- char list: The quark structure in form [u,d,s]
     '''
 
-    #Initialising a list of number of u,d,s quarks in the particle's
-    #interpolating field
-    counts = []
+    #Interp functions contain quarks: u,d,s and anti quarks Au,Du,Ds.
+    #Will count instances of each, but counting u,d,s will also count
+    #Au,Ad,As.
+    #We basically want number of quarks not matched by an anti-quark
+    #which we get by subtracting 2*(anti quarks) from total quarks.
+
+    #Initialise lists for counts
+    totalQuarkCounts = []
+    antiQuarkCounts = []
+
+    #Particle interpolating field. Only ever need one term as all
+    #terms have same base quark structure.
+    particleInterp = globals()[particle]()['cfun_terms'][0]
+
     #Looping over quarks
     for quark in ['u','d','s']:
-        particleInterp = globals()[particle]()['cfun_terms'][0]
         #Counting and appending appearances
-        counts.append(particleInterp.count(quark))
-        #Note: for particles with multiple terms, only need one term
-        #as all terms contain the same overall quark structure.
+        totalQuarkCounts.append(particleInterp.count(quark))
+    #Looping over anti-quarks
+    for i,antiQuark in ['Au','Ad','As']:
+        antiQuarkCounts.append(particleInterp.count(antiQuark))
 
-    #Counting up total charge by looping through structure and counts
+    #Calculating number of un-matched quarks in hadron.
+    #List comprehension is easiest way to do element by element subtraction
+    netQuarkCounts = [total-2*anti for total,anti in zip(totalQuarkCounts,antiQuarkCounts)]
+
+    #Counting up total charge by looping through structure and netQuarkCounts
     charge = 0
-    for quark,count in zip(structure,counts):
+    for quark,count in zip(structure,netQuarkCounts):
         charge += QuarkCharge(quark)*count
+
+    return charge*kd
+
         
-    #Allowing for antiparticles
-    if 'bar' in particle:
-        return -1*charge*kd
-    else:
-        return charge*kd
+    
 
