@@ -1,10 +1,10 @@
 runValues:
   kappaValues: [13770]
-  kds: [-1]
+  kds: [1]
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
-  sinkType: laplacian
+  sinkType: smeared
   structureList: [['u','d','s']]
   particleList: [['pip','pipbar']]
 
@@ -29,7 +29,8 @@ directories:
 
   propFileBase: QUARK_SOSOURCE_icfgCONFIGID
   propFormat: prop
-  cfunFileBase: SOSOURCE_SISINK_icfg
+  cfunFileBase: SOSOURCE_icfg
+  #cfunFileBase: SOSOURCE_SISINK_icfg
   cfunFormat: gencf
   
   configDir: /hpcfs/groups/cssm-hpc-users/PACS-CS/
@@ -71,11 +72,11 @@ sourcesink:
   alpha_smsnk: 0.7
   u0_smsnk: 1.0
   
-  #Laplacian sink related parameters. sinkCode is optional label that cfungen
-  #appends in cfun filename. Should be '' if not desired
+  #Laplacian sink related parameters. sinkCode is label that cfungen
+  #appends in cfun filename.
   nDim_lpsnk: 2
-  sinkCode: ''  
-  nModes_lpsnk: 96
+  baseSinkCode: silpMODES  
+  nModes_lpsnk: [64,96]
 
 
 propcfun:

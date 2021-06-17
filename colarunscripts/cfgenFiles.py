@@ -248,7 +248,7 @@ def MakeGFSFile(filestub,configFormat,configFile,*args,**kwargs):
         f.write(f'{configFile}\n')
         
 
-def MakeLPSinkFile(filestub,nDim_lpsnk,lapModeFiles,sinkCode,nModes_lpsnk,*args,**kwargs):
+def MakeLPSinkFile(filestub,nDim_lpsnk,lapModeFiles,baseSinkCode,nModes_lpsnk,*args,**kwargs):
     '''
     Makes the Laplacian sink file.
 
@@ -270,16 +270,18 @@ def MakeLPSinkFile(filestub,nDim_lpsnk,lapModeFiles,sinkCode,nModes_lpsnk,*args,
     extension = '.qpsnk_lp'
     
     #Number of distinct nModes_lpsnk values to use
-    nSnk_lp = 1
+    nSnk_lp = len(nModes_lpsnk)
     #Writing to the file
     with open(filestub+extension,'w') as f:
         f.write(f'{nDim_lpsnk}\n')
         for modeFile in lapModeFiles:
             f.write(f'{modeFile}\n')
         f.write(f'{nSnk_lp}\n')
-        f.write(f'{sinkCode}\n')
-        #COLA requires nModes in x,y,z dirs
-        f.write(3*f'{nModes_lpsnk} '+'\n')
+        for modes in nModes_lpsnk:
+            sinkCode = baseSinkCode.replace('MODES',str(modes))
+            f.write(f'{sinkCode}\n')
+            #COLA requires nModes in x,y,z dirs
+            f.write(3*f'{modes} '+'\n')
         
 
 
