@@ -1,24 +1,43 @@
 runValues:
   kappaValues: [13770]
-  kds: [1]
+  kds: [3]
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
   sinkType: laplacian
-  structureList: [['u','d','s']]
-  particleList: [['pip','pipbar']]
+  structureList: [['u','d','s'],['n','d','s']]
+  particleList: [['pip','pipbar'],['proton','protonbar']]
+  scheduler: slurm
+  doArrayJobs: False
+  keepProps: False
+
+tempStorage:
+  #phoenix is $TMPFS, Gadi is $TMPDIR
+  tempFS: $TMPFS
+  props: True
+  lapmodes: False
 
 #time format is D-HH:MM:SS, must be in quotes
 #memory in GB
 slurmParams:
-  partition: batch
+  queue: batch
   nodes: 1
   numCPUs: 4
-  time: '02:00:00'
+  time: '08:00:00'
   numGPUs: 2
   memory: 64
-
-
+  jobStorage: 20G
+  
+pbsParams:
+  project: e31
+  queue: gpuvolta
+  numCPUs: 48
+  numGPUs: 4
+  time: '48:00:00'
+  memory: 64
+  jobStorage: 200
+  linkStorage: gdata/e31+scratch/e31
+  
 #All caps sections are replaced with the relevant value at the appropriate time
 #Currently KAPPA,SOURCE,SINK,CONFIGID,KD,SHIFT are available for replacement
 directories:
@@ -26,7 +45,7 @@ directories:
   baseOutputDir: /hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/
   runIdentifier: PhDRunOne/
   outputTree: kKAPPA/BFKD/shSHIFT/
-
+  
   propFileBase: QUARK_SOSOURCE_icfgCONFIGID
   propFormat: prop
   cfunFileBase: SOSOURCE_icfg

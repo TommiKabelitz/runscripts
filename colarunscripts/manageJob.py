@@ -14,6 +14,7 @@ makePropagator.py and makeCfun.py.
 #standard library modules
 import argparse                      #input parsing
 from datetime import datetime        #for writing out the time
+import pathlib                       #for deleting props
 
 #local modules
 from colarunscripts import configIDs as cfg
@@ -26,7 +27,7 @@ def main():
 
     #Getting job specific values from command line
     inputValues = Input()
-    
+  
     #Combining job specific values with the runValues from parameters.yml
     jobValues = {**inputValues,**params.Load()['runValues']}
     
@@ -34,27 +35,40 @@ def main():
     #Starting number and total number of configurations for the specified 
     #kappa and configuration label (runPrefix)
     jobValues['start'],jobValues['ncon'] = cfg.ConfigDetails(**jobValues)
+
+    #if we are not using array jobs, we need to loop over 
+    #all configurations. 
+    #The ncon we set here is local, just for the loop. Value in jobValues is
+    #used by prop and cfun routines so left untouched
+    if jobValues['doArrayJobs'] is False:
+        ncon = jobValues['ncon']
+    else:
+        ncon = 1
     
-    #Using the SLURM_ARRAY_TASK_ID as a record of which configuration
-    #we are up to
-    jobValues['nthCon'] = int(jobValues['SLURM_ARRAY_TASK_ID'])
-    
+    for nthConfig in range(1,ncon+1):
+        
+        jobValues['nthConfig'] = nthConfig
+
+        doConfiguration(jobValues)
+
+
+
+def doConfiguration(jobValues,*args,**kwargs):
+
     #Compiling the full configuration identification number
     jobValues['cfgID'] = cfg.ConfigID(**jobValues)
         
-    
     print(50*'_')
     print()
-    PrintJobValues(jobValues)
 
     #That's it for preparation of job values. Now start making propagators
-    #the correlation functions
+    #and correlation functions
 
     print(50*'_')
     print()
     print('Making propagators')
     print(f'Time is {datetime.now()}')
-    makePropagator.main(jobValues)
+    propPaths = makePropagator.main(jobValues)
     print("\nPropagators done")
     print(f'Time is {datetime.now()}')
     print(50*'_')
@@ -67,6 +81,14 @@ def main():
     print(f'Time is {datetime.now()}')
     print(50*'_')
     print()
+
+    #removing the propagator
+    if jobValues['keepProps'] is False:
+        print('Deleting Propagators')
+        for prop in propPaths:
+            path = pathlib.Path(prop)
+            pathlib.unlink(path,missing_ok=True)
+
 
 
 def PrintJobValues(jobValues):
@@ -117,8 +139,8 @@ def Input():
     parser.add_argument('kappa',type=int)
     parser.add_argument('kd',type=int)
     parser.add_argument('shift',type=str)
-    parser.add_argument('SLURM_ARRAY_JOB_ID',type=str)
-    parser.add_argument('SLURM_ARRAY_TASK_ID',type=str)
+    parser.add_argument('jobID',type=str)
+    parser.add_argument('nthConfig',type=str)
     
     #Actually parsing the command line input
     args = parser.parse_args()
@@ -130,5 +152,5 @@ def Input():
 
 
 if __name__ == '__main__':
-
+     
     main()

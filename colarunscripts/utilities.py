@@ -1,4 +1,4 @@
-import os.path
+import os
 
 '''
 Some utility functions.
@@ -57,3 +57,27 @@ def Parent(path,levels=1,*args,**kwargs):
         path = os.path.dirname(path)
 
     return path
+
+
+
+def GetEnvironmentVar(variable,*args,**kwargs):
+    '''
+    Exchanges names of environmental variables with their value.
+
+    Scans an inputted dictionary of values for strings beginning
+    with a dollar sign (used to represent environmental variables. 
+    Then exchanges the variable for the value in the environment.
+    
+    Arguments:
+    inputDict -- dict: Dictionary to be scanned
+    '''
+    
+    try:
+        if '$' == variable[0]:
+            #Removing dollar sign from variable name
+            variableName = variable.replace('$','')
+            #Returning actual value
+            value = os.environ[variableName]
+            return value
+    except KeyError:
+        return ''

@@ -44,10 +44,13 @@ def main(jobValues,*args,**kwargs):
         parameters = params.Load()
 
         #File stub for propagator input files. QUARK to be autoreplaced
-        filestub = 'prop' + jobValues['SLURM_ARRAY_JOB_ID'] + '_' + jobValues['SLURM_ARRAY_TASK_ID']+'.QUARK'
+        filestub = 'prop' + jobValues['jobID'] + '_' + str(jobValues['nthConfig'])+'.QUARK'
         
         #Compiling the full configuration file
         jobValues['configFile'] = dirs.FullDirectories(directory='configFile',**jobValues)['configFile']
+
+        #Initialising list of propagator paths
+        propPaths = []
 
         #Looping over structures and quarks in structures
         for structure in parameters['runValues']['structureList']: 
@@ -59,9 +62,11 @@ def main(jobValues,*args,**kwargs):
 
                         print()
                         print(5*'-'+f'Doing {quark} quark'+5*'-')
-
-                        MakePropagator(quark,jobValues,filestub,parameters)
-        #end main
+                        
+                        #Making the propagator
+                        propPath = MakePropagator(quark,jobValues,filestub,parameters)
+                        propPaths.append(propPath)
+        return propPaths
 
 
 
@@ -120,13 +125,13 @@ def MakePropagator(quark,jobValues,filestub,parameters,*args,**kwargs):
 
         if pathlib.Path(fullQuarkPath).is_file():
                 print(f'Skipping {quark} quark. Propagator already exists')
-                return 
+                return fullQuarkPath
 
         #Get propagator report file and call the MPI
         reportFile = directories['propReport'].replace('QUARK',quarkLabel)
         CallMPI(filestub,parameters['propcfun']['qpropExecutable'],reportFile,**parameters['slurmParams'])
         
-        #end MakePropagator
+        return fullQuarkPath
 
 
 def MakePropInputFiles(filestub,quark,quarkLabel,directories,quarkValues,parameters,*args,**kwargs):

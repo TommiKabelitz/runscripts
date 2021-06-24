@@ -16,6 +16,7 @@ from argparse import Namespace        #For converting dictionaries to namespaces
 
 from colarunscripts import configIDs as cfg
 from colarunscripts import parameters as params
+from colarunscripts.utilities import GetEnvironmentVar
 
 #Just for nice printing of dictionaries. print -> pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
@@ -36,10 +37,17 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     directories = {}
 
     #Reading in parameters from parameters.yml
-    baseDirectories = params.Load()
-    #Converting directories dictionary to a namespace.
+    parameters = params.Load()
+    baseDirectories = parameters['directories']
+    tempStorage = parameters['tempStorage']
+
+
+    #Scanning for and replacing any environment variables
+    tempDir = GetEnvironmentVar(tempStorage['tempFS']) + '/'
+
+    #Converting baseDirectories dictionary to a namespace.
     #Enables easier access via base.variable_name
-    base = Namespace(**baseDirectories['directories'])
+    base = Namespace(**baseDirectories)
 
     #Constructing directory tree
     outputDir = base.baseOutputDir + base.runIdentifier + base.outputTree
@@ -48,25 +56,36 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     runFileDir = base.runscriptDir + 'runFiles/'
 
     #Appending output file names and saving to directories dictionary
-    directories['cfun'] = outputDir + 'cfuns/' + base.cfunFileBase
-    directories['prop'] = outputDir + 'props/' +  base.propFileBase
     directories['propReport'] = outputDir + 'reports/' +  base.propFileBase + '.proprep'
-    directories['cfunReport'] = outputDir +'reports/' + base.cfunFileBase + 'CONFIGID_STRUCTURE.cfunrep'
+    directories['cfunReport'] = outputDir +'reports/' + base.cfunFileBase + 'CONFIGID_STRUCTURE.cfunrep'    
+    directories['cfun'] = outputDir + 'cfuns/' + base.cfunFileBase
     
     ##Saving other file paths and directories to directories dictionary
     #Configuration Files
     directories['configFile'] = base.configDir + base.configFilename
+    #Landau file
+    directories['landau'] = base.landauDir + base.landauFile
+
+    #Runscript directory
+    directories['script'] = runFileDir + 'scripts/'
+    #scheduler_output directory
+    directories['stdout'] = runFileDir + 'stdout/'
+    #parameter file copies
+    directories['parameters'] = runFileDir + 'parameters/'
+    
+    
+    if tempDir != '/':
+        runFileDir = tempDir
+        if tempStorage['props'] is True:
+            outputDir = tempDir
+
+    #Propagator output file
+    directories['prop'] = outputDir + 'props/' +  base.propFileBase
+
     #COLA input directories
     directories['propInput'] = runFileDir + 'propInput/'
     directories['cfunInput'] = runFileDir + 'cfunInput/'
-    #Runscript directory
-    directories['script'] = runFileDir + 'scripts/'
-    #slurm_output directory
-    directories['slurm'] = runFileDir + 'slurm/'
-    #landau file
-    directories['landau'] = base.landauDir + base.landauFile
-    #parameter file copies
-    directories['parameters'] = runFileDir + 'parameters/'
+
     #Returning only the specified directory(ies). Default behaviour is all.
     if directory is None:
         return directories
@@ -160,10 +179,15 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
     #Loading the parameters files
     parameters = params.Load()
 
+    if parameters['tempStorage']['lapmodes'] is True:
+        tempDir = GetEnvironmentVar(tempStorage['tempFS'])
+    else:
+        tempDir = ''
+
     #Grabbing the base eigenmode filepath
     baseModeDir = parameters['directories']['lapModeDir']
     baseModeFile = parameters['directories']['lapModeFile']
-    baseModePath = baseModeDir+baseModeFile
+    baseModePath = tempDir+baseModeDir+baseModeFile
 
     #Setting up the quark list depending on quark input
     if quark is None:

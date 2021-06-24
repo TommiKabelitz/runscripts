@@ -39,16 +39,24 @@ def Load(writeOut=False,*args,**kwargs):
     
     runscriptDir = Parent(__file__,2)
 
-    #Trying to grab the SLURM_ARRAY_JOB_ID
+    #Trying to grab the job ID
     try:
-        SLURM_ARRAY_JOB_ID = os.environ['SLURM_ARRAY_JOB_ID']
+        jobID = os.environ['SLURM_JOB_ID']
+    except KeyError:
+        pass
+    try:
+        jobID = os.environ['PBS_JOB_ID']
+    except KeyError:
+        pass
+
+    try:
         #If it exists using the copied params file in the parameters dir.
         paramsDir = runscriptDir + '/runFiles/parameters'
-        parametersFile = paramsDir + f'/{SLURM_ARRAY_JOB_ID}_parameters.yml'
+        parametersFile = paramsDir + f'/{jobID}_parameters.yml'
     
     #Using the original parameters file if the job id is unset.
     #Should only happen when being called in submit.py
-    except KeyError:
+    except NameError:
         parametersFile = runscriptDir + '/parameters.yml'
 
     #Opening and loading the yamml
@@ -61,62 +69,21 @@ def Load(writeOut=False,*args,**kwargs):
 
     return(parameters)
 
-# def Load(writeOut=False,*args,**kwargs):
-#     '''
-#     Loads the parameters from parameters.yml.
-
-#     If SLURM_ARRAY_JOB_ID exists as an environment variable then the 
-#     copy of the parameters file will exist. Use of the ordinary 
-#     version is required by submit.py.
-    
-#     Arguments:
-#     writeOut -- bool: Whether to write out the parameters dictionary
-#                       to the console when reading.
-#                       (for testing purposes)
-
-#     '''
-    
-#     thisFilePath = pathlib.Path(__file__)
-#     runscriptDir = thisFilePath.parent.parent
-
-#     #Trying to grab the SLURM_ARRAY_JOB_ID
-#     try:
-#         SLURM_ARRAY_JOB_ID = os.environ['SLURM_ARRAY_JOB_ID']
-#         #If it exists using the copied params file in the parameters dir.
-#         paramsDir = runscriptDir / 'runFiles' / 'parameters'
-#         parametersFile = paramsDir / f'{SLURM_ARRAY_JOB_ID}_parameters.yml'
-    
-#     #Using the original parameters file if the job id is unset.
-#     #Should only happen when being called in submit.py
-#     except KeyError:
-#         parametersFile = runscriptDir / 'parameters.yml'
-
-#     print(parametersFile)
-    
-#     #Opening and loading the yamml
-#     with parametersFile.open() as f:
-#         parameters = yaml.safe_load(f)
-
-#     #Writing the details to the screen if specified
-#     if writeOut is True:
-#         pp(parameters)
-
-#     return(parameters)
 
 
-def CopyParamsFile(SLURM_ARRAY_JOB_ID,*args,**kwargs):
+def CopyParamsFile(jobID,*args,**kwargs):
     '''
     Makes a copy of the parameters file to use for this specific job.
 
     Arguments:
-    SLURM_ARRAY_JOB_ID -- int: Job identification number
+    jobID -- int: Job identification number
 
     '''
 
     #File to copy
     originalFile = Parent(__file__,2) + '/parameters.yml'
     #File to make
-    copyFile = dirs.FullDirectories(directory='parameters')['parameters'] + f'{SLURM_ARRAY_JOB_ID}_parameters.yml'
+    copyFile = dirs.FullDirectories(directory='parameters')['parameters'] + f'{jobID}_parameters.yml'
     
     #Copying file
     subprocess.run(['cp',originalFile,copyFile])

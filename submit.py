@@ -16,6 +16,7 @@ re-submitting jobs where correlation functions are missing.
 #standard library modules
 import argparse                       #input parsing
 import os                             #for checking file existence
+import re                             #for integer extraction
 import subprocess                     #for running scripts
 from datetime import datetime         #for writing out the time
 from os.path import dirname, realpath #for grabbing the directory of this script
@@ -26,7 +27,7 @@ import colarunscripts.directories as dirs
 import colarunscripts.parameters as params
 
 
-def SubmitJobs(kappaValues,kds,shifts,runPrefix,submitmissing,testing=None,*args,**kwargs):
+def SubmitJobs(kappaValues,kds,shifts,runPrefix,scheduler,doArrayJobs,submitmissing,testing=None,*args,**kwargs):
     '''
     Submits jobs to the queue.
 
@@ -60,49 +61,71 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,submitmissing,testing=None,*args
                 print('runPrefix: ',runPrefix)
                 print(f'(start,ncon):({start},{ncon})')
 
+                if submitmissing is True:
+                    print('Checking for missing correlation functions')
+                    jobList = MissingCfunList(kappa,kd,shift,runPrefix,start,ncon)
+                    print(f'{len(jobList)} jobs need to be re-run.')
+                    if input('Enter y to submit:\n') != 'y':
+                        continue
+                elif testing in ['fullqueue','testqueue']:
+                    jobList = ['1']
+                else:
+                    jobList = [str(i) for i in range(1,ncon+1)]
+
                 #Compiling the runscript filename
                 filename =f'{directory}{runPrefix}{kappa}BF{kd}{shift}'
-
-                #Making the runscript
-                MakeRunscript(filename,kappa,kd,shift,testing)
-                subprocess.run(['chmod','+x',filename]) #executable permission
-            
-                #Submitting jobs
-                #Normal array submission
-                if testing is None and submitmissing is False: 
-                    out = subprocess.run(['sbatch',f'--array=1-{ncon}',filename],text=True,capture_output=True)
-
-                #Submission of only missing correlation functions
-                elif testing is None and submitmissing is True:
-                    print('Checking for missing correlation functions')
-                    missingJobs = MissingCfunList(kappa,kd,shift,runPrefix,start,ncon)
-                    print(f'{len(missingJobs)} jobs need to be re-run.')
-
-                    #Checking for user's permission
-                    if input('Enter y to submit:\n') == 'y':
-                        formattedList = ','.join(missingJobs)
-                        out = subprocess.run(['sbatch',f'--array={formattedList}',filename],text=True,capture_output=True)
-                    
-                #Submitting only 1 configuration
-                elif testing in ['fullqueue','testqueue']:
-                    out = subprocess.run(['sbatch',f'--array=1-1',filename],text=True,capture_output=True)
-
-                #Just running on the head node
-                elif testing == 'headnode':
-                    subprocess.run([filename])
                 
-                try:
-                    print(out.stdout)
-                    print(out.stderr)
-                    SLURM_ARRAY_JOB_ID = out.stdout[-8:-1]
-                except NameError:
-                    SLURM_ARRAY_JOB_ID = ''
+                #Making the runscript
+                if scheduler == 'slurm':
+                    MakeSlurmRunscript(filename,kappa,kd,shift,doArrayJobs,testing)
+                elif scheduler == 'PBS':
+                    MakePBSRunscript(filename,kappa,kd,shift,doArrayJobs,testing)
+                else:
+                    raise ValueError('Unknown scheduler specified')
+                subprocess.run(['chmod','+x',filename]) #executable permission
 
-                params.CopyParamsFile(SLURM_ARRAY_JOB_ID)
+                ScheduleJobs(filename,jobList,scheduler,doArrayJobs,testing)
+
+def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,testing):
+
+    command = []
+    
+    if testing == 'headnode':
+        subprocess.run([filename])
+        return
+
+    if scheduler == 'PBS':
+        command.append('qsub')
+    elif scheduler == 'slurm':
+        command.append('sbatch')
+
+    if testing == 'interactive':
+            command.append('-I')
+    elif doArrayJobs is True or len(jobList) == 1:
+
+        formattedList = ','.join(jobList)
+        if scheduler == 'PBS':
+            command.append(f'-J {formattedList}')
+        elif scheduler == 'slurm':
+            command.append(f'--array={formattedList}')
+        
+    command.append(filename)
+
+    out = subprocess.run(command,text=True,capture_output=True)
+
+    try:
+        print(out.stdout)
+        print(out.stderr)
+        pattern = re.compile(r'\d+')
+        jobID = pattern.findall(out.stdout)[0]
+    except NameError:
+        jobID = ''
+
+    params.CopyParamsFile(jobID)
 
 
 
-def MakeRunscript(filename,kappa,kd,shift,testing=None,*args,**kwargs):
+def MakeSlurmRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**kwargs):
     '''
     Makes the runscript to be called by the scheduler.
     
@@ -117,52 +140,164 @@ def MakeRunscript(filename,kappa,kd,shift,testing=None,*args,**kwargs):
     testing  -- str: type of test submission
 
     '''
+    if testing == 'testqueue':
+        out = subprocess.run('sinfo',text=True,capture_output=True,shell=True)
+        if 'test' not in out.stdout:
+            raise ValueError('Test queue does not exist on your machine. Try "-t headnode" or "-t interactive".')
+    elif testing == 'interactive':
+        raise ValueError('Interactive jobs not presently supported by slurm. Try "-t headnode".')
+
     parameters = params.Load()
-    #Getting slurm request details, ie. partition, num nodes, gpus etc.
-    slurmDetails = parameters['slurmParams']
+    #Getting slurm request details, ie. queue, num nodes, gpus etc.
+    schedulerDetails = parameters['slurmParams']
     
     #Job management script
     script = parameters['directories']['runscriptDir'] + 'colarunscripts/manageJob.py'
     #Script to load modules
     modules = parameters['directories']['modules']
 
-    #adjusting some slurm parameters for submission to the test queue
-    if testing =='testqueue':
-        slurmDetails['partition'] = 'test'
-        slurmDetails['time'] = '00:30:00'
-        slurmDetails['memory'] = 16
+    #Adjusting some slurm parameters for submission to the test queue
+    if testing == 'testqueue':
+        schedulerDetails['queue'] = 'test'
+        schedulerDetails['time'] = '00:05:00'
+        schedulerDetails['memory'] = 16
     
-    #The location for the slurm output files to be dumped
-    output = dirs.FullDirectories(directory='slurm')['slurm']+'slurm-%A_%a.out'
-    
+    #The location for the scheduler output files to be dumped
+    output = dirs.FullDirectories(directory='stdout')['stdout']
+
+    #Preparing the correct terms based on whether we are using array jobs
+    jobID = '$SLURM_JOB_ID'
+    if doArrayJobs is True:
+        arrayID = '$SLURM_ARRAY_TASK_ID'
+        output += 'slurm-%A_%a.out'
+    else:
+        arrayID = 0     #Arbitrary
+        output += 'slurm-%A.out'
+
+    #Simulating Slurm values for running on head node
+    #The scheduler assigns the TASK and JOB ids to each job
+    #so we need to simulate their existence
+    if testing == 'headnode':
+        jobID = 1
+        arrayID = 1
+
     #Open the runscript
     with open(filename,'w') as f:
         #Writing the slurm details to the script
-        WriteSlurmDetails(f,output=output,**slurmDetails)
+        WriteSlurmDetails(f,output=output,**schedulerDetails)
         
-        #Simulating Slurm values for running on head node
-        #The scheduler assigns the TASK and JOB ids to each job
-        #so we need to simulate their existence
-        if testing == 'headnode':
-            f.write('SLURM_ARRAY_JOB_ID=1\n')
-            f.write('SLURM_ARRAY_TASK_ID=1\n')
-
         #Writing other stuff to the script. Output directory is made here
         WriteOtherDetails(f,modules)
         
         #Write the line which calls the python job script
-        f.write(f'python {script} {kappa} {kd} {shift} $SLURM_ARRAY_JOB_ID $SLURM_ARRAY_TASK_ID\n')
+        f.write(f'python {script} {kappa} {kd} {shift} {jobID} {arrayID}\n')
+
+
+
+def MakePBSRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**kwargs):
+    '''
+    Makes the runscript to be called by the scheduler.
+    
+    The runscript does the basic submission before calling manageJob.py
+    which manages the rest of the job.
+
+    Arguments:
+    filename -- str: the name of the file to make
+    kappa    -- int: kappa value of the particular job
+    kd       -- int: field strength of the particular job
+    shift    -- str: lattice shift of the particular job
+    testing  -- str: type of test submission
+
+    '''
+
+    if testing == 'testqueue':
+        out = subprocess.run('qstat -Q',text=True,capture_output=True,shell=True)
+        if 'test' not in out.stdout:
+            raise ValueError('Test queue does not exist on your machine. Try "-t headnode" or "-t interactive".')
+    
+
+    parameters = params.Load()
+    #Getting slurm request details, ie. queue, num nodes, gpus etc.
+    schedulerDetails = parameters['pbsParams']
+    
+    #Job management script
+    script = parameters['directories']['runscriptDir'] + 'colarunscripts/manageJob.py'
+    #Script to load modules
+    modules = parameters['directories']['modules']
+
+    #The location for the scheduler output files to be dumped
+    output = dirs.FullDirectories(directory='stdout')['stdout']
+    
+    jobID = '$PBS_JOBID'
+    if doArrayJobs is True:
+        arrayID = '$PBS_ARRAY_INDEX'
+    else:
+        arrayID = 1      #Arbitrary
+
+    #Simulating scheduler variables for running on head node
+    #The scheduler assigns the TASK and JOB ids to each job
+    #so we need to simulate their existence
+    if testing == 'headnode':
+        jobID = 1
+        arrayID = 1
+
+    #Open the runscript
+    with open(filename,'w') as f:
+        #Writing the slurm details to the script
+        WritePBSDetails(f,output=output,**schedulerDetails)
+        
+        #Writing other stuff to the script
+        WriteOtherDetails(f,modules)
+        
+        #Write the line which calls the python job script 1 at the end
+        #is the array number which is not used for PBS
+        f.write(f'python {script} {kappa} {kd} {shift} {jobID} {arrayID}\n')
 
 
 
 
-def WriteSlurmDetails(fileObject,partition,time,output,nodes,numCPUs,numGPUs,memory,*args,**kwargs):
+def WriteSlurmDetails(fileObject,queue,time,output,nodes,numCPUs,numGPUs,memory,jobStorage,*args,**kwargs):
     '''
     Writes the parameters for the slurm scheduler to the runscript.
 
     Arguments:
     fileObject -- file object: an open file to write to
-    partition  -- str: the partition to submit to
+    queue      -- str: queue to submit to
+    time       -- str: the time allowed for the run in format D-HH:MM:SS
+    output     -- str: the location for the slurm output files to be placed
+    nodes      -- int: the number of nodes to request 
+    numCPUs    -- int: the number of CPUs to request
+    numGPUs    -- int: the number of GPUs to request
+    memory     -- int: the amount of in job memory to request
+    jobStorage -- int: the amount of temporary job storage to request
+    '''
+
+    #Printing a couple of relevant details to the screen for checking
+    print('\n'+ f'Queue: {queue}\n'
+              + f'Nodes: {nodes}\n'
+              + f'Time: {time}\n')
+
+    #Writing everything to the file
+    fileObject.write(f'#!/bin/bash\n')
+    fileObject.write(f'#SBATCH --partition={queue}\n')
+    fileObject.write(f'#SBATCH --nodes={nodes}\n')
+    fileObject.write(f'#SBATCH --ntasks={numCPUs}\n')
+    fileObject.write(f'#SBATCH --time={time}\n')
+    fileObject.write(f'#SBATCH --mem={memory}GB\n')
+    fileObject.write(f'#SBATCH --output={output}\n')
+    fileObject.write(f'#SBATCH --gres=tmpfs:{jobStorage}G\n')
+    if queue != 'test':
+        fileObject.write(f'#SBATCH --gres=gpu:{numGPUs}\n')
+
+
+
+def WritePBSDetails(fileObject,project,queue,numCPUs,numGPUs,time,memory,jobStorage,linkStorage,output,*args,**kwargs):
+    '''
+    Writes the parameters for the slurm scheduler to the runscript.
+
+    Arguments:
+    fileObject -- file object: an open file to write to
+    queue      -- str: queue to submit to
     time       -- str: the time allowed for the run in format D-HH:MM:SS
     output     -- str: the location for the slurm output files to be placed
     nodes      -- int: the number of nodes to request 
@@ -173,20 +308,24 @@ def WriteSlurmDetails(fileObject,partition,time,output,nodes,numCPUs,numGPUs,mem
     '''
 
     #Printing a couple of relevant details to the screen for checking
-    print( f'Partition: {partition}\n'
-          +f'Nodes: {nodes}\n'
-          +f'Time: {time}\n')
+    print('\n'+ f'Queue: {queue}\n'
+              + f'CPUs: {numCPUs}\n'
+              + f'GPUs: {numGPUs}\n'
+              + f'Time: {time}\n')
 
     #Writing everything to the file
     fileObject.write(f'#!/bin/bash\n')
-    fileObject.write(f'#SBATCH --partition={partition}\n')
-    fileObject.write(f'#SBATCH --nodes={nodes}\n')
-    fileObject.write(f'#SBATCH --ntasks={numCPUs}\n')
-    fileObject.write(f'#SBATCH --time={time}\n')
-    fileObject.write(f'#SBATCH --mem={memory}GB\n')
-    fileObject.write(f'#SBATCH --output={output}\n')
-    if partition != 'test':
-        fileObject.write(f'#SBATCH --gres=gpu:{numGPUs}\n')
+    fileObject.write(f'#PBS -q {queue}\n')
+    fileObject.write(f'#PBS -P {project}\n')
+    fileObject.write(f'#PBS -l ncpus={numCPUs}\n')
+    fileObject.write(f'#PBS -l ngpus={numGPUs}\n')
+    fileObject.write(f'#PBS -l walltime={time}\n')
+    fileObject.write(f'#PBS -l mem={memory}GB\n')
+    fileObject.write(f'#PBS -l jobfs={jobStorage}GB\n')
+    fileObject.write(f'#PBS -lstorage {linkStorage}\n')
+    fileObject.write(f'#PBS -j oe\n')
+    fileObject.write(f'#PBS -l wd\n')
+    fileObject.write(f'#PBS -o {output}\n')
     
 
 
@@ -229,7 +368,7 @@ def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
     ncon      -- int: The total number of configurations
 
     Returns:
-    missingJobs -- int list: integer list of configurations.
+    missingCfuns -- str list: str list of integers labelling missing configurations.
     '''
 
     #Loading parameters
@@ -265,8 +404,6 @@ def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
 
 
 
-
-
 def Input():
     '''
     Parses input from the command line.
@@ -282,7 +419,7 @@ def Input():
     parser = argparse.ArgumentParser(description='Submits jobs to the queue. Produces propagators and correlation functions.')
 
     #Adding the testing argument
-    parser.add_argument('-t','--testing',help='run in testing mode. Runs on head node (no GPUs). Else submits only 1 configuration to either the test queue (no GPUs) or the full queue.',choices=['headnode','testqueue','fullqueue'])
+    parser.add_argument('-t','--testing',help='run in testing mode. Runs on head node (no GPUs). Else submits only 1 configuration to either the test queue (no GPUs) or the full queue.',choices=['headnode','testqueue','fullqueue','interactive'])
     
     #Adding the argument for submitting only missing jobs
     parser.add_argument('-m','--submitmissing',help='checks for missing correlation functions, then submits only those configurations.',action='store_true')

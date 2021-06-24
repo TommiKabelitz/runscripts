@@ -133,12 +133,12 @@ def ConfigDetails(kappa,runPrefix,*args,**kwargs):
     
     return start,ncon
 
-def ConfigID(nthCon,runPrefix,start,*args,**kwargs):
+def ConfigID(nthConfig,runPrefix,start,*args,**kwargs):
     '''
     Returns a formatted configuration ID, eg -a-1880
     
     Function arguments:
-    nthCon    -- int: The current configuration. Eg the 1st or 10th
+    nthConfig -- int: The current configuration. Eg the 1st or 10th
                       configuration to be used.
     start     -- int: The first configuration number. Eg 1880
     runPrefix -- char: The runPrefix or series name within the
@@ -156,5 +156,5 @@ def ConfigID(nthCon,runPrefix,start,*args,**kwargs):
     else:
         raise ValueError('Invalid run prefix')
     
-    ID = start + (nthCon-1)*gap
+    ID = start + (nthConfig-1)*gap
     return f'-{runPrefix}-00{ID}'

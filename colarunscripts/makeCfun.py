@@ -31,12 +31,12 @@ def main(jobValues,*args,**kwargs):
 
     Arguments:
     jobValues -- dict: Dictionary containing the job specific values such as
-                       kd, shift, SLURM_ARRAY_TASK_ID, etc...
+                       kd, shift, nthConfig, etc...
 
     '''
 
     #compiling the filestub for the input files to feed to cfungen
-    filestub = dirs.FullDirectories(directory='cfunInput')['cfunInput'] + jobValues['SLURM_ARRAY_JOB_ID'] + '_' + jobValues['SLURM_ARRAY_TASK_ID']
+    filestub = dirs.FullDirectories(directory='cfunInput')['cfunInput'] + jobValues['jobID'] + '_' + str(jobValues['nthConfig'])
     
     #Calling the function that does all the work
     MakeCorrelationFunctions(filestub,jobValues)
@@ -154,6 +154,8 @@ def MakeReusableFiles(filestub,jobValues,parameters,*args,**kwargs):
                         From parameters.yml
 
     '''
+    
+    print('Making input files independent of structure')
 
     files.MakeLatticeFile(filestub,**parameters['lattice'])
         
