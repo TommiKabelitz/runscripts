@@ -37,7 +37,7 @@ as one job. The must be separated out. This is to be fixed.
 
 - Fix particle hadronic Landau projections (when COLA updates)
 - Create Laplacian Eigenmodes dynamically within the job
-- Add support for GADI job scheduler
 - Implement production and use of loop props
 - Add more documentation, including explanations of all variable in parameters.yml
 - Add testing scripts for easy testing of individual functions
+- Add example input files with comments
