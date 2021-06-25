@@ -1,13 +1,13 @@
 runValues:
   kappaValues: [13770]
-  kds: [3]
+  kds: [1]
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
   sinkType: laplacian
   structureList: [['u','d','s'],['n','d','s']]
   particleList: [['pip','pipbar'],['proton','protonbar']]
-  scheduler: slurm
+  scheduler: PBS
   doArrayJobs: False
   keepProps: False
 
@@ -35,14 +35,14 @@ pbsParams:
   numGPUs: 4
   time: '48:00:00'
   memory: 64
-  jobStorage: 200
+  jobStorage: 20
   linkStorage: gdata/e31+scratch/e31
   
 #All caps sections are replaced with the relevant value at the appropriate time
 #Currently KAPPA,SOURCE,SINK,CONFIGID,KD,SHIFT are available for replacement
 directories:
-  runscriptDir: /home/a1724542/PhD/runscripts/
-  baseOutputDir: /hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/
+  runscriptDir: /home/566/tk9944/PhD/runscripts/
+  baseOutputDir: /scratch/e31/tk9944/WorkingStorage/
   runIdentifier: PhDRunOne/
   outputTree: kKAPPA/BFKD/shSHIFT/
   
@@ -52,17 +52,17 @@ directories:
   #cfunFileBase: SOSOURCE_SISINK_icfg
   cfunFormat: gencf
   
-  configDir: /hpcfs/groups/cssm-hpc-users/PACS-CS/
+  configDir: /g/data3/e31/PACS-CS/RCNF2+1/
   configFilename: RC32x64_B1900Kud0KAPPA00Ks01364000C1715/RC32x64_B1900Kud0KAPPA00Ks01364000C1715CONFIGID
   configFormat: ildg
+  
+  lapModeDir: /scratch/e31/rjb566/Lap2modes/
+  lapModeFile: RC32x64_B1900Kud0KAPPA0Ks01364000C1715/as0nsm0/BFKD/KAPPAModess32t64kBKDCONFIGID.l2ev
 
-  lapModeDir: /hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/
-  lapModeFile: RC32x64_B1900Kud0KAPPA00Ks01364000C1715/as0nsm0/BFKD/KAPPAModess32t64kBKDCONFIGID.l2ev
-
-  landauDir: /home/a1724542/PhD/runscripts/LandauModes/
+  landauDir: /scratch/e31/tk9944/PhD/LandauModes/LandauModes/
   landauFile: LandauModeBasisRealSourcenM18nxNXnyNYx00y00kBKH.dat
 
-  modules: /home/a1724542/PhD/runscripts/phoenix_modules.sh
+  modules: /home/566/tk9944/gadi_modules.sh
 
 sourcesink:
   #[x,y,z,t]
@@ -105,7 +105,7 @@ propcfun:
   U1FieldType: B
   U1FieldQuanta: k
   strangeKappa: 13665
-  qpropExecutable: /home/a1724542/PhD/cola/trunk/cuda/quarkpropGPU.x
+  qpropExecutable: /home/566/tk9944/PhD/cola/trunk/cuda/quarkpropGPU.x
   clover:
     bcx: 1.0
     bcy: 1.0
@@ -121,7 +121,7 @@ propcfun:
   gellMannRep: fundamental
   doUstar: f
   quarkList: [u,d,s,n,ns]
-  cfgenExecutable: /home/a1724542/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
+  cfgenExecutable: /home/566/tk9944/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
   
 lattice:
   extent: [32,32,32,64]
