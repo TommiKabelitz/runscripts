@@ -1,6 +1,7 @@
 /*~
 environ_vars
 fort.100
+parameters.yml
 /colarunscripts/__pycache__/*
 /LandauModes/*
 /runFiles/*
