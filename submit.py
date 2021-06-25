@@ -140,10 +140,19 @@ def MakeSlurmRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**
     testing  -- str: type of test submission
 
     '''
+
+    #Adjusting parameters based on the test run type. Also checking if a test
+    #queue exists
     if testing == 'testqueue':
         out = subprocess.run('sinfo',text=True,capture_output=True,shell=True)
         if 'test' not in out.stdout:
             raise ValueError('Test queue does not exist on your machine. Try "-t headnode" or "-t interactive".')
+        else:
+            schedulerDetails['queue'] = 'test'
+            schedulerDetails['time'] = '00:05:00'
+            schedulerDetails['memory'] = 16    
+    elif testing == 'headnode':
+        schedulerDetails['time'] = '01:00:00'
     elif testing == 'interactive':
         raise ValueError('Interactive jobs not presently supported by slurm. Try "-t headnode".')
 
@@ -156,13 +165,7 @@ def MakeSlurmRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**
     #Script to load modules
     modules = parameters['directories']['modules']
 
-    #Adjusting some slurm parameters for submission to the test queue
-    if testing == 'testqueue':
-        schedulerDetails['queue'] = 'test'
-        schedulerDetails['time'] = '00:05:00'
-        schedulerDetails['memory'] = 16
-    
-    #The location for the scheduler output files to be dumped
+    #The location for the scheduler output file(s) to be dumped
     output = dirs.FullDirectories(directory='stdout')['stdout']
 
     #Preparing the correct terms based on whether we are using array jobs
@@ -214,8 +217,13 @@ def MakePBSRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**kw
         out = subprocess.run('qstat -Q',text=True,capture_output=True,shell=True)
         if 'test' not in out.stdout:
             raise ValueError('Test queue does not exist on your machine. Try "-t headnode" or "-t interactive".')
-    
-
+        else:
+            schedulerDetails['queue'] = 'test'
+            schedulerDetails['time'] = '00:05:00'
+            schedulerDetails['memory'] = 16
+    elif testing == 'headnode':
+        schedulerDetails['time'] = '01:00:00'
+        
     parameters = params.Load()
     #Getting slurm request details, ie. queue, num nodes, gpus etc.
     schedulerDetails = parameters['pbsParams']
