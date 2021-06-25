@@ -141,6 +141,11 @@ def MakeSlurmRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**
 
     '''
 
+
+    parameters = params.Load()
+    #Getting slurm request details, ie. queue, num nodes, gpus etc.
+    schedulerDetails = parameters['slurmParams']
+
     #Adjusting parameters based on the test run type. Also checking if a test
     #queue exists
     if testing == 'testqueue':
@@ -151,14 +156,10 @@ def MakeSlurmRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**
             schedulerDetails['queue'] = 'test'
             schedulerDetails['time'] = '00:05:00'
             schedulerDetails['memory'] = 16    
-    elif testing == 'headnode':
-        schedulerDetails['time'] = '01:00:00'
+    elif testing == 'fullqueue':
+        schedulerDetails['time'] = '02:00:00'
     elif testing == 'interactive':
         raise ValueError('Interactive jobs not presently supported by slurm. Try "-t headnode".')
-
-    parameters = params.Load()
-    #Getting slurm request details, ie. queue, num nodes, gpus etc.
-    schedulerDetails = parameters['slurmParams']
     
     #Job management script
     script = parameters['directories']['runscriptDir'] + 'colarunscripts/manageJob.py'
@@ -212,6 +213,10 @@ def MakePBSRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**kw
     testing  -- str: type of test submission
 
     '''
+        
+    parameters = params.Load()
+    #Getting slurm request details, ie. queue, num nodes, gpus etc.
+    schedulerDetails = parameters['pbsParams']
 
     if testing == 'testqueue':
         out = subprocess.run('qstat -Q',text=True,capture_output=True,shell=True)
@@ -221,12 +226,8 @@ def MakePBSRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**kw
             schedulerDetails['queue'] = 'test'
             schedulerDetails['time'] = '00:05:00'
             schedulerDetails['memory'] = 16
-    elif testing == 'headnode':
-        schedulerDetails['time'] = '01:00:00'
-        
-    parameters = params.Load()
-    #Getting slurm request details, ie. queue, num nodes, gpus etc.
-    schedulerDetails = parameters['pbsParams']
+    elif testing == 'fullqueue':
+        schedulerDetails['time'] = '02:00:00'
     
     #Job management script
     script = parameters['directories']['runscriptDir'] + 'colarunscripts/manageJob.py'
