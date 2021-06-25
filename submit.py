@@ -260,7 +260,7 @@ def MakePBSRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**kw
         
         #Write the line which calls the python job script 1 at the end
         #is the array number which is not used for PBS
-        f.write(f'python {script} {kappa} {kd} {shift} {jobID} {arrayID}\n')
+        f.write(f'python3 {script} {kappa} {kd} {shift} {jobID} {arrayID}\n')
 
 
 
