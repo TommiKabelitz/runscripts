@@ -194,7 +194,7 @@ def MakeSlurmRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**
         WriteOtherDetails(f,modules)
         
         #Write the line which calls the python job script
-        f.write(f'python {script} {kappa} {kd} {shift} {jobID} {arrayID}\n')
+        f.write(f'python3 {script} {kappa} {kd} {shift} {jobID} {arrayID}\n')
 
 
 
