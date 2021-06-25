@@ -87,7 +87,7 @@ def doConfiguration(jobValues,*args,**kwargs):
         print('Deleting Propagators')
         for prop in propPaths:
             path = pathlib.Path(prop)
-            pathlib.unlink(path,missing_ok=True)
+            path.unlink(missing_ok=True)
 
 
 
