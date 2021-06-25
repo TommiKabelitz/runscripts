@@ -331,7 +331,7 @@ def WritePBSDetails(fileObject,project,queue,numCPUs,numGPUs,time,memory,jobStor
     fileObject.write(f'#PBS -l walltime={time}\n')
     fileObject.write(f'#PBS -l mem={memory}GB\n')
     fileObject.write(f'#PBS -l jobfs={jobStorage}GB\n')
-    fileObject.write(f'#PBS -lstorage {linkStorage}\n')
+    fileObject.write(f'#PBS -lstorage={linkStorage}\n')
     fileObject.write(f'#PBS -j oe\n')
     fileObject.write(f'#PBS -l wd\n')
     fileObject.write(f'#PBS -o {output}\n')
