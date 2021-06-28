@@ -1,0 +1,3 @@
+-a-001880     #Gauge field configuration ID of this run
+	      #If doing multiple configuration in the same
+	      #call, list them here each on their own line

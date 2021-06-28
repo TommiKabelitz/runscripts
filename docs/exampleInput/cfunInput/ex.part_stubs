@@ -1,0 +1,3 @@
+2    #Number of interpolator pairs to do. Should be same as number of interpolators below
+/home/a1724542/PhD/runscripts/runFiles/cfunInput/1_1pippipbar          #filestub of all .interp files to read in
+/home/a1724542/PhD/runscripts/runFiles/cfunInput/1_1protonprotonbar

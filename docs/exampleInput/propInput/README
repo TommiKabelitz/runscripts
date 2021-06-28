@@ -1,0 +1,9 @@
+Example input files for quarkpropGPU.x
+As of COLA version 222
+
+Note: 
+ - These input files do not work. The comments break them.
+ - All lines beginning with a # are comments and must be removed entirely	
+   not left blank
+ - Many source types missing, see colarunscript/sources.py for more on the 
+   other sources.

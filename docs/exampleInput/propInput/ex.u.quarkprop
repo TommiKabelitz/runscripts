@@ -1,0 +1,11 @@
+/hpcfs/groups/cssm-hpc-users/PACS-CS/RC32x64_B1900Kud01377000Ks01364000C1715/RC32x64_B1900Kud01377000Ks01364000C1715-a-001880    #Gauge Field configuration file
+ildg    #Gauge field format
+/hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/PhDRunOne/k13770/BF3/shx00t00/props/u_SOsm250_icfg-a-001880    #Output propagator prefix, quarkprop will append stuff
+prop      #output file format
+f         #do file IO in parallel
+clover    #Fermion action
+0.13770   #Formatted Kappa value
+0 0 0 0   #Global field shift x y z t
+[B:k=-6]  #Background field code
+1.0d-5    #tolerance
+3         #sourcetype

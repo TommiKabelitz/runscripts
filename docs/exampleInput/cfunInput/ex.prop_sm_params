@@ -1,0 +1,9 @@
+xyz    #smear code
+0.7    #alpha value for sink smearing
+1.0    #u0 value
+1      #field strength (kB)
+1      #Number of different numbers of sweeps to do
+0      #First number of sweeps. Each further value should go on its own line
+10     #Sweeps of Stout link smearing
+t      #Whether to do stout link smearing (yes the order is strange)
+0.1    #alpha value for link smearing

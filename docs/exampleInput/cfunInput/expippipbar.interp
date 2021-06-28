@@ -1,0 +1,15 @@
+pippipbar_uds    #Name of correlation function. Gets put in output file
+/hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/PhDRunOne/k13770/BF1/shx00t00/cfuns/SOsm250_icfg    #Output correlation function prefix. cfgen will append stuff
+#Info for source op starts here. Integer lines must be followed by that many lines containing the pertinant information 
+0            #number of Lorentz indices
+0            #number of Gell Mann matrices
+0	     #number of levi civita 
+1	     #number of terms in interp field
+1.0 * [Ad^{e} (\gamma_{5}) u^{e}]
+#Info for sink op starts here. rules as above
+0            #number of Gell Mann matrices
+0	     #number of levi civita 
+1	     #number of terms in interp field
+-1.0 * [Au^{ep} (\gamma_{5}) d^{ep}
+f            #Is isospin symmetry true?
+f	     #Are we in the SU3 flavour limit

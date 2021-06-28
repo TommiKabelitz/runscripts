@@ -1,0 +1,9 @@
+2    #Number of dimensions to project the Laplacian operator to
+/hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/RC32x64_B1900Kud01377000Ks01364000C1715/as0nsm0/BF1/13770Modess32t64kB1-a-001880.l2ev    #u quark eigenmode file
+/hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/RC32x64_B1900Kud01377000Ks01364000C1715/as0nsm0/BF1/13770Modess32t64kB1-a-001880.l2ev    #d quark eigenmode file
+/hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/RC32x64_B1900Kud01377000Ks01364000C1715/as0nsm0/BF1/13770Modess32t64kB1-a-001880.l2ev    #s quark eigenmode file
+2        #Number of different numbers of modes to truncate with
+silp64	 #Label for first number of modes
+64 64 64 #Number of modes in x y z directions
+silp96	 #Label for second number of modes
+96 96 96 #etc.

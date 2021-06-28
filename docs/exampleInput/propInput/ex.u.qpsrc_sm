@@ -1,0 +1,11 @@
+1    #x (source location)
+1    #y (source location)
+1    #z (source location)
+16   #t (source location)
+250  #number of sweeps
+0.7  #alpha_smsrc
+f    #useUzero
+1.0  #u0 value for source smearing
+t    #Use Stout Link Smearing
+0.1  #alpha value for link smearing
+10   #number of link smearing sweeps
