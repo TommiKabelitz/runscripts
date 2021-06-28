@@ -219,7 +219,7 @@ def MakeSpecificFiles(filestub,structure,propDict,jobValues,parameters):
 
         #Making the files which hold the paths to the propagators in the u,d,s 
         #spots. Returns the paths to those files. Apparently must be fed in
-        #order u,s,d. I don't know why.
+        #order u,s,d. I don't know why - apparently because u,s often degenerate
         propList = files.MakePropPathFiles(filestub,propDict,structure)
         propList[1],propList[2] = propList[2],propList[1]
 
