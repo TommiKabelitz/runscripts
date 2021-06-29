@@ -85,6 +85,7 @@ def CopyParamsFile(jobID,*args,**kwargs):
     #File to make
     copyFile = dirs.FullDirectories(directory='parameters')['parameters'] + f'{jobID}_parameters.yml'
     
+    print(f'Making copy of parameters file at: {copyFile}')
     #Copying file
     subprocess.run(['cp',originalFile,copyFile])
 
