@@ -278,6 +278,7 @@ def CallMPI(filestub,executable,reportFile,numGPUs,*args,**kwargs):
     '''
 
     print()
+    print(f'Time is {datetime.now()}')
     print(f'mpi-running "{executable}"')
     print(f'On {numGPUs} GPUs')
     print(f'The input filestub is "{filestub}"')
