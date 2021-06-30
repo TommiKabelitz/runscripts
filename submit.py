@@ -89,6 +89,7 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,scheduler,doArrayJobs,submitmiss
 def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,testing):
 
     command = []
+    capture_output = True
     
     if testing == 'headnode':
         subprocess.run([filename])
@@ -101,17 +102,19 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,testing):
 
     if testing == 'interactive':
             command.append('-I')
+            capture_output = False
     elif doArrayJobs is True or len(jobList) == 1:
 
         formattedList = ','.join(jobList)
         if scheduler == 'PBS':
-            command.append(f'-J {formattedList}')
+            command.append('-J ')
+            command.append(f'{formattedList}')
         elif scheduler == 'slurm':
             command.append(f'--array={formattedList}')
         
     command.append(filename)
 
-    out = subprocess.run(command,text=True,capture_output=True)
+    out = subprocess.run(command,text=True,capture_output=capture_output)
 
     try:
         print(out.stdout)
