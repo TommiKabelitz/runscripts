@@ -77,10 +77,10 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     if tempDir != '/':
         runFileDir = tempDir
         if tempStorage['props'] is True:
-            outputDir = tempDir
+            outputDir = tempDir + 'props/BFKD/'
 
     #Propagator output file
-    directories['prop'] = outputDir + 'props/' +  base.propFileBase
+    directories['prop'] = outputDir +  base.propFileBase
 
     #COLA input directories
     directories['propInput'] = runFileDir + 'propInput/'
