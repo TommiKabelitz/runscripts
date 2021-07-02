@@ -186,8 +186,8 @@ def MakeSpecificFiles(filestub,structure,propDict,jobValues,parameters):
     '''
 
     #Making Laplacian Sink File
-    modeFiles = dirs.LapModeFiles(**jobValues)
-    lapModeFiles = [modeFiles[quark] for quark in structure]
+    modeFiles = dirs.LapModeFiles(**jobValues)   #(dict)
+    lapModeFiles = [modeFiles[quark] for quark in structure]   #(above as list) 
     files.MakeLPSinkFile(filestub,lapModeFiles=lapModeFiles,**parameters['sourcesink'])
 
     #Setting isospin symmetry based on field strength
