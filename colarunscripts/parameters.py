@@ -37,27 +37,31 @@ def Load(writeOut=False,*args,**kwargs):
 
     '''
     
+    #Getting the directories where the parameters file is stored
     runscriptDir = Parent(__file__,2)
+    paramsDir = runscriptDir + '/runFiles/parameters'
 
-    #Trying to grab the job ID
-    try:
-        jobID = os.environ['SLURM_JOB_ID']
-    except KeyError:
-        pass
-    try:
-        jobID = os.environ['PBS_JOB_ID']
-    except KeyError:
-        pass
+    #List of places the Job ID may be stored.
+    #Array IDs should come before non-array IDs as each job in an
+    #array will have a different job ID.
+    jobIDLabels = ['SLURM_ARRAY_JOB_ID',
+                   'SLURM_JOB_ID',
+                   'PBS_ARRAYID',
+                   'PBS_JOB_ID']
 
-    try:
-        #If it exists using the copied params file in the parameters dir.
-        paramsDir = runscriptDir + '/runFiles/parameters'
-        parametersFile = paramsDir + f'/{jobID}_parameters.yml'
-    
-    #Using the original parameters file if the job id is unset.
-    #Should only happen when being called in submit.py
-    except NameError:
+    #Trying to grab the job ID, then setting the file path.
+    #Otherwise using the parameters file in the runscripts dir
+    for label in jobIDLabels:
+        try:
+            jobID = os.environ[label]
+            parametersFile = paramsDir + f'/{jobID}_parameters.yml'
+            break
+        except KeyError:
+            pass
+    #The else runs if the break does not
+    else:
         parametersFile = runscriptDir + '/parameters.yml'
+
 
     #Opening and loading the yamml
     with open(parametersFile,'r') as f:
