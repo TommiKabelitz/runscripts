@@ -18,8 +18,9 @@ import pathlib                       #for deleting props
 
 #local modules
 from colarunscripts import configIDs as cfg
-from colarunscripts import makePropagator
 from colarunscripts import makeCfun
+from colarunscripts import makeEmodes
+from colarunscripts import makePropagator
 from colarunscripts import parameters as params
 
 
@@ -64,6 +65,16 @@ def doConfiguration(jobValues,*args,**kwargs):
     #That's it for preparation of job values. Now start making propagators
     #and correlation functions
 
+
+    print(50*'_')
+    print()
+    print('Making eigenmodes')
+    print(f'Time is {datetime.now()}')
+    eigenmodePaths = makeEmodes.main(jobValues)
+    print("\nEigenmodes done")
+    print(f'Time is {datetime.now()}')
+    print()
+
     print(50*'_')
     print()
     print('Making propagators')
@@ -88,8 +99,13 @@ def doConfiguration(jobValues,*args,**kwargs):
         for prop in propPaths:
             path = pathlib.Path(prop)
             path.unlink(missing_ok=True)
-
-
+    
+    if jobValues['keepEmodes'] is False:
+        print('Deleting Eigenmodes')
+        for eigenMode in eigenmodePaths:
+            path = pathlib.Path(eigenMode)
+            path.unlink(missing_ok=True)
+    
 
 def PrintJobValues(jobValues):
     '''

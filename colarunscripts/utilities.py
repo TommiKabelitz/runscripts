@@ -1,4 +1,7 @@
+#Standard library modules
 import os
+
+import colarunscripts.parameters as params
 
 '''
 Some utility functions.
@@ -81,3 +84,12 @@ def GetEnvironmentVar(variable,*args,**kwargs):
             return value
     except KeyError:
         return ''
+
+
+def SchedulerParams(scheduler,*args,**kwargs):
+
+    parameters = params.Load()
+    if scheduler == 'slurm':
+        return parameters['slurmParams']
+    elif scheduler == 'PBS':
+        return parameters['pbsParams']
