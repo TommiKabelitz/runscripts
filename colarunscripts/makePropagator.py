@@ -129,7 +129,7 @@ def MakePropagator(quark,jobValues,filestub,parameters,*args,**kwargs):
 
         #Get propagator report file and call the MPI
         reportFile = directories['propReport'].replace('QUARK',quarkLabel)
-        CallMPI(filestub,parameters['propcfun']['qpropExecutable'],reportFile,**parameters['slurmParams'])
+        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,arguments=['--solver="CGNE+S"','--itermax=1000000'],filestub=filestub,**parameters['slurmParams'])
         
         return fullQuarkPath
 
@@ -169,7 +169,7 @@ def MakePropInputFiles(filestub,quark,quarkLabel,directories,quarkValues,paramet
         #end MakePropInputFiles
 
 
-def CallMPI(filestub,executable,reportFile,numGPUs,**kwargs):
+def CallMPI(executable,reportFile,numGPUs=0,arguments=[],filestub='',**kwargs):
         '''
         Calls the executable using mpirun now that input files are made.
 
@@ -181,12 +181,12 @@ def CallMPI(filestub,executable,reportFile,numGPUs,**kwargs):
 
         '''
         print(f'Time is {datetime.now()}')
-        print('mpi-running "' + ' '.join([executable,'--solver="CGNE+S"','--itermax=1000000']) + '"')
+        print('mpi-running "' + ' '.join([executable]+arguments) + '"')
         print(f'On {numGPUs} GPUs')
         print(f'The input filestub is "{filestub}"')
 
         #Running the executable. text=True means input and output are decoded
-        runDetails = subprocess.run(['mpirun','-np',str(numGPUs),executable,'--solver=CGNE+S','--itermax=1000000'],input=filestub+'\n',text=True,capture_output=True)
+        runDetails = subprocess.run(['mpirun','-np',str(numGPUs),executable]+arguments,input=filestub+'\n',text=True,capture_output=True)
 
         #Writing output to report file
         with open(reportFile,'w') as f:

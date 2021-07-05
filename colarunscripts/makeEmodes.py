@@ -16,6 +16,7 @@ from datetime import datetime       #for writing out the time
 from colarunscripts import directories as dirs
 from colarunscripts import shifts
 from colarunscripts import parameters as params
+from colarunscripts.makePropagator import CallMPI
 from colarunscripts.propFiles import FieldCode, MakeLatticeFile
 from colarunscripts.utilities import SchedulerParams
 
@@ -55,7 +56,7 @@ def main(jobValues):
             MakeLap2ModesFile(filestub,**inputs,**parameters['laplacianEigenmodes'])
 
             reportFile = dirs.FullDirectories(directory='lapmodeReport',**jobValues)['lapmodeReport'].replace('QUARK',quark)
-            CallMPI(filestub,parameters['laplacianEigenmodes']['lapmodeExecutable'],reportFile,**schedulerParams)
+            CallMPI(parameters['laplacianEigenmodes']['lapmodeExecutable'],reportFile,filestub=filestub,**schedulerParams)
                     
             fullFileList.append(fullFile)
 
@@ -79,36 +80,3 @@ def MakeLap2ModesFile(filestub,configFile,configFormat,outputPrefix,alpha_smeari
         f.write(f'{tolerance}\n')
         f.write(f'{doRandomInitial}\n')
         f.write(f'{inputModeFile}\n')
-
-        
-        
-def CallMPI(filestub,executable,reportFile,numGPUs,**kwargs):
-        '''
-        Calls the executable using mpirun now that input files are made.
-
-        Arguments:
-        filestub   -- str: Filestub of the input files to pass to the executable
-        executable -- str: The  exeutable to call
-        reportFile -- str: The  reportfile to write the output of the executable to
-        numGPUs    -- int: The  number of GPUs available to run on
-
-        '''
-        
-        print(f'Time is {datetime.now()}')
-        print(f'mpi-running "{executable}"')
-        print(f'On {numGPUs} GPUs')
-        print(f'The input filestub is "{filestub}"')
-
-        #Running the executable. text=True means input and output are decoded
-        runDetails = subprocess.run(['mpirun','-np',str(numGPUs),executable],input=filestub+'\n',text=True,capture_output=True)
-
-        #Writing output to report file
-        with open(reportFile,'w') as f:
-               f.write(runDetails.stdout)
-               #Write the returned error to the file if there is one
-               if runDetails.stderr is not None:
-                       f.write(runDetails.stderr)
-        print(f'Report file is: {reportFile}')
-        print(f'Time is {datetime.now()}')
-        
-        #end CallMPI

@@ -19,7 +19,7 @@ from colarunscripts import directories as dirs
 from colarunscripts import cfgenFiles as files
 from colarunscripts import parameters as params
 from colarunscripts import particles as part
-
+from colarunscripts.makePropagator import CallMPI
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
@@ -74,7 +74,7 @@ def MakeCorrelationFunctions(filestub,jobValues):
         reportFile = dirs.FullDirectories(directory='cfunReport',structure=structure,**jobValues,**parameters['sourcesink'])['cfunReport']
 
         #Calling cfungen
-        CallMPI(filestub,executable,reportFile,numGPUs)
+        CallMPI(executable,reportFile,filestub=filestub,numGPUs=numGPUs)
         
 
 def CompilePropPaths(jobValues,parameters,*args,**kwargs):
@@ -262,37 +262,3 @@ def HadronicProjection(kd,particle,structure,parameters,*args,**kwargs):
         #Use the hadronic charge to get the correct Landau file
         details['fullLandauFile'] = dirs.FullDirectories(directory='landau',kH=abs(kH))['landau']
         return details
-    
-
-
-def CallMPI(filestub,executable,reportFile,numGPUs,*args,**kwargs):
-    '''
-    Calls the executable using mpirun now that input files are made.
-
-    Arguments:
-    filestub   -- str: Filestub of the input files to pass to the executable
-    executable -- str: The  exeutable to call
-    reportFile -- str: The  reportfile to write the output of the executable to
-    numGPUs    -- int: The  number of GPUs available to run on
-
-    '''
-
-    print()
-    print(f'Time is {datetime.now()}')
-    print(f'mpi-running "{executable}"')
-    print(f'On {numGPUs} GPUs')
-    print(f'The input filestub is "{filestub}"')
-
-    #Running the executable. text=True means input and output are decoded
-    runDetails = subprocess.run(['mpirun','-np',str(numGPUs),executable],input=filestub+'\n2\n',text=True,capture_output=True)
-    
-    #Writing output to report file
-    with open(reportFile,'w') as f:
-        f.write(runDetails.stdout)
-        #Write the returned error to the file if there is one
-        if runDetails.stderr is not None:
-            f.write(runDetails.stderr)
-    print(f'Report file is: {reportFile}')
-    print(f'Time is {datetime.now()}')
-
-
