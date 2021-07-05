@@ -76,7 +76,6 @@ def GetEnvironmentVar(variable,*args,**kwargs):
         if '$' == variable[0]:
             #Removing dollar sign from variable name
             variableName = variable.replace('$','')
-            print(f'variable name: {variableName}')
             #Returning actual value
             value = os.environ[variableName]
             return value
