@@ -99,7 +99,7 @@ sourcesink:
   nModes_lpsnk: [64,96]
 
 laplacianEigenmodes:
-  lapmodeExecutable: /home/566/tk9944/PhD/cola/trunk/bin/lap3dmodes.x
+  lapmodeExecutable: /home/566/tk9944/PhD/cola/trunk/bin/lap2dmodes.x
   alpha_smearing: 0.7
   smearing_sweeps: 250
   numEvectors: 96
