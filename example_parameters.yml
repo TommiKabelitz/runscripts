@@ -1,21 +1,22 @@
 runValues:
   kappaValues: [13770]
-  kds: [3]
+  kds: [1]
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
   sinkType: laplacian
   structureList: [['u','d','s'],['n','d','s']]
   particleList: [['pip','pipbar'],['proton','protonbar']]
-  scheduler: slurm
+  scheduler: PBS
   doArrayJobs: False
   keepProps: False
-
+  keepEmodes: True
+  
 tempStorage:
   #phoenix is $TMPFS, Gadi is $TMPDIR
-  tempFS: $TMPFS
+  tempFS: $TMPDIR
   props: True
-  lapmodes: False
+  lapmodes: True
 
 #time format is D-HH:MM:SS, must be in quotes
 #memory in GB
@@ -23,26 +24,26 @@ slurmParams:
   queue: batch
   nodes: 1
   numCPUs: 4
-  time: '08:00:00'
-  numGPUs: 2
+  time: '4:00:00'
+  numGPUs: 4
   memory: 64
-  jobStorage: 20G
+  jobStorage: 20
   
 pbsParams:
   project: e31
   queue: gpuvolta
   numCPUs: 48
   numGPUs: 4
-  time: '48:00:00'
+  time: '01:00:00'
   memory: 64
-  jobStorage: 200
+  jobStorage: 20
   linkStorage: gdata/e31+scratch/e31
   
 #All caps sections are replaced with the relevant value at the appropriate time
 #Currently KAPPA,SOURCE,SINK,CONFIGID,KD,SHIFT are available for replacement
 directories:
-  runscriptDir: /home/a1724542/PhD/runscripts/
-  baseOutputDir: /hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/
+  runscriptDir: /home/566/tk9944/PhD/runscripts/
+  baseOutputDir: /scratch/e31/tk9944/WorkingStorage/
   runIdentifier: PhDRunOne/
   outputTree: kKAPPA/BFKD/shSHIFT/
   
@@ -62,7 +63,7 @@ directories:
   landauDir: /home/a1724542/PhD/runscripts/LandauModes/
   landauFile: LandauModeBasisRealSourcenM18nxNXnyNYx00y00kBKH.dat
 
-  modules: /home/a1724542/PhD/runscripts/phoenix_modules.sh
+  modules: /home/566/tk9944/gadi_modules.sh
 
 sourcesink:
   #[x,y,z,t]
@@ -97,7 +98,15 @@ sourcesink:
   baseSinkCode: silpMODES  
   nModes_lpsnk: [64,96]
 
-
+laplacianEigenmodes:
+  lapmodeExecutable: /home/566/tk9944/PhD/cola/trunk/bin/lap3dmodes.x
+  alpha_smearing: 0.7
+  smearing_sweeps: 250
+  numEvectors: 96
+  numAuxEvectors: 10
+  doRandomInitial: f
+  inputModeFile: ''
+  
 propcfun:
   #quarkprop related parameters
   tolerance: '1.0d-5'
@@ -105,7 +114,7 @@ propcfun:
   U1FieldType: B
   U1FieldQuanta: k
   strangeKappa: 13665
-  qpropExecutable: /home/a1724542/PhD/cola/trunk/cuda/quarkpropGPU.x
+  qpropExecutable: /home/566/tk9944/PhD/cola/trunk/cuda/quarkpropGPU.x
   clover:
     bcx: 1.0
     bcy: 1.0
@@ -121,7 +130,7 @@ propcfun:
   gellMannRep: fundamental
   doUstar: f
   quarkList: [u,d,s,n,ns]
-  cfgenExecutable: /home/a1724542/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
+  cfgenExecutable: /home/566/tk9944/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
   
 lattice:
   extent: [32,32,32,64]

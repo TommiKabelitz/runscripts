@@ -57,7 +57,8 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
 
     #Appending output file names and saving to directories dictionary
     directories['propReport'] = outputDir + 'reports/' +  base.propFileBase + '.proprep'
-    directories['cfunReport'] = outputDir +'reports/' + base.cfunFileBase + 'CONFIGID_STRUCTURE.cfunrep'    
+    directories['cfunReport'] = outputDir +'reports/' + base.cfunFileBase + 'CONFIGID_STRUCTURE.cfunrep'
+    directories['lapmodeReport'] = outputDir +'reports/' + base.lapModeReport + '.lapmoderep'
     directories['cfun'] = outputDir + 'cfuns/' + base.cfunFileBase
     
     ##Saving other file paths and directories to directories dictionary
@@ -85,7 +86,8 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     #COLA input directories
     directories['propInput'] = runFileDir + 'propInput/'
     directories['cfunInput'] = runFileDir + 'cfunInput/'
-
+    directories['lapmodeInput'] = runFileDir + 'lapmodeInput/'
+    
     #Returning only the specified directory(ies). Default behaviour is all.
     if directory is None:
         return directories
@@ -178,16 +180,17 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
 
     #Loading the parameters files
     parameters = params.Load()
-
+    tempStorage = parameters['tempStorage']
+    
+    #Are we storing eigenmodes on temporary job storage?
     if parameters['tempStorage']['lapmodes'] is True:
-        tempDir = GetEnvironmentVar(tempStorage['tempFS'])
+        baseModeDir = GetEnvironmentVar(tempStorage['tempFS'])
     else:
-        tempDir = ''
+        baseModeDir = parameters['directories']['lapModeDir']
 
     #Grabbing the base eigenmode filepath
-    baseModeDir = parameters['directories']['lapModeDir']
     baseModeFile = parameters['directories']['lapModeFile']
-    baseModePath = tempDir+baseModeDir+baseModeFile
+    baseModePath = baseModeDir+baseModeFile
 
     #Setting up the quark list depending on quark input
     if quark is None:
