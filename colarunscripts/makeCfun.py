@@ -282,7 +282,7 @@ def CallMPI(filestub,executable,reportFile,numGPUs,*args,**kwargs):
     print(f'mpi-running "{executable}"')
     print(f'On {numGPUs} GPUs')
     print(f'The input filestub is "{filestub}"')
-    
+
     #Running the executable. text=True means input and output are decoded
     runDetails = subprocess.run(['mpirun','-np',str(numGPUs),executable],input=filestub+'\n2\n',text=True,capture_output=True)
     

@@ -52,12 +52,12 @@ directories:
   #cfunFileBase: SOSOURCE_SISINK_icfg
   cfunFormat: gencf
   
-  configDir: /hpcfs/groups/cssm-hpc-users/PACS-CS/
-  configFilename: RC32x64_B1900Kud0KAPPA00Ks01364000C1715/RC32x64_B1900Kud0KAPPA00Ks01364000C1715CONFIGID
+  configDir: /hpcfs/groups/cssm-hpc-users/PACS-CS/RC32x64_B1900Kud0KAPPA00Ks01364000C1715/
+  configFilename: RC32x64_B1900Kud0KAPPA00Ks01364000C1715CONFIGID
   configFormat: ildg
 
-  lapModeDir: /hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/
-  lapModeFile: RC32x64_B1900Kud0KAPPA00Ks01364000C1715/as0nsm0/BFKD/KAPPAModess32t64kBKDCONFIGID.l2ev
+  lapModeDir: /hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/RC32x64_B1900Kud0KAPPA00Ks01364000C1715/as0nsm0/
+  lapModeFile: BFKD/KAPPAModess32t64kBKDCONFIGID.l2ev
 
   landauDir: /home/a1724542/PhD/runscripts/LandauModes/
   landauFile: LandauModeBasisRealSourcenM18nxNXnyNYx00y00kBKH.dat

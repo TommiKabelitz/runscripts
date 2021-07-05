@@ -74,7 +74,7 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     directories['parameters'] = runFileDir + 'parameters/'
     
     
-    if tempDir != '/':
+    if tempDir != 'NONE/':
         runFileDir = tempDir
         if tempStorage['props'] is True:
             outputDir = tempDir + 'props/BFKD/'
