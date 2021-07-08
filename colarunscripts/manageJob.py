@@ -65,16 +65,18 @@ def doConfiguration(jobValues,*args,**kwargs):
     #That's it for preparation of job values. Now start making propagators
     #and correlation functions
 
-
-    print(50*'_')
-    print()
-    print('Making eigenmodes')
-    print(f'Time is {datetime.now()}')
-    eigenmodePaths = makeEmodes.main(jobValues)
-    print("\nEigenmodes done")
-    print(f'Time is {datetime.now()}')
-    print()
-
+    if jobValues['sinkType'] == 'laplacian' or jobValues['sourceType'] == 'lp':
+        print(50*'_')
+        print()
+        print('Making eigenmodes')
+        print(f'Time is {datetime.now()}')
+        eigenmodePaths = makeEmodes.main(jobValues)
+        print("\nEigenmodes done")
+        print(f'Time is {datetime.now()}')
+        print()
+    else:
+        eigenmodePath = []
+        
     print(50*'_')
     print()
     print('Making propagators')
@@ -100,7 +102,7 @@ def doConfiguration(jobValues,*args,**kwargs):
             path = pathlib.Path(prop)
             path.unlink(missing_ok=True)
     
-    if jobValues['keepEmodes'] is False:
+    if jobValues['keepEmodes'] is False and eigenmodePaths != []:
         print('Deleting Eigenmodes')
         for eigenMode in eigenmodePaths:
             path = pathlib.Path(eigenMode)
