@@ -5,7 +5,7 @@ runValues:
   runPrefix: a
   sourceType: sm
   sinkType: laplacian
-  structureList: [['u','d','s'],['n','d','s']]
+  structureList: [[u,d,s],[n,d,s],[n,d,ns]]
   particleList: [['pip','pipbar'],['proton','protonbar']]
   scheduler: PBS
   doArrayJobs: False
