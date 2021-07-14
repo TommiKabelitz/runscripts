@@ -1,3 +1,5 @@
+#Values that are likely to change most frequently between runs
+#Quantities in square brackets [] are lists, comma separated entries
 runValues:
   kappaValues: [13770]
   kds: [1]
@@ -5,18 +7,19 @@ runValues:
   runPrefix: a
   sourceType: sm
   sinkType: laplacian
-  structureList: [[u,d,s],[n,d,s],[n,d,ns]]
-  particleList: [['pip','pipbar'],['proton','protonbar']]
+  structureList: [[u,d,s],[n,d,s]]
+  particleList: [[pip,pipbar],[proton,protonbar]]
   scheduler: PBS
   doArrayJobs: False
   keepProps: False
   keepEmodes: True
   
 tempStorage:
-  #phoenix is $TMPFS, Gadi is $TMPDIR
+  #Phoenix is $TMPFS, Gadi is $TMPDIR
   tempFS: $TMPDIR
+  #What to store temporarily
   props: True
-  lapmodes: True
+  lapmodes: False
 
 #time format is D-HH:MM:SS, must be in quotes
 #memory in GB
@@ -41,6 +44,7 @@ pbsParams:
   
 #All caps sections are replaced with the relevant value at the appropriate time
 #Currently KAPPA,SOURCE,SINK,CONFIGID,KD,SHIFT are available for replacement
+#Quark only replaces in niche cases
 directories:
   runscriptDir: /home/566/tk9944/PhD/runscripts/
   baseOutputDir: /scratch/e31/tk9944/WorkingStorage/
@@ -53,14 +57,15 @@ directories:
   #cfunFileBase: SOSOURCE_SISINK_icfg
   cfunFormat: gencf
   
-  configDir: /hpcfs/groups/cssm-hpc-users/PACS-CS/RC32x64_B1900Kud0KAPPA00Ks01364000C1715/
+  configDir: /g/data3/e31/PACS-CS/RCNF2+1/RC32x64_B1900Kud0KAPPA00Ks01364000C1715/
   configFilename: RC32x64_B1900Kud0KAPPA00Ks01364000C1715CONFIGID
   configFormat: ildg
-
-  lapModeDir: /hpcfs/groups/cssm-hpc-users/a1724542/Lap2modes/RC32x64_B1900Kud0KAPPA00Ks01364000C1715/as0nsm0/
+  
+  lapModeDir: /scratch/e31/rjb566/Lap2modes/RC32x64_B1900Kud0KAPPA00Ks01364000C1715/as0nsm0/
   lapModeFile: BFKD/KAPPAModess32t64kBKDCONFIGID.l2ev
-
-  landauDir: /home/a1724542/PhD/runscripts/LandauModes/
+  lapModeReport: QUARK_icfgCONFIGID
+  
+  landauDir: /scratch/e31/tk9944/PhD/LandauModes/LandauModes/
   landauFile: LandauModeBasisRealSourcenM18nxNXnyNYx00y00kBKH.dat
 
   modules: /home/566/tk9944/gadi_modules.sh
@@ -87,7 +92,7 @@ sourcesink:
   swpsFat_lnk: 10
 
   #Sink smearing related parameters. 
-  sweeps_smsnk: [0]
+  sweeps_smsnk: [0,100]
   sinkSmearcode: xyz
   alpha_smsnk: 0.7
   u0_smsnk: 1.0
@@ -100,11 +105,13 @@ sourcesink:
 
 laplacianEigenmodes:
   lapmodeExecutable: /home/566/tk9944/PhD/cola/trunk/bin/lap2dmodes.x
-  alpha_smearing: 0.7
-  smearing_sweeps: 250
+  #(link) smearing values here are just for the eigenmode code.
+  #For no smearing, set both to zero
+  alpha_smearing: 0
+  smearing_sweeps: 0
   numEvectors: 96
-  numAuxEvectors: 10
-  doRandomInitial: f
+  numAuxEvectors: 4
+  doRandomInitial: t
   inputModeFile: ''
   
 propcfun:
@@ -115,6 +122,7 @@ propcfun:
   U1FieldQuanta: k
   strangeKappa: 13665
   qpropExecutable: /home/566/tk9944/PhD/cola/trunk/cuda/quarkpropGPU.x
+  #Dictionary of clover values
   clover:
     bcx: 1.0
     bcy: 1.0
@@ -135,7 +143,8 @@ propcfun:
 lattice:
   extent: [32,32,32,64]
 
-
+#Some variables for the projection types
+#Other relevant variables get set/calculated by the code
 hadronicProjection:
   fourier:
     projection: Fourier
