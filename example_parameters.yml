@@ -8,7 +8,7 @@ runValues:
   sourceType: sm
   sinkType: laplacian
   structureList: [[u,d,s],[n,d,s]]
-  particleList: [[pip,pipbar],[proton,protonbar]]
+  particleList: [[proton,protonbar],[sigmap,sigmapbar],[sigmam,sigmambar],[neutron,neutronbar],[cascade0,cascade0bar],[cascadem,cascadembar],[sigma0,sigma0bar],[lambda0,lambda0bar],[sigma0,lambda0bar],[lambda0,sigma0bar]]
   scheduler: PBS
   doArrayJobs: False
   keepProps: False
