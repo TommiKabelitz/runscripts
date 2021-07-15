@@ -10,49 +10,48 @@ import re
 
 def FormatShift(shift,*args,**kwargs):
     '''
-    Returns the x and t shift from a string of form x24t36.
+    Returns the x and t shift from a string of form x08y16z24t32.
 
     Arguments:
-    shift -- string: Examples of possible input. x00t00, 
-                     x16t8, x0t36. Will have a problem if
-                     either the t or x shift is missing. 
-                     Number of digits does not matter, 1,
-                     2, or 3 are all fine.
-                     Shift may also be a dictionary 
-                     containing a shift with the key "shift"
-    Example Output: 24 24 24 36
+    shift -- string: The shift to be formatted. Must be in order
+                     x y z t. If a direction is left out, eg.
+                     x08y24t32, the missing coordinate will be 
+                     filled by the x value, or if x is missing.
+    Example Output: 8 16 24 32
     Requires regex module.
     '''
 
-    #Pattern to grab the numbers from the string
-    pattern = re.compile(r'\d+')
+    #Pattern to grab the letters and numbers from the string
+    letters = re.compile('[xyzt]')
+    numbers = re.compile(r'\d+')
 
-    #extracting shift from input
-    inputType = type(shift)
-    if inputType is str:
-        string = shift
-    elif inputType is dict:
-        string = shift['shift']
-    else:
-        raise TypeError('FormatShift expects input of type str or dict')
+    #Extracting numbers and letters
+    #Place in dictionary of coordinate:shift amount
+    shifts = dict(zip(letters.findall(shift),numbers.findall(shift)))
 
-    #Extracting all numbers according to the pattern
-    xshift,tshift = pattern.findall(string)
+    #If all four directions are present, we can return 
+    if len(shifts) == 4:
+        #Casting to int to remove leading zeros
+        #i.e 00->0,01->1
+        return ' '.join([str(int(x)) for x in shifts.values()])
 
-    #Casting to int to remove leading zeros
-    #i.e 00->0,01->1
-    xshift = int(xshift)
-    tshift = int(tshift)
-    
-    #Formatting as 'x y z t'
-    output = 3*(str(xshift)+' ')+str(tshift)
+    #If we don't have all directions present, need to fill the gaps
+    default = ['x','y','z','t']
+    output = []
+    for direction in default:
+        #If direction present, use given value
+        if direction in shifts.keys():
+            output.append(shifts[direction])
+        #If not present, use x value unless missing
+        else:
+            try:
+                output.append(shifts['x'])
+            except KeyError:
+                output.append('0')
+                
+    #Casting again for leading zeros
+    return ' '.join([str(int(x)) for x in output])
 
-    #returning output
-    if inputType is str:
-        return output
-    else:
-        shift['shift'] = output
-        return None
 
 
 def FormatKappa(kappa,*args,**kwargs):
