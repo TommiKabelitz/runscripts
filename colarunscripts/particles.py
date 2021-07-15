@@ -214,9 +214,9 @@ def QuarkCharge(quark,*args,**kwargs):
     '''
 
     if quark == 'u':
-        return 2
+        return -2
     elif quark in ['d','s']:
-        return -1
+        return 1
     elif 'n' in quark:
         return 0
     else:
@@ -255,7 +255,7 @@ def HadronicCharge(kd,particle,structure,*args,**kwargs):
         #Counting and appending appearances
         totalQuarkCounts.append(particleInterp.count(quark))
     #Looping over anti-quarks
-    for i,antiQuark in ['Au','Ad','As']:
+    for antiQuark in ['Au','Ad','As']:
         antiQuarkCounts.append(particleInterp.count(antiQuark))
 
     #Calculating number of un-matched quarks in hadron.
