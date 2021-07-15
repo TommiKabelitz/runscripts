@@ -112,7 +112,7 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,testing):
     elif scheduler == 'slurm':
         command.append('sbatch')
 
-    if testing == 'interactive':
+    if 'interactive' in testing:
             command.append('-I')
             capture_output = False
     elif doArrayJobs is True or len(jobList) == 1:
@@ -233,14 +233,16 @@ def MakePBSRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**kw
     #Getting slurm request details, ie. queue, num nodes, gpus etc.
     schedulerDetails = parameters['pbsParams']
 
-    if testing == 'testqueue':
+    if 'testqueue' in testing:
         out = subprocess.run('qstat -Q',text=True,capture_output=True,shell=True)
-        if 'test' not in out.stdout:
+        #Gadi test queue is called express
+        if 'express' not in out.stdout:
             raise ValueError('Test queue does not exist on your machine. Try "-t headnode" or "-t interactive".')
         else:
-            schedulerDetails['queue'] = 'test'
-            schedulerDetails['time'] = '00:05:00'
+            schedulerDetails['queue'] = 'express'
+            schedulerDetails['time'] = '01:00:00'
             schedulerDetails['memory'] = 16
+            schedulerDetails['numCPUs'] = 4
     elif testing == 'fullqueue':
         schedulerDetails['time'] = '02:00:00'
     
@@ -342,7 +344,6 @@ def WritePBSDetails(fileObject,project,queue,numCPUs,numGPUs,time,memory,jobStor
     fileObject.write(f'#PBS -q {queue}\n')
     fileObject.write(f'#PBS -P {project}\n')
     fileObject.write(f'#PBS -l ncpus={numCPUs}\n')
-    fileObject.write(f'#PBS -l ngpus={numGPUs}\n')
     fileObject.write(f'#PBS -l walltime={time}\n')
     fileObject.write(f'#PBS -l mem={memory}GB\n')
     fileObject.write(f'#PBS -l jobfs={jobStorage}GB\n')
@@ -350,7 +351,9 @@ def WritePBSDetails(fileObject,project,queue,numCPUs,numGPUs,time,memory,jobStor
     fileObject.write(f'#PBS -j oe\n')
     fileObject.write(f'#PBS -l wd\n')
     fileObject.write(f'#PBS -o {output}\n')
-    
+    if queue == 'gpuvolta':
+        fileObject.write(f'#PBS -l ngpus={numGPUs}\n')
+
 
 
 def WriteOtherDetails(fileObject,modules,*args,**kwargs):
@@ -443,7 +446,7 @@ def Input():
     parser = argparse.ArgumentParser(description='Submits jobs to the queue. Produces propagators and correlation functions.')
 
     #Adding the testing argument
-    parser.add_argument('-t','--testing',help='run in testing mode. Runs on head node (no GPUs). Else submits only 1 configuration to either the test queue (no GPUs) or the full queue.',choices=['headnode','testqueue','fullqueue','interactive'])
+    parser.add_argument('-t','--testing',help='run in testing mode. Runs on head node (no GPUs). Else submits only 1 configuration to either the test queue (no GPUs) or the full queue.',choices=['headnode','testqueue','fullqueue','interactive','interactivetestqueue'])
     
     #Adding the argument for submitting only missing jobs
     parser.add_argument('-m','--submitmissing',help='checks for missing correlation functions, then submits only those configurations.',action='store_true')
