@@ -112,7 +112,7 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,testing):
     elif scheduler == 'slurm':
         command.append('sbatch')
 
-    if 'interactive' in testing:
+    if testing in ['interactive', 'interactivetestqueue']:
             command.append('-I')
             capture_output = False
     elif doArrayJobs is True or len(jobList) == 1:
@@ -233,7 +233,7 @@ def MakePBSRunscript(filename,kappa,kd,shift,doArrayJobs,testing=None,*args,**kw
     #Getting slurm request details, ie. queue, num nodes, gpus etc.
     schedulerDetails = parameters['pbsParams']
 
-    if 'testqueue' in testing:
+    if testing in ['testqueue','interactivetestqueue']:
         out = subprocess.run('qstat -Q',text=True,capture_output=True,shell=True)
         #Gadi test queue is called express
         if 'express' not in out.stdout:
