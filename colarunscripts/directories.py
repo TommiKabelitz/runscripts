@@ -16,6 +16,7 @@ from argparse import Namespace        #For converting dictionaries to namespaces
 
 from colarunscripts import configIDs as cfg
 from colarunscripts import parameters as params
+from colarunscripts.particles import QuarkCharge
 from colarunscripts.utilities import GetEnvironmentVar
 
 #Just for nice printing of dictionaries. print -> pp
@@ -215,9 +216,8 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
     for quark in quarkList:
         
         #Setting field strength to zero for neutral quarks
-        if 'n' in quark:
-            kd=0
-
+        kd *= QuarkCharge(quark)
+            
         #Replacing kappa,configID, field strength and saving to dict
         modeFile = baseModePath.replace('KAPPA',str(kappa))
         modeFile = modeFile.replace('CONFIGID',cfgID)
