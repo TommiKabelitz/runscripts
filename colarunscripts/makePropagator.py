@@ -89,11 +89,11 @@ def MakePropagator(quark,jobValues,filestub,parameters,*args,**kwargs):
         #Reducing the number of propagators we make as some propagators are
         #effectively duplicates. quarkLabel will always be u,d,s and goes into
         #the propagator filename
-        if quark == 'n':
+        if quark == 'nl':
                 #use zero field d quark in place of neutral quark
                 quarkLabel = 'd'
                 quarkValues['kd'] = 0
-        elif quark == 'ns':
+        elif quark == 'nh':
                 #use zero field s quark in place of neutral s quark
                 quarkLabel = 's'
                 quarkValues['kd'] = 0
@@ -160,7 +160,7 @@ def MakePropInputFiles(filestub,quark,quarkLabel,directories,quarkValues,paramet
         #Adjusting for u and s quarks
         if quark == 'u':
                 quarkValues['kd']*=-2
-        elif quark in ['s','ns']:
+        elif quark in ['s','nh']:
                 quarkValues['kappa'] = parameters['propcfun']['strangeKappa']
 
         #Can now make the .quarkprop input file

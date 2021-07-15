@@ -101,12 +101,12 @@ def CompilePropPaths(jobValues,parameters,*args,**kwargs):
         #tree.
         #The rest of the statements are to code the fact that we don't make an n
         #prop, just use a neutral d prop for example.
-        if quark == 'n':
+        if quark == 'nl':
             kappa = jobValues['kappa']
             jobValues['kd'] = 0
             quarkProp = 'd'
             
-        elif quark == 'ns':
+        elif quark == 'nh':
             jobValues['kd'] = 0
             quarkProp = 's'
             kappa = parameters['propcfun']['strangeKappa']

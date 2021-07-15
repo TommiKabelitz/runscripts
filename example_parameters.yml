@@ -1,5 +1,5 @@
-#Values that are likely to change most frequently between runs
-#Quantities in square brackets [] are lists, comma separated entries
+# Values that are likely to change most frequently between runs
+# Quantities in square brackets [] are lists, comma separated entries
 runValues:
   kappaValues: [13770]
   kds: [1]
@@ -7,8 +7,9 @@ runValues:
   runPrefix: a
   sourceType: sm
   sinkType: laplacian
-  structureList: [[u,d,s],[n,d,s]]
-  particleList: [[proton,protonbar],[sigmap,sigmapbar],[sigmam,sigmambar],[neutron,neutronbar],[cascade0,cascade0bar],[cascadem,cascadembar],[sigma0,sigma0bar],[lambda0,lambda0bar],[sigma0,lambda0bar],[lambda0,sigma0bar]]
+  structureList: [[u,d,s],[nl,d,s],[nh,d,s]]
+  #  structureList: [[u,d,s],[nl,d,s],[nh,d,s],[nl,nl,s],[nh,nh,s],[nl,nl,d],[nh,nh,d],[d,d,nl],[d,d,nh],[s,s,nl],[s,s,nh]]
+  particleList: [[proton,protonbar],[sigmap,sigmapbar],[sigmam,sigmambar],[neutron,neutronbar],[cascade0,cascade0bar],[cascadem,cascadembar],[sigma0,sigma0bar],[lambda0,lambda0bar],[sigma0,lambda0bar],[lambda0,sigma0bar],[pip,pipbar]]
   scheduler: PBS
   doArrayJobs: False
   keepProps: False
@@ -87,28 +88,30 @@ sourcesink:
   preSmear_lpsmsrc: t
 
   #Link smearing related parameters
+  #Applies to both smeared and Laplacian _sources_
+  #Applies to smeared sink
   useStout_lnk: t
   alphaFat_lnk: 0.1
-  swpsFat_lnk: 10
+  swpsFat_lnk: 4
 
-  #Sink smearing related parameters. 
+  #Sink smearing related parameters
   sweeps_smsnk: [0,100]
   sinkSmearcode: xyz
   alpha_smsnk: 0.7
   u0_smsnk: 1.0
   
-  #Laplacian sink related parameters. sinkCode is label that cfungen
-  #appends in cfun filename.
+  #Laplacian sink related parameters
+  #baseSinkCode is a label that cfungen appends in cfun filename.
   nDim_lpsnk: 2
   baseSinkCode: silpMODES  
   nModes_lpsnk: [64,96]
 
 laplacianEigenmodes:
   lapmodeExecutable: /home/566/tk9944/PhD/cola/trunk/bin/lap2dmodes.x
-  #(link) smearing values here are just for the eigenmode code.
+  #link smearing values here are just for the eigenmode code.
   #For no smearing, set both to zero
-  alpha_smearing: 0
-  smearing_sweeps: 0
+  alpha_smearing: 0.1
+  smearing_sweeps: 4
   numEvectors: 96
   numAuxEvectors: 4
   doRandomInitial: t
@@ -120,6 +123,7 @@ propcfun:
   fermionAction: clover
   U1FieldType: B
   U1FieldQuanta: k
+  #13665 is from Ben Menadue's thesis to get kaon mass right
   strangeKappa: 13665
   qpropExecutable: /home/566/tk9944/PhD/cola/trunk/cuda/quarkpropGPU.x
   #Dictionary of clover values
@@ -137,7 +141,7 @@ propcfun:
   gmaRep: sakurai
   gellMannRep: fundamental
   doUstar: f
-  quarkList: [u,d,s,n,ns]
+  quarkList: [u,d,s,nl,nh]
   cfgenExecutable: /home/566/tk9944/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
   
 lattice:
@@ -155,5 +159,6 @@ hadronicProjection:
 
   landau:
     useLandau: t
-    pmin: -1
+    pmin: 0
+    pmax: 0
   
