@@ -129,7 +129,7 @@ def MakePropagator(quark,jobValues,filestub,parameters,*args,**kwargs):
 
         #Get propagator report file and call the MPI
         reportFile = directories['propReport'].replace('QUARK',quarkLabel)
-        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,arguments=['--solver="CGNE+S"','--itermax=1000000'],filestub=filestub,**parameters['slurmParams'])
+        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,**parameters['slurmParams'])
         
         return fullQuarkPath
 
