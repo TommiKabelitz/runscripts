@@ -27,7 +27,7 @@ import colarunscripts.directories as dirs
 import colarunscripts.parameters as params
 
 
-def SubmitJobs(kappaValues,kds,shifts,runPrefix,scheduler,doArrayJobs,keepEmodes,submitmissing,testing=None,*args,**kwargs):
+def SubmitJobs(kappaValues,kds,shifts,runPrefix,sinkType,scheduler,doArrayJobs,keepEmodes,submitmissing,testing=None,*args,**kwargs):
     '''
     Submits jobs to the queue.
 
@@ -38,6 +38,9 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,scheduler,doArrayJobs,keepEmodes
     kds           -- int list: field strength to loop over
     shifts        -- str list: lattice shifts to loop over
     runPrefix     -- char: PACS-CS configuration label
+    sinkType      -- str: The type of sink being used
+    scheduler     -- str: The scheduler of the system (eg. slurm,pbs,etc.)
+    doArrayJobs   -- bool: Whether to do jobs in arrays or not
     keepEmodes    -- bool: Whether to delete eigenmodes each run
     submitmissing -- bool: Whether we are submitting only the subset of 
                            missing correlation functions
@@ -72,7 +75,7 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,scheduler,doArrayJobs,keepEmodes
 
                 if submitmissing is True:
                     print('Checking for missing correlation functions')
-                    jobList = MissingCfunList(kappa,kd,shift,runPrefix,start,ncon)
+                    jobList = MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,sinkType)
                     print(f'{len(jobList)} jobs need to be re-run.')
                     if input('Enter y to submit:\n') != 'y':
                         continue
@@ -376,7 +379,7 @@ def WriteOtherDetails(fileObject,modules,*args,**kwargs):
 
 
 
-def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
+def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,sinkType,*args,**kwargs):
     '''
     Returns a list of configurations for which cfuns are missing.
 
@@ -390,6 +393,7 @@ def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
     runPrefix -- char: PACS-CS configuration label
     start     -- int: The first configuration number. Eg 1880
     ncon      -- int: The total number of configurations
+    sinkType  -- str: The sink type
 
     Returns:
     missingCfuns -- str list: str list of integers labelling missing configurations.
@@ -401,6 +405,16 @@ def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
     #Getting base cfun directory
     cfunPrefix = dirs.FullDirectories(directory='cfun',kappa=kappa,kd=kd,shift=shift,**parameters['runValues'],**parameters['sourcesink'])['cfun']
 
+    #COLA is dumb in the way it puts information about the sink into the
+    #cfun name, we have to simulate that behaviour here
+    if sinkType == 'smeared':
+        sinkLabel = 'sismVAL'    #Hard coded into COLA
+        sinkVals = parameters['sourcesink']['sweeps_smsnk']
+    if sinkType == 'laplacian':
+        #Changing modes to val to simplify things later
+        sinkLabel = parameters['sourcesink']['baseSinkCode'].replace('MODES','VAL')
+        sinkVals = parameters['sourcesink']['nModes_lpsnk']
+    
     #initialising output list
     missing = []
     #Looping through structures and particles
@@ -410,20 +424,24 @@ def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
             #Compiling cfun filename and path
             particleName = ''.join(particlePair)
             structureString = ''.join(structure)
-            baseCfunPath = f'{cfunPrefix}CONFIGID.{particleName}_{structureString}.u.2cf'
-            
-            #Looping through configurations
-            for i in range(1,ncon+1):
-                #If configuration is already seen to be missing, don't need to check again
-                if i in missing:
-                    continue
-                #Replacing base path with specific config ID
-                ID = cfg.ConfigID(i,runPrefix,start)
-                cfunPath = baseCfunPath.replace('CONFIGID',ID)
+            baseCfunPath = f'{cfunPrefix}CONFIGIDSINKLABEL.{particleName}_{structureString}.u.2cf'
 
-                #Checking cfun existence
-                if os.path.isfile(cfunPath) is False:
-                    missing.append(str(i))
+            #Looping through the sink values desired
+            for sinkVal in sinkVals:
+                label = sinkLabel.replace('VAL',str(sinkVal))
+                cfunPath = baseCfunPath.replace('SINKLABEL',label)
+                #Looping through configurations
+                for i in range(1,ncon+1):
+                    #If configuration is already seen to be missing, don't need to check again
+                    if str(i) in missing:
+                        continue
+                    #Replacing base path with specific config ID
+                    ID = cfg.ConfigID(i,runPrefix,start)
+                    finalPath = cfunPath.replace('CONFIGID',ID)
+            
+                    #Checking cfun existence
+                    if os.path.isfile(finalPath) is False:
+                        missing.append(str(i))
 
     return missing
 
