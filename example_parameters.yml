@@ -101,7 +101,8 @@ sourcesink:
   u0_smsnk: 1.0
   
   #Laplacian sink related parameters
-  #baseSinkCode is a label that cfungen appends in cfun filename.
+  #baseSinkCode is a label that cfungen appends in cfun filename. MODES is auto-
+  #replaced by the relevant value
   nDim_lpsnk: 2
   baseSinkCode: silpMODES  
   nModes_lpsnk: [64,96]
