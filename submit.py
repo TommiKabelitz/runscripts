@@ -47,9 +47,6 @@ def SubmitJobs(kappaValues,kds,shifts,runPrefix,scheduler,doArrayJobs,keepEmodes
     #Getting the directory for the runscript
     directory = dirs.FullDirectories(directory='script')['script']
 
-    print(keepEmodes)
-    print(params.Load()['tempStorage']['lapmodes'])
-    
     #If tempstorage for eigenmodes is False and keepEmodes is False
     #confirm the user wishes to delete permanently stored emodes
     if keepEmodes is False and params.Load()['tempStorage']['lapmodes'] is False:
@@ -423,6 +420,7 @@ def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,*args,**kwargs):
                 #Replacing base path with specific config ID
                 ID = cfg.ConfigID(i,runPrefix,start)
                 cfunPath = baseCfunPath.replace('CONFIGID',ID)
+
                 #Checking cfun existence
                 if os.path.isfile(cfunPath) is False:
                     missing.append(str(i))
