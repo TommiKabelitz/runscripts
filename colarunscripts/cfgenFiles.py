@@ -149,7 +149,7 @@ def MakeConfigIDsFile(filestub,cfgID,*args,**kwargs):
     
 
 
-def MakePropCfunInfoFile(filestub,propList,propFormat,cfunFormat,parallelIO,gmaRep,gellMannRep,pmin,pmax,doUstar,sinkType,useLandau,fullLandauFile='',nLandauModes=0,*args,**kwargs):
+def MakePropCfunInfoFile(filestub,propList,propFormat,cfunFormat,parallelIO,gmaRep,gellMannRep,pmin,pmax,doUstar,sinkType,useLandau,fullLandauFile='',nLandauModes=0,kd_q='',*args,**kwargs):
     '''
     Makes the file containing information relevant to props and cfuns.
 
@@ -176,7 +176,8 @@ def MakePropCfunInfoFile(filestub,propList,propFormat,cfunFormat,parallelIO,gmaR
     useLandau      -- char: Whether hadronic landau projection is being used
     fullLandauFile -- str: The full Landau mode file
     nLandauModes   -- int: The number of landau modes to project
-
+    kd_q           -- str: Field strength experienced by each quark (charge*kd)
+                           eg. "2 -1 0" for u d n at kd=-1
     '''
 
     #File extension
@@ -204,7 +205,7 @@ def MakePropCfunInfoFile(filestub,propList,propFormat,cfunFormat,parallelIO,gmaR
         f.write(f'{useLandau}\n')
         if useLandau == 't':
             f.write(f'{fullLandauFile}\n')
-            f.write(f'{nLandauModes}\n')
+            f.write(f'{kd_q}\n')
         for propFile in propList:
             f.write(f'{propFile}\n')
      

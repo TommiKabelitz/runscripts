@@ -25,26 +25,39 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 
 
-def main(jobValues,*args,**kwargs):
+def main(jobValues,timer,*args,**kwargs):
     '''
     Main function. Begins correlation function production process
 
     Arguments:
     jobValues -- dict: Dictionary containing the job specific values such as
                        kd, shift, nthConfig, etc...
-
+    timer     -- Timer: Timer object to manage timing of correlation function
+                       calculation time.
     '''
 
     #compiling the filestub for the input files to feed to cfungen
     filestub = dirs.FullDirectories(directory='cfunInput')['cfunInput'] + jobValues['jobID'] + '_' + str(jobValues['nthConfig'])
     
     #Calling the function that does all the work
-    MakeCorrelationFunctions(filestub,jobValues)
+    MakeCorrelationFunctions(filestub,jobValues,timer)
 
 
 
-def MakeCorrelationFunctions(filestub,jobValues):
-    
+def MakeCorrelationFunctions(filestub,jobValues,timer,*args,**kwargs):
+    """
+    Makes the input files and then the actual correlation functions.
+
+    Arguments:
+    filestub  -- str: Base input filestub to pass to cfungenGPU.x
+    jobValues -- dict: Dictionary containing the job specific values such as
+                      kd, shift, nthConfig, etc...
+    timer     -- Timer: Timer object to manage timing of correlation function
+                      calculation time.
+
+
+    """
+
     #Grabbing the parameters from parameter.yml
     parameters = params.Load()
     
@@ -74,8 +87,9 @@ def MakeCorrelationFunctions(filestub,jobValues):
         reportFile = dirs.FullDirectories(directory='cfunReport',structure=structure,**jobValues,**parameters['sourcesink'])['cfunReport']
 
         #Calling cfungen
+        timer.startTimer('Correlation functions')
         CallMPI(executable,reportFile,filestub=filestub,numGPUs=numGPUs)
-        
+        timer.endTimer('Correlation functions')
 
 def CompilePropPaths(jobValues,parameters,*args,**kwargs):
     '''
@@ -223,12 +237,6 @@ def MakeSpecificFiles(filestub,structure,propDict,jobValues,parameters):
         propList = files.MakePropPathFiles(filestub,propDict,structure)
         propList[1],propList[2] = propList[2],propList[1]
 
-
-
-        ##THIS FILESTUB WILL NEED TO CHANGE ONCE CFGEN IS UPDATED TO WORK WITH
-        ##DIFFERENT LANDAU FILES FOR EACH OPERATOR - AT THE MOMENT, THE PARTICLE
-        ##PAIR LAST IN THE PAIR LIST IS USED - AND I THINK IT IS BROKEN FOR 
-        ##CORRELATION MATRICES
         files.MakePropCfunInfoFile(filestub,propList,**parameters['directories'],**parameters['propcfun'],**parameters['runValues'],**hadronicProjection)
 
 
@@ -253,12 +261,11 @@ def HadronicProjection(kd,particle,structure,parameters,*args,**kwargs):
         #At non-zero field strength, do a projection to the Landau levels.
         #First get base details.
         details = parameters['hadronicProjection']['landau']
-        
-        #Need to calculate total hadronic charge at this field strength first
-        kH = part.HadronicCharge(kd,particle,structure)
-        #Magnitude of hadronic charge gives number of modes
-        details['nLandauModes'] = abs(kH)
-        details['pmax'] = abs(kH) + 1
-        #Use the hadronic charge to get the correct Landau file
-        details['fullLandauFile'] = dirs.FullDirectories(directory='landau',kH=abs(kH))['landau']
+
+        effectiveQuarkCharge = []
+        for quark in structure:
+            effectiveQuarkCharge.append(part.QuarkCharge(quark)*kd)
+
+        details['kd_q'] = ' '.join([str(x) for x in effectiveQuarkCharge])
+        details['fullLandauFile'] = dirs.FullDirectories(directory='landau')['landau']
         return details

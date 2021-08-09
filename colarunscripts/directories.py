@@ -147,9 +147,9 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
         directories[filetype] = replaced
 
     #Create directories that do not exist
-    for key in directories:
+    for directory in directories.values():
         #Extracting just the directory path
-        path = os.path.dirname(directories[key])
+        path = os.path.dirname(directory)
         if pathlib.Path(path).is_dir() is False:
             print(f'Making directory {path}')
             try:
@@ -161,7 +161,7 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
     
 
 
-def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
+def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,withExtension=True,*args,**kwargs):
     '''
     Returns dictionary of Laplacian eigenmode files.
 
@@ -182,7 +182,7 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
     #Loading the parameters files
     parameters = params.Load()
     tempStorage = parameters['tempStorage']
-    
+    extension = '.' + parameters['directories']['lapModeFormat']
     #Are we storing eigenmodes on temporary job storage?
     if parameters['tempStorage']['lapmodes'] is True:
         baseModeDir = GetEnvironmentVar(tempStorage['tempFS'])
@@ -192,6 +192,9 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
     #Grabbing the base eigenmode filepath
     baseModeFile = parameters['directories']['lapModeFile']
     baseModePath = baseModeDir+baseModeFile
+
+    if withExtension is True:
+        baseModePath += extension
 
     #Setting up the quark list depending on quark input
     if quark is None:
@@ -222,7 +225,17 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,*args,**kwargs):
         modeFile = baseModePath.replace('KAPPA',str(kappa))
         modeFile = modeFile.replace('CONFIGID',cfgID)
         lapModeFiles[quark] = modeFile.replace('KD',str(kd)) 
-    
+
+        #Making directory if it doesn't exist
+        path = os.path.dirname(lapModeFiles[quark])
+        if pathlib.Path(path).is_dir() is False:
+            print(f'Making directory {path}')
+            try:
+                pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+            except PermissionError:
+                print(f'Permission to create {directory} denied')
+
+        
         #Resetting field strength
         kd = temp
     return lapModeFiles

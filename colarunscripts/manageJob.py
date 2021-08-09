@@ -1,5 +1,5 @@
 '''
-Manages the job, calling makePropagator.py and makeCfun.py.
+Manages the job, calling makePropagator.py, makeCfun.py makeEmodes.py.
 
 Is called by the basic slurm runscript in ./scripts after modules are loaded 
 and memory requirements are dealt with.
@@ -7,7 +7,7 @@ and memory requirements are dealt with.
 Should not be called manually from the command line.
 
 Input arguments pass the job specific values in so that they can be fed to 
-makePropagator.py and makeCfun.py.
+makePropagator.py, makeCfun.py makeEmodes.py.
 
 '''
 
@@ -15,6 +15,7 @@ makePropagator.py and makeCfun.py.
 import argparse                      #input parsing
 from datetime import datetime        #for writing out the time
 import pathlib                       #for deleting props
+import pprint                        #nice dictionary printing (for debugging)
 
 #local modules
 from colarunscripts import configIDs as cfg
@@ -22,16 +23,28 @@ from colarunscripts import makeCfun
 from colarunscripts import makeEmodes
 from colarunscripts import makePropagator
 from colarunscripts import parameters as params
+from colarunscripts import simpleTime
 
+#nice printing for dictionaries, replace print with pp
+pp = pprint.PrettyPrinter(indent=4).pprint 
 
 def main():
 
+    #Initialising the timer
+    timer = simpleTime.Timer('Overall')
+    timer.initialiseTimer('Eigenmodes')
+    timer.initialiseTimer('Propagators')
+    timer.initialiseTimer('Correlation functions')
+    timer.initialiseCheckpoints()
+    
     #Getting job specific values from command line
     inputValues = Input()
   
     #Combining job specific values with the runValues from parameters.yml
     jobValues = {**inputValues,**params.Load()['runValues']}
-    
+
+    print()
+    PrintJobValues(jobValues)
     ##Getting details about the configurations to use
     #Starting number and total number of configurations for the specified 
     #kappa and configuration label (runPrefix)
@@ -50,18 +63,34 @@ def main():
         
         jobValues['nthConfig'] = nthConfig
 
-        doConfiguration(jobValues)
+        doConfiguration(jobValues,timer)
+    
+    print(50*'_')
+    print()
+    #Writing report for how long everything took
+    timer.writeFullReport(final=True)
 
+def doConfiguration(jobValues,timer,*args,**kwargs):
+    """
+    Runs eigenmode, propagator and cfun code for the one configuration.
 
+    Arguments:
+    jobValues -- dict: Dictionary containing the job specific values such as
+                           kd, shift, SLURM_ARRAY_TASK_ID, etc...
+    timer     -- Timer: Timer object to manage timing of correlation function
+                           calculation time.
 
-def doConfiguration(jobValues,*args,**kwargs):
+    """
 
     #Compiling the full configuration identification number
     jobValues['cfgID'] = cfg.ConfigID(**jobValues)
-        
+
     print(50*'_')
     print()
 
+    #Creating a checkpoint as the configuration starts
+    timer.createCheckpoint(f'Configuration {jobValues["cfgID"]}')
+    
     #That's it for preparation of job values. Now start making propagators
     #and correlation functions
 
@@ -70,7 +99,7 @@ def doConfiguration(jobValues,*args,**kwargs):
         print()
         print('Making eigenmodes')
         print(f'Time is {datetime.now()}')
-        eigenmodePaths = makeEmodes.main(jobValues)
+        eigenmodePaths = makeEmodes.main(jobValues,timer)
         print("\nEigenmodes done")
         print(f'Time is {datetime.now()}')
         print()
@@ -81,7 +110,7 @@ def doConfiguration(jobValues,*args,**kwargs):
     print()
     print('Making propagators')
     print(f'Time is {datetime.now()}')
-    propPaths = makePropagator.main(jobValues)
+    propPaths = makePropagator.main(jobValues,timer)
     print("\nPropagators done")
     print(f'Time is {datetime.now()}')
     print(50*'_')
@@ -89,12 +118,17 @@ def doConfiguration(jobValues,*args,**kwargs):
     print()        
     print('Making correlation functions')
     print(f'Time is {datetime.now()}')    
-    makeCfun.main(jobValues)
+    makeCfun.main(jobValues,timer)
     print("Correlation functions done")
     print(f'Time is {datetime.now()}')
     print(50*'_')
     print()
 
+    #Writing out how much time has elapsed since the checkpoint.
+    #No longer need the checkpoint, so remove it.
+    timer.writeCheckpoint(removeCheckpoint=True)
+    print()
+    
     #removing the propagator
     if jobValues['keepProps'] is False:
         print('Deleting Propagators')
@@ -122,19 +156,23 @@ def PrintJobValues(jobValues):
     
     #A list of the variables to print
     #(some variables in there are a waste of time)
-    valuesToPrint = ['cfgID',
-                     'kappa',
+    valuesToPrint = ['kappa',
                      'kd',
                      'shift',
                      'sinkType',
                      'sourceType',
-                     'structureList']
-
-    print('JobValues:')
+                     'structureList',
+                     'particleList']
+    
+    print('Job Values:')
     #Printing the values
     for key in valuesToPrint:
         try:
-            print(f'{key}: {jobValues[key]}')
+            if type(jobValues[key]) is list:
+                print(f'{key}:')
+                pp(jobValues[key])
+            else:
+                print(f'{key}: {jobValues[key]}')
         #just in case the key is not present (shouldn't happen)
         except KeyError:
             print(f'{key} not in JobValues')

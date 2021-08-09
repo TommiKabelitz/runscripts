@@ -27,7 +27,7 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 
 
-def main(jobValues,*args,**kwargs):
+def main(jobValues,timer,*args,**kwargs):
         '''
         Main function. Begins propagator production process.
 
@@ -37,6 +37,8 @@ def main(jobValues,*args,**kwargs):
         Arguments:
         jobValues -- dict: Dictionary containing the job specific values such as
                            kd, shift, SLURM_ARRAY_TASK_ID, etc...
+        timer     -- Timer: Timer object to manage timing of correlation function
+                           calculation time.
 
         '''
         
@@ -64,13 +66,13 @@ def main(jobValues,*args,**kwargs):
                         print(5*'-'+f'Doing {quark} quark'+5*'-')
                         
                         #Making the propagator
-                        propPath = MakePropagator(quark,jobValues,filestub,parameters)
+                        propPath = MakePropagator(quark,jobValues,filestub,parameters,timer)
                         propPaths.append(propPath)
         return propPaths
 
 
 
-def MakePropagator(quark,jobValues,filestub,parameters,*args,**kwargs):
+def MakePropagator(quark,jobValues,filestub,parameters,timer,*args,**kwargs):
         '''
         Prepares the input files for making propagators using quarkpropGPU.x.
 
@@ -80,7 +82,9 @@ def MakePropagator(quark,jobValues,filestub,parameters,*args,**kwargs):
         filestub   --  str: Base filestub to pass to quarkpropGPU.x
         parameters -- dict: Dictionary of all of the run parameters.
                             From parameters.yml
-        
+        timer      -- Timer: Timer object to manage timing of correlation function
+                            calculation time.
+
         '''
         #Copying jobValues dictionary. Deepcopy so that we can change items for
         #this quark only.
@@ -129,8 +133,10 @@ def MakePropagator(quark,jobValues,filestub,parameters,*args,**kwargs):
 
         #Get propagator report file and call the MPI
         reportFile = directories['propReport'].replace('QUARK',quarkLabel)
+
+        timer.startTimer('Propagators')
         CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,**parameters['slurmParams'])
-        
+        timer.endTimer('Propagators')        
         return fullQuarkPath
 
 

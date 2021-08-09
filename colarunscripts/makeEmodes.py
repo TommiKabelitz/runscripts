@@ -21,7 +21,7 @@ from colarunscripts.propFiles import FieldCode, MakeLatticeFile
 from colarunscripts.utilities import SchedulerParams
 
 
-def main(jobValues):
+def main(jobValues,timer):
 
     parameters = params.Load()
 
@@ -29,21 +29,22 @@ def main(jobValues):
     inputs = {}
     MakeLatticeFile(filestub,**parameters['lattice'])
 
-    modeFiles = dirs.LapModeFiles(**jobValues)
+    modeFiles = dirs.LapModeFiles(**jobValues,withExtension=False)
     
     inputs['configFile'] = dirs.FullDirectories(directory='configFile',**jobValues)['configFile']
     inputs['configFormat'] = parameters['directories']['configFormat']
+    inputs['outputFormat'] = parameters['directories']['lapModeFormat']
     inputs['U1FieldCode'] = FieldCode(**parameters['propcfun'],**jobValues)
     inputs['shift'] = shifts.FormatShift(jobValues['shift'])
     inputs['tolerance'] = parameters['propcfun']['tolerance']
-
-    schedulerParams = SchedulerParams(jobValues['scheduler'])
     
+    schedulerParams = SchedulerParams(jobValues['scheduler'])
+
     fullFileList = []
     for structure in parameters['runValues']['structureList']:
         for quark in structure:
 
-            fullFile = modeFiles[quark]
+            fullFile = modeFiles[quark] + '.' + parameters['directories']['lapModeFormat']
             print()
             print(5*'-'+f'Doing {quark} quark'+5*'-')
             if pathlib.Path(fullFile).is_file():
@@ -52,11 +53,14 @@ def main(jobValues):
                 continue
             print(f'Eigenmode to make is: {fullFile}')
 
-            inputs['outputPrefix'] = fullFile.replace('.l2ev','')
+            inputs['outputPrefix'] = modeFiles[quark]
             MakeLap2ModesFile(filestub,**inputs,**parameters['laplacianEigenmodes'])
 
             reportFile = dirs.FullDirectories(directory='lapmodeReport',**jobValues)['lapmodeReport'].replace('QUARK',quark)
+
+            timer.startTimer('Eigenmodes')
             CallMPI(parameters['laplacianEigenmodes']['lapmodeExecutable'],reportFile,filestub=filestub,**schedulerParams)
+            timer.endTimer('Eigenmodes')
                     
             fullFileList.append(fullFile)
 
@@ -64,13 +68,14 @@ def main(jobValues):
 
 
 
-def MakeLap2ModesFile(filestub,configFile,configFormat,outputPrefix,alpha_smearing,smearing_sweeps,shift,U1FieldCode,numEvectors,numAuxEvectors,tolerance,doRandomInitial,inputModeFile,*args,**kwargs):
+def MakeLap2ModesFile(filestub,configFile,configFormat,outputPrefix,outputFormat,alpha_smearing,smearing_sweeps,shift,U1FieldCode,numEvectors,numAuxEvectors,tolerance,doRandomInitial,inputModeFile,*args,**kwargs):
 
     extension = '.lap2dmodes'
     with open(filestub+extension,'w') as f:
         f.write(f'{configFile}\n')
         f.write(f'{configFormat}\n')
         f.write(f'{outputPrefix}\n')
+        f.write(f'{outputFormat}\n')
         f.write(f'{alpha_smearing}\n')
         f.write(f'{smearing_sweeps}\n')
         f.write(f'{shift}\n')
