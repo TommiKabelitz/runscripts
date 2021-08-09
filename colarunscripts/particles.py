@@ -11,7 +11,17 @@ QuarkCharge, HadronicCharge
 '''
 ########################################Baryons        
 
-def proton():
+
+#Currently implemented octet baryons with _1,_2 denoting
+#which of the two possible interpolating fields is used.
+#Particle charge is denoted by 0 (neutral), p (+1),
+# m (-1).
+#ie. sigmap is a sigma+, but + cannot be used
+#in an object name.
+#Would recommend deltapp for charge 2 particles such
+#as the delta ++
+
+def proton_1():
 
     props = {}
 
@@ -19,9 +29,10 @@ def proton():
     props['gamma_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
     props['cfun_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) d^{b}] (I) u^{c}']
+                           
     return props
 
-def protonbar():
+def proton_1bar():
 
     props = {}
 
@@ -31,7 +42,7 @@ def protonbar():
     return props
 
 
-def sigmap():
+def sigmap_1():
 
     props = {}
 
@@ -41,7 +52,7 @@ def sigmap():
     props['cfun_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) s^{b}] (I) u^{c}']
     return props
 
-def sigmapbar():
+def sigmap_1bar():
 
     props = {}
 
@@ -51,7 +62,7 @@ def sigmapbar():
     return props
 
 
-def sigmam():
+def sigmam_1():
 
     props = {}
 
@@ -61,7 +72,7 @@ def sigmam():
     props['cfun_terms'] = ['1.0 * [d^{a} (C\gamma_{5}) s^{b}] (I) d^{c}']
     return props
 
-def sigmambar():
+def sigmam_1bar():
 
     props = {}
 
@@ -71,7 +82,7 @@ def sigmambar():
     return props
 
 
-def neutron():
+def neutron_1():
 
     props = {}
 
@@ -81,7 +92,7 @@ def neutron():
     props['cfun_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) d^{b}] (I) d^{c}']
     return props
 
-def neutronbar():
+def neutron_1bar():
 
     props = {}
 
@@ -91,7 +102,7 @@ def neutronbar():
     return props
 
 
-def cascade0():
+def cascade0_1():
 
     props = {}
 
@@ -101,7 +112,7 @@ def cascade0():
     props['cfun_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) s^{b}] (I) s^{c}']
     return props
 
-def cascade0bar():
+def cascade0_1bar():
 
     props = {}
 
@@ -111,7 +122,7 @@ def cascade0bar():
     return props
 
 
-def cascadem():
+def cascadem_1():
 
     props = {}
 
@@ -121,13 +132,133 @@ def cascadem():
     props['cfun_terms'] = ['1.0 * [d^{a} (C\gamma_{5}) s^{b}] (I) s^{c}']
     return props
 
-def cascadembar():
+def cascadem_1bar():
 
     props = {}
 
     props['gamma_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
     props['cfun_terms'] = ['-1.0 * As^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap}]']
+    return props
+
+def proton_2():
+
+    props = {}
+
+    props['lorentz_indices'] = []
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['a;b;c']
+    props['cfun_terms'] = ['1.0 * [u^{a} (C) d^{b}] (\gamma_{5}) u^{c}']
+                           
+    return props
+
+def proton_2bar():
+
+    props = {}
+
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['ap;bp;cp']
+    props['cfun_terms'] = ['-1.0 * Au^{cp} (\gamma_{5}) [Ad^{bp} (C) Au^{ap}]']
+    return props
+
+
+def sigmap_2():
+
+    props = {}
+
+    props['lorentz_indices'] = []
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['a;b;c']
+    props['cfun_terms'] = ['1.0 * [u^{a} (C) s^{b}] (\gamma_{5}) u^{c}']
+    return props
+
+def sigmap_2bar():
+
+    props = {}
+
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['ap;bp;cp']
+    props['cfun_terms'] = ['-1.0 * Au^{cp} (\gamma_{5}) [As^{bp} (C) Au^{ap}]']
+    return props
+
+
+def sigmam_2():
+
+    props = {}
+
+    props['lorentz_indices'] = []
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['a;b;c']
+    props['cfun_terms'] = ['1.0 * [d^{a} (C) s^{b}] (\gamma_{5}) d^{c}']
+    return props
+
+def sigmam_2bar():
+
+    props = {}
+
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['ap;bp;cp']
+    props['cfun_terms'] = ['-1.0 * Ad^{cp} (\gamma_{5}) [As^{bp} (C) Ad^{ap}]']
+    return props
+
+
+def neutron_2():
+
+    props = {}
+
+    props['lorentz_indices'] = []
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['a;b;c']
+    props['cfun_terms'] = ['1.0 * [u^{a} (C) d^{b}] (\gamma_{5}) d^{c}']
+    return props
+
+def neutron_2bar():
+
+    props = {}
+
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['ap;bp;cp']
+    props['cfun_terms'] = ['-1.0 * Ad^{cp} (\gamma_{5}) [Au^{bp} (C) Ad^{ap}]']
+    return props
+
+
+def cascade0_2():
+
+    props = {}
+
+    props['lorentz_indices'] = []
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['a;b;c']
+    props['cfun_terms'] = ['1.0 * [u^{a} (C) s^{b}] (\gamma_{5}) s^{c}']
+    return props
+
+def cascade0_2bar():
+
+    props = {}
+
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['ap;bp;cp']
+    props['cfun_terms'] = ['-1.0 * As^{cp} (\gamma_{5}) [Au^{bp} (C) As^{ap}]']
+    return props
+
+
+def cascadem_2():
+
+    props = {}
+
+    props['lorentz_indices'] = []
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['a;b;c']
+    props['cfun_terms'] = ['1.0 * [d^{a} (C) s^{b}] (\gamma_{5}) s^{c}']
+    return props
+
+def cascadem_2bar():
+
+    props = {}
+
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = ['ap;bp;cp']
+    props['cfun_terms'] = ['-1.0 * As^{cp} (\gamma_{5}) [Ad^{bp} (C) As^{ap}]']
     return props
 
 
