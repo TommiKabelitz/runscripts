@@ -60,7 +60,7 @@ def main(jobValues,timer):
 
             timer.startTimer('Eigenmodes')
             CallMPI(parameters['laplacianEigenmodes']['lapmodeExecutable'],reportFile,filestub=filestub,**schedulerParams)
-            timer.endTimer('Eigenmodes')
+            timer.stopTimer('Eigenmodes')
                     
             fullFileList.append(fullFile)
 

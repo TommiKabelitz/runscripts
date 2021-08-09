@@ -136,7 +136,7 @@ def MakePropagator(quark,jobValues,filestub,parameters,timer,*args,**kwargs):
 
         timer.startTimer('Propagators')
         CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,**parameters['slurmParams'])
-        timer.endTimer('Propagators')        
+        timer.stopTimer('Propagators')        
         return fullQuarkPath
 
 

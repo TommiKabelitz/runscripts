@@ -89,7 +89,7 @@ def MakeCorrelationFunctions(filestub,jobValues,timer,*args,**kwargs):
         #Calling cfungen
         timer.startTimer('Correlation functions')
         CallMPI(executable,reportFile,filestub=filestub,numGPUs=numGPUs)
-        timer.endTimer('Correlation functions')
+        timer.stopTimer('Correlation functions')
 
 def CompilePropPaths(jobValues,parameters,*args,**kwargs):
     '''
