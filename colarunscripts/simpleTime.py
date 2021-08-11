@@ -136,7 +136,7 @@ class Timer:
                 toPrint[timer] = totalTime - self.checkpoints[name][timer]
 
             #Writing the report of each checkpoint
-            WriteReport(timerName,toPrint,self.timerName,self.totalTime,printTotal=False)
+            WriteReport(timerName,toPrint,printTotal=False,totalName=self.timerName,totalTime=self.totalTime)
 
             #Removing checkpoint
             if removeCheckpoint is True:
