@@ -67,11 +67,11 @@ def sm(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_sm
 def lp(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, sourceLocation, *args, **kwargs):
 
     sourcetype_num = 7
-    extension = 'qpsrc_lp'
+    extension = '.qpsrc_lp'
 
     with open(filestub+extension,'w') as f:
         f.write(f'{lapmodefile}\n')
-        f.write(f'{ndim_lpsrc}\n')
+        f.write(f'{nDim_lpsrc}\n')
         f.write(f'{nModes_lpsrc}')
         for dim in sourceLocation:
             f.write(f'{dim}\n')
@@ -83,7 +83,7 @@ def lp(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, sourceLocation, *args, **
 def xyz(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
 
     sourcetype_num = 8
-    extension = 'qpsrc_xyz'
+    extension = '.qpsrc_xyz'
 
     smearcode = 'xy'
     with open(filestub+extension,'w') as f:
@@ -105,11 +105,11 @@ def xyz(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_s
 def lpsm(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
 
     sourcetype_num = 9
-    extension = 'qpsrc_lpsm'
+    extension = '.qpsrc_lpsm'
 
     with open(filestub+extension,'w') as f:
         f.write(f'{lapmodefile}\n')
-        f.write(f'{ndim_lpsrc}\n')
+        f.write(f'{nDim_lpsrc}\n')
         f.write(f'{nModes_lpsrc}')
         f.write(f'{preSmear_lpsmsrc}')
         for dim in sourceLocation:
@@ -130,13 +130,13 @@ def lpsm(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourc
 def lpxyz(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
 
     sourcetype_num = 10
-    extension = 'qpsrc_lpxyz'
+    extension = '.qpsrc_lpxyz'
 
     smearcode = 'z'
     with open(filestub+extension,'w') as f:
         f.write(f'{smearcode}\n')
         f.write(f'{lapmodefile}\n')
-        f.write(f'{ndim_lpsrc}\n')
+        f.write(f'{nDim_lpsrc}\n')
         f.write(f'{nModes_lpsrc}')
         f.write(f'{preSmear_lpsmsrc}')
         for dim in sourceLocation:
