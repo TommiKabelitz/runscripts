@@ -21,7 +21,7 @@ from colarunscripts import directories as dirs
 from colarunscripts import parameters as params
 from colarunscripts import propFiles as files
 from colarunscripts import shifts
-
+from colarunscripts.particles import QuarkCharge
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
@@ -89,58 +89,30 @@ def MakePropagator(quark,jobValues,filestub,parameters,timer,*args,**kwargs):
         #Copying jobValues dictionary. Deepcopy so that we can change items for
         #this quark only.
         quarkValues = copy.deepcopy(jobValues)
-
-        #Reducing the number of propagators we make as some propagators are
-        #effectively duplicates. quarkLabel will always be u,d,s and goes into
-        #the propagator filename
-        if quark == 'nl':
-                #use zero field d quark in place of neutral quark
-                quarkLabel = 'd'
-                quarkValues['kd'] = 0
-        elif quark == 'nh':
-                #use zero field s quark in place of neutral s quark
-                quarkLabel = 's'
-                quarkValues['kd'] = 0
-        elif quark == 'u' and quarkValues['kd'] == 0:
-                #print statement says it all
-                quarkLabel = 'd'
-                print('At zero field strength, u and d quarks are the same. So just use the d quark.')
-        else:
-                quarkLabel = quark
-
-        #Grabbing all the directories we could need into a dictionary 
-        directories = dirs.FullDirectories(**quarkValues,**parameters['sourcesink'])
-
-        #Adding prop filename to quarkValues dictionary
-        quarkValues['quarkPrefix'] = directories['prop'].replace('QUARK',quarkLabel)
-        
+        print(quark, quarkValues['kd'],quarkValues['kappa'])
+     
         #Labelling the filestub with the relevant quark
-        filestub = directories['propInput'] + filestub.replace('QUARK',quarkLabel)
+        filestub = dirs.FullDirectories(directory='propInput')['propInput'] + filestub.replace('QUARK',quark)
 
         #Making input files
-        MakePropInputFiles(filestub,quark,quarkLabel,directories,quarkValues,parameters)
+        fullQuarkPath = MakePropInputFiles(filestub,quark,quarkValues,parameters)
 
-        #Checking whether propagator exists before calling executable.
-        #Cannot be done earlier as need adjustment of kappa value for s
-        #quark which happens in MakePropInputFiles()
-        fullQuarkPath = f'{quarkValues["quarkPrefix"]}k{quarkValues["kappa"]}.{parameters["directories"]["propFormat"]}'
-
+        #Checking whether the quark already exists
         print(f'Quark to make is: \n{fullQuarkPath}')
-
         if pathlib.Path(fullQuarkPath).is_file():
                 print(f'Skipping {quark} quark. Propagator already exists')
                 return fullQuarkPath
-
+        
+        
         #Get propagator report file and call the MPI
-        reportFile = directories['propReport'].replace('QUARK',quarkLabel)
-
+        reportFile = dirs.FullDirectories(directory='propReport',**quarkValues,**parameters['sourcesink'])['propReport'].replace('QUARK',quark)
         timer.startTimer('Propagators')
         CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,**parameters['slurmParams'])
         timer.stopTimer('Propagators')        
         return fullQuarkPath
 
 
-def MakePropInputFiles(filestub,quark,quarkLabel,directories,quarkValues,parameters,*args,**kwargs):
+def MakePropInputFiles(filestub,quark,quarkValues,parameters,*args,**kwargs):
         '''
         Makes the input files for quarkpropGPU.x.
 
@@ -152,6 +124,8 @@ def MakePropInputFiles(filestub,quark,quarkLabel,directories,quarkValues,paramet
         quarkValues -- dict: Job specific values to go into input files
         parameters  -- dict: To go into input files. From parameters.yml
 
+        Returns:
+        fullQuarkPath -- str: The full path to the quark to be made
         '''
        
         #Making input files
@@ -162,17 +136,32 @@ def MakePropInputFiles(filestub,quark,quarkLabel,directories,quarkValues,paramet
         #Laplacian Eigenmode file. quark is passed to get the correct modefile.
         #Needs to be the actual flavour, not the label.
         quarkValues['sourcetype_num'] = files.MakeSourceFile(filestub,quark,quarkValues)
+
+        #Reducing the number of propagators we make as some propagators are
+        #effectively duplicates. ie. u props are d props with -2*kd, nl props
+        #are neutral d props
+        #quarkLabel will always be d or s and goes into
+        #the propagator filename
+        quarkValues['kd'] *= QuarkCharge(quark)
+        if quark in ['s','nh']:
+                quarkLabel = 's'
+        else:
+                quarkLabel = 'd'
                 
-        #Adjusting for u and s quarks
-        if quark == 'u':
-                quarkValues['kd']*=-2
-        elif quark in ['s','nh']:
+        #Adjusting for u and s quarks, can't be done earlier, see above
+        if quark in ['s','nh']:
                 quarkValues['kappa'] = parameters['propcfun']['strangeKappa']
 
+        #Assembling the quark prefix
+        quarkPrefix = dirs.FullDirectories(directory='prop',**quarkValues,**parameters['sourcesink'])['prop']
+        quarkValues['quarkPrefix'] = quarkPrefix.replace('QUARK',quarkLabel)
+        #Compiling full prop path
+        fullQuarkPath = f'{quarkValues["quarkPrefix"]}k{quarkValues["kappa"]}.{parameters["directories"]["propFormat"]}'
+                
         #Can now make the .quarkprop input file
         files.MakePropFile(filestub,**quarkValues,**parameters['directories'],**parameters['propcfun'])
-        
-        #end MakePropInputFiles
+
+        return fullQuarkPath
 
 
 def CallMPI(executable,reportFile,numGPUs=0,arguments=[],filestub='',**kwargs):

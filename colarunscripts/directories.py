@@ -217,7 +217,6 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,withExtension=True,*args,**kwa
     temp = kd
     #Looping through quarks
     for quark in quarkList:
-        
         #Setting field strength to zero for neutral quarks
         kd *= QuarkCharge(quark)
             

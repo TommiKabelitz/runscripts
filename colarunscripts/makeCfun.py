@@ -20,6 +20,7 @@ from colarunscripts import cfgenFiles as files
 from colarunscripts import parameters as params
 from colarunscripts import particles as part
 from colarunscripts.makePropagator import CallMPI
+from colarunscripts.particles import QuarkCharge
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
@@ -104,37 +105,22 @@ def CompilePropPaths(jobValues,parameters,*args,**kwargs):
 
     #Will change the kd value in jobvalues so saving it to fix at the end
     kd_original = jobValues['kd']
+    kappa_original = jobValues['kappa']
 
     #Initialising output dictionary
     propDict = {}
     
     #Looping over quarks in quark list
     for quark in parameters['propcfun']['quarkList']:
-        #kappa is specified because of the strange quark. quarkpropGPU.x appends 
-        #strangeKappa in that case, but we have the normal kappa in the directory
-        #tree.
-        #The rest of the statements are to code the fact that we don't make an n
-        #prop, just use a neutral d prop for example.
-        if quark == 'nl':
-            kappa = jobValues['kappa']
-            jobValues['kd'] = 0
-            quarkProp = 'd'
-            
-        elif quark == 'nh':
-            jobValues['kd'] = 0
-            quarkProp = 's'
-            kappa = parameters['propcfun']['strangeKappa']
 
-        elif quark == 's':
-            kappa = parameters['propcfun']['strangeKappa']
-            quarkProp = quark
-
-        elif quark == 'u' and kd_original == 0:
-            kappa = jobValues['kappa']
-            quarkProp = 'd'
-        else:
-            kappa = jobValues['kappa']
-            quarkProp = quark
+        #Effectively only make 2 types of propagator. Light (d) and heavy (s).
+        #The rest we get through charge manipulation (u=-2*d,nl=0*d,nh=0*nh).
+        jobValues['kd'] *= QuarkCharge(quark)
+        if quark in ['s','nh']:
+            quarkLabel = 's'
+            jobValues['kappa'] = parameters['propcfun']['strangeKappa']
+        else: #['u','d','nl]
+            quarkLabel = 'd'
         
         #Getting the base propagator file
         propFile = dirs.FullDirectories(directory='prop',**jobValues,**parameters['sourcesink'])['prop']
@@ -142,16 +128,17 @@ def CompilePropPaths(jobValues,parameters,*args,**kwargs):
         #Adding the kappa value and file extension (propFormat) which are 
         #appended by quarkpropGPU.x
         propFormat = parameters["directories"]["propFormat"]
-        propFile = propFile.replace('QUARK',quarkProp)
-        propFile += f'k{kappa}.{propFormat}'
+        propFile = propFile.replace('QUARK',quarkLabel)
+        propFile += f'k{jobValues["kappa"]}.{propFormat}'
         
         #Saving the path to the dictionary
         propDict[quark] = propFile
-    #end quark loop
+        jobValues['kd'] = kd_original
+        jobValues['kappa'] = kappa_original
+        #end quark loop
 
     #returning the field strength to its original value
-    jobValues['kd'] = kd_original
-    
+
     return propDict
 
 
