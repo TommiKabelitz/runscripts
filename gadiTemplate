@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/bin/bash
 #PBS -q QUEUE
 #PBS -P PROJECT
 #PBS -l ncpus=NUMCPUS
@@ -10,27 +10,11 @@
 #PBS -l wd
 #PBS -o OUTPUTDIR
 #PBS -l ngpus=NUMGPUS
-import os
-import socket
-import subprocess
 
-from colarunscripts.newmanageJob import main
-from colarunscripts.utilities import GetJobID
+echo Running on host `hostname`
+source /home/566/tk9944/gadi_modules.sh
+ulimit -s unlimited
+ulimit -c 0
+ulimit -a
 
-print(f"Running on host {socket.gethostname()}")
-subprocess.run('module list',shell=True)
-subprocess.run(["ulimit","-s","unlimited"])    #Unlimiting stacksize (VITAL)
-subprocess.run(["ulimit","-c","0"])            #0 size available for coredumps
-subprocess.run(["ulimit","-a"])                #Showing those details
-
-environment = os.environ
-jobID = GetJobID(environment)
-
-originalParametersFile = "ORIGINALPARAMETERSFILE"
-newParametersFile = "PARAMETERSDIR"+f"{jobID}_parameters.yml"
-kappa = KAPPA
-nthConfig = NTHCONFIG
-numJobs = NUMJOBS
-testing = "TESTING"
-
-main(originalParametersFile,newParametersFile,kappa,nthConfig,numJobs,testing)
+python3 /home/566/tk9944/PhD/runscripts/colarunscripts/newmanageJob.py ORIGINALPARAMETERSFILE PARAMETERSDIR KAPPA NTHCONFIG NUMJOBS TESTING

@@ -1,6 +1,7 @@
 #The execution of this file is not done (I think)
 #Need to deal with how it gets called now.
 
+import argparse
 from datetime import datetime
 import os
 import pathlib
@@ -22,7 +23,7 @@ from colarunscripts.utilities import GetJobID
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
 
-def main(originalParametersFile,newParametersFile,kappa,nthConfig,numSimultaneousJobs,testing):
+def main(originalParametersFile,newParametersFile,kappa,nthConfig,numSimultaneousJobs,testing,*args,**kwargs):
 
     parameters = params.Load(parametersFile=newParametersFile)
     jobValues = parameters['runValues']
@@ -181,3 +182,28 @@ def SubmitNext(nthConfig,numSimultaneousJobs,testing,oldParametersFile,ncon):
 
     if nextConfig <= ncon:
         submit.main(nextConfig,inputArgs)
+
+
+def Input():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('originalParametersFile',type=str)
+    parser.add_argument('parametersDir',type=str)
+    parser.add_argument('kappa',type=int)
+    parser.add_argument('nthConfig',type=int)
+    parser.add_argument('numSimultaneousJobs',type=int)
+    parser.add_argument('testing')
+
+    args = parser.parse_args()
+    return vars(args)
+
+
+    
+
+if __name__ == '__main__':
+
+    inputArgs = Input()
+    jobID = GetJobID(os.environ)    
+    inputArgs['newParametersFile'] = f'{inputArgs["parametersDir"]}{jobID}_parameters.yml'
+
+    main(**inputArgs)
