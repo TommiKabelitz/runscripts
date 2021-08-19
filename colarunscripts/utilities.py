@@ -87,11 +87,26 @@ def GetEnvironmentVar(variable,*args,**kwargs):
 
 
 
-def SchedulerParams(scheduler,*args,**kwargs):
+def SchedulerParams(parameters,scheduler,*args,**kwargs):
 
-    parameters = params.Load()
     if scheduler == 'slurm':
         return parameters['slurmParams']
     elif scheduler == 'PBS':
         return parameters['pbsParams']
 
+
+def GetJobID(environmentVariables):
+
+    jobIDLabels = ['SLURM_ARRAY_JOB_ID',
+                   'SLURM_JOB_ID',
+                   'PBS_ARRAYID',
+                   'PBS_JOB_ID']
+    
+    for label in jobIDLabels:
+        try:
+            jobID = environmentVariables[label]
+            return jobID
+        except KeyError:
+            continue
+    else:
+        return '1'

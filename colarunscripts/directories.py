@@ -15,7 +15,6 @@ import pprint                         #For nice printing of dictionaries
 from argparse import Namespace        #For converting dictionaries to namespaces
 
 from colarunscripts import configIDs as cfg
-from colarunscripts import parameters as params
 from colarunscripts.particles import QuarkCharge
 from colarunscripts.utilities import GetEnvironmentVar
 
@@ -23,7 +22,7 @@ from colarunscripts.utilities import GetEnvironmentVar
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
 
-def GetBaseDirectories(directory=None,*args,**kwargs):
+def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     '''
     Constructs the file paths with placeholder names still present.
     
@@ -38,7 +37,6 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     directories = {}
 
     #Reading in parameters from parameters.yml
-    parameters = params.Load()
     baseDirectories = parameters['directories']
     tempStorage = parameters['tempStorage']
 
@@ -101,7 +99,7 @@ def GetBaseDirectories(directory=None,*args,**kwargs):
     return {key:directories[key] for key in directory if key in directories.keys()}  
 
 
-def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=[0],nModes_lpsnk=0,cfgID='',structure=[],kH=0,*args,**kwargs):
+def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=[0],nModes_lpsnk=0,cfgID='',structure=[],kH=0,*args,**kwargs):
     '''
     Replaces placeholders in paths, makes directories and returns file paths.
     
@@ -112,10 +110,8 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
                               Are all used for replacement of placeholders
     '''
     #Get a dictionary of directory(ies) before replacement of placeholders
-    directories = GetBaseDirectories(directory)
+    directories = GetBaseDirectories(parameters,directory)
     
-    parameters = params.Load()
-
     #Setting up which value will be included in the filename with the 
     #source and sink types
     sourceVal = 0
@@ -161,7 +157,7 @@ def FullDirectories(directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType=
     
 
 
-def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,withExtension=True,*args,**kwargs):
+def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,*args,**kwargs):
     '''
     Returns dictionary of Laplacian eigenmode files.
 
@@ -179,8 +175,6 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,withExtension=True,*args,**kwa
                           Quarks as keys.
     '''
 
-    #Loading the parameters files
-    parameters = params.Load()
     tempStorage = parameters['tempStorage']
     extension = '.' + parameters['directories']['lapModeFormat']
     #Are we storing eigenmodes on temporary job storage?
@@ -215,11 +209,12 @@ def LapModeFiles(kappa=0,kd=0,cfgID='',quark=None,withExtension=True,*args,**kwa
     #Will need to adjust field strength for neutral quarks, so saving
     #field strength so that it can be reset
     temp = kd
+
     #Looping through quarks
     for quark in quarkList:
-        #Setting field strength to zero for neutral quarks
+        #Adjusting strength based on charge
         kd *= QuarkCharge(quark)
-            
+
         #Replacing kappa,configID, field strength and saving to dict
         modeFile = baseModePath.replace('KAPPA',str(kappa))
         modeFile = modeFile.replace('CONFIGID',cfgID)

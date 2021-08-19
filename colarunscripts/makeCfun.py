@@ -17,7 +17,6 @@ from datetime import datetime       #for writing out the time
 from colarunscripts import configIDs as cfg
 from colarunscripts import directories as dirs
 from colarunscripts import cfgenFiles as files
-from colarunscripts import parameters as params
 from colarunscripts import particles as part
 from colarunscripts.makePropagator import CallMPI
 from colarunscripts.particles import QuarkCharge
@@ -26,7 +25,7 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 
 
-def main(jobValues,timer,*args,**kwargs):
+def main(parameters,kd,shift,jobValues,timer,*args,**kwargs):
     '''
     Main function. Begins correlation function production process
 
@@ -38,14 +37,14 @@ def main(jobValues,timer,*args,**kwargs):
     '''
 
     #compiling the filestub for the input files to feed to cfungen
-    filestub = dirs.FullDirectories(directory='cfunInput')['cfunInput'] + jobValues['jobID'] + '_' + str(jobValues['nthConfig'])
+    filestub = dirs.FullDirectories(parameters,directory='cfunInput')['cfunInput'] + jobValues['jobID'] + '_' + str(jobValues['nthConfig'])
     
     #Calling the function that does all the work
-    MakeCorrelationFunctions(filestub,jobValues,timer)
+    MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer)
 
 
 
-def MakeCorrelationFunctions(filestub,jobValues,timer,*args,**kwargs):
+def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,**kwargs):
     """
     Makes the input files and then the actual correlation functions.
 
@@ -58,16 +57,13 @@ def MakeCorrelationFunctions(filestub,jobValues,timer,*args,**kwargs):
 
 
     """
-
-    #Grabbing the parameters from parameter.yml
-    parameters = params.Load()
-    
+   
     #Getting a dictionary of paths to all possible props
     #(props don't necessarily exist unless required)
-    propDict = CompilePropPaths(jobValues,parameters)
+    propDict = CompilePropPaths(parameters,kd,shift,jobValues)
 
     #Making files which are reused for all structures
-    MakeReusableFiles(filestub,jobValues,parameters)
+    MakeReusableFiles(parameters,filestub,kd,jobValues)
     
     #Looping over different structures
     for structure in parameters['runValues']['structureList']:
@@ -80,19 +76,21 @@ def MakeCorrelationFunctions(filestub,jobValues,timer,*args,**kwargs):
             print(f'{quark}: {propDict[quark]}')
 
         print('Making structure specific files')
-        MakeSpecificFiles(filestub,structure,propDict,jobValues,parameters)
+        MakeSpecificFiles(parameters,filestub,kd,shift,structure,propDict,jobValues)
       
         #Preparing final variables for call to cfungen
         executable = parameters['propcfun']['cfgenExecutable']
-        numGPUs = parameters['slurmParams']['numGPUs']
-        reportFile = dirs.FullDirectories(directory='cfunReport',structure=structure,**jobValues,**parameters['sourcesink'])['cfunReport']
+
+        scheduler = jobValues['scheduler'].lower()
+        numGPUs = parameters[scheduler+'Params']['NUMGPUS']
+        reportFile = dirs.FullDirectories(parameters,directory='cfunReport',kd=kd,shift=shift,structure=structure,**jobValues,**parameters['sourcesink'])['cfunReport']
 
         #Calling cfungen
         timer.startTimer('Correlation functions')
         CallMPI(executable,reportFile,filestub=filestub,numGPUs=numGPUs)
         timer.stopTimer('Correlation functions')
 
-def CompilePropPaths(jobValues,parameters,*args,**kwargs):
+def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
     '''
     Creates a dictionary of propagator paths for all quarks in the quarkList.
 
@@ -104,7 +102,7 @@ def CompilePropPaths(jobValues,parameters,*args,**kwargs):
     '''
 
     #Will change the kd value in jobvalues so saving it to fix at the end
-    kd_original = jobValues['kd']
+    kd_original = kd
     kappa_original = jobValues['kappa']
 
     #Initialising output dictionary
@@ -115,7 +113,7 @@ def CompilePropPaths(jobValues,parameters,*args,**kwargs):
 
         #Effectively only make 2 types of propagator. Light (d) and heavy (s).
         #The rest we get through charge manipulation (u=-2*d,nl=0*d,nh=0*nh).
-        jobValues['kd'] *= QuarkCharge(quark)
+        kd *= QuarkCharge(quark)
         if quark in ['s','nh']:
             quarkLabel = 's'
             jobValues['kappa'] = parameters['propcfun']['strangeKappa']
@@ -123,7 +121,7 @@ def CompilePropPaths(jobValues,parameters,*args,**kwargs):
             quarkLabel = 'd'
         
         #Getting the base propagator file
-        propFile = dirs.FullDirectories(directory='prop',**jobValues,**parameters['sourcesink'])['prop']
+        propFile = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['prop']
         
         #Adding the kappa value and file extension (propFormat) which are 
         #appended by quarkpropGPU.x
@@ -133,18 +131,18 @@ def CompilePropPaths(jobValues,parameters,*args,**kwargs):
         
         #Saving the path to the dictionary
         propDict[quark] = propFile
-        jobValues['kd'] = kd_original
+
+        #returning the field strength to its original value
+        kd = kd_original
         jobValues['kappa'] = kappa_original
         #end quark loop
-
-    #returning the field strength to its original value
 
     return propDict
 
 
 
 
-def MakeReusableFiles(filestub,jobValues,parameters,*args,**kwargs):
+def MakeReusableFiles(parameters,filestub,kd,jobValues,*args,**kwargs):
     '''
     Makes the input files which are structure independent and reusable.
 
@@ -164,15 +162,15 @@ def MakeReusableFiles(filestub,jobValues,parameters,*args,**kwargs):
 
     #Getting the gauge field configuration file, then making the relevant input 
     #file
-    configFile = dirs.FullDirectories(directory='configFile',**jobValues)['configFile']
+    configFile = dirs.FullDirectories(parameters,directory='configFile',**jobValues)['configFile']
     files.MakeGFSFile(filestub,parameters['directories']['configFormat'],configFile)
     
     #Making the smearing file, still read in for Laplacian sink (I think)
-    files.MakePropSmearingFile(filestub,**parameters['sourcesink'],**jobValues)
+    files.MakePropSmearingFile(filestub,kd=kd,**parameters['sourcesink'],**jobValues)
 
 
 
-def MakeSpecificFiles(filestub,structure,propDict,jobValues,parameters):
+def MakeSpecificFiles(parameters,filestub,kd,shift,structure,propDict,jobValues):
     '''
     Makes the files which depend on structure and cannot be reused.
 
@@ -185,23 +183,23 @@ def MakeSpecificFiles(filestub,structure,propDict,jobValues,parameters):
                         From parameters.yml
     
     '''
-
+    
     #Making Laplacian Sink File
-    modeFiles = dirs.LapModeFiles(**jobValues)   #(dict)
+    modeFiles = dirs.LapModeFiles(parameters,kd=kd,quark=structure,**jobValues)   #(dict)
     lapModeFiles = [modeFiles[quark] for quark in structure]   #(above as list) 
     files.MakeLPSinkFile(filestub,lapModeFiles=lapModeFiles,**parameters['sourcesink'])
 
     #Setting isospin symmetry based on field strength
-    if jobValues['kd'] == 0:
+    if kd == 0:
         isospinSym = 't'
     else:
         isospinSym = 'f'
         
     #Correlation function filepath
-    cfunPrefix = dirs.FullDirectories(directory='cfun',**jobValues,**parameters['sourcesink'])['cfun']
+    cfunPrefix = dirs.FullDirectories(parameters,directory='cfun',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['cfun']
     
     #Writing number of operator pairs to the particle_stubs file
-    particleList = parameters['runValues']['particleList']
+    particleList = jobValues['particleList']
     files.AppendPartStub( filestub,numParticlePairs=len(particleList) )
 
     #Looping over operator pairs
@@ -216,7 +214,7 @@ def MakeSpecificFiles(filestub,structure,propDict,jobValues,parameters):
         files.AppendPartStub(filestub,partstub=partstub)
 
         #Getting the details regarding the hadronic projection (fourier vs landau, etc...)
-        hadronicProjection = HadronicProjection(jobValues['kd'],chi,structure,parameters)
+        hadronicProjection = HadronicProjection(parameters,kd,chi,structure)
 
         #Making the files which hold the paths to the propagators in the u,d,s 
         #spots. Returns the paths to those files. Apparently must be fed in
@@ -227,7 +225,7 @@ def MakeSpecificFiles(filestub,structure,propDict,jobValues,parameters):
         files.MakePropCfunInfoFile(filestub,propList,**parameters['directories'],**parameters['propcfun'],**parameters['runValues'],**hadronicProjection)
 
 
-def HadronicProjection(kd,particle,structure,parameters,*args,**kwargs):
+def HadronicProjection(parameters,kd,particle,structure,*args,**kwargs):
     '''
     Returns the details for the hadronic projection.
 
@@ -254,5 +252,5 @@ def HadronicProjection(kd,particle,structure,parameters,*args,**kwargs):
             effectiveQuarkCharge.append(part.QuarkCharge(quark)*kd)
 
         details['kd_q'] = ' '.join([str(x) for x in effectiveQuarkCharge])
-        details['fullLandauFile'] = dirs.FullDirectories(directory='landau')['landau']
+        details['fullLandauFile'] = dirs.FullDirectories(parameters,directory='landau')['landau']
         return details

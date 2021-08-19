@@ -16,9 +16,7 @@ import subprocess                   #for calling quarkpropGPU.x
 from datetime import datetime       #for writing out the time
 
 #local modules
-from colarunscripts import configIDs as cfg
 from colarunscripts import directories as dirs
-from colarunscripts import parameters as params
 from colarunscripts import propFiles as files
 from colarunscripts import shifts
 from colarunscripts.particles import QuarkCharge
@@ -27,7 +25,7 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 
 
-def main(jobValues,timer,*args,**kwargs):
+def main(parameters,kd,shift,jobValues,timer,*args,**kwargs):
         '''
         Main function. Begins propagator production process.
 
@@ -42,14 +40,11 @@ def main(jobValues,timer,*args,**kwargs):
 
         '''
         
-        #Grabbing parameters from parameters.yml
-        parameters = params.Load()
-
         #File stub for propagator input files. QUARK to be autoreplaced
         filestub = 'prop' + jobValues['jobID'] + '_' + str(jobValues['nthConfig'])+'.QUARK'
         
         #Compiling the full configuration file
-        jobValues['configFile'] = dirs.FullDirectories(directory='configFile',**jobValues)['configFile']
+        jobValues['configFile'] = dirs.FullDirectories(parameters,directory='configFile',kd=kd,**jobValues)['configFile']
 
         #Initialising list of propagator paths
         propPaths = []
@@ -66,13 +61,13 @@ def main(jobValues,timer,*args,**kwargs):
                         print(5*'-'+f'Doing {quark} quark'+5*'-')
                         
                         #Making the propagator
-                        propPath = MakePropagator(quark,jobValues,filestub,parameters,timer)
+                        propPath = MakePropagator(parameters,quark,kd,shift,jobValues,filestub,timer)
                         propPaths.append(propPath)
         return propPaths
 
 
 
-def MakePropagator(quark,jobValues,filestub,parameters,timer,*args,**kwargs):
+def MakePropagator(parameters,quark,kd,shift,jobValues,filestub,timer,*args,**kwargs):
         '''
         Prepares the input files for making propagators using quarkpropGPU.x.
 
@@ -84,18 +79,18 @@ def MakePropagator(quark,jobValues,filestub,parameters,timer,*args,**kwargs):
                             From parameters.yml
         timer      -- Timer: Timer object to manage timing of correlation function
                             calculation time.
-
         '''
+
         #Copying jobValues dictionary. Deepcopy so that we can change items for
         #this quark only.
         quarkValues = copy.deepcopy(jobValues)
-        print(quark, quarkValues['kd'],quarkValues['kappa'])
+        print(quark,kd,quarkValues['kappa'])
      
         #Labelling the filestub with the relevant quark
-        filestub = dirs.FullDirectories(directory='propInput')['propInput'] + filestub.replace('QUARK',quark)
+        filestub = dirs.FullDirectories(parameters,directory='propInput')['propInput'] + filestub.replace('QUARK',quark)
 
         #Making input files
-        fullQuarkPath = MakePropInputFiles(filestub,quark,quarkValues,parameters)
+        fullQuarkPath = MakePropInputFiles(parameters,filestub,quark,kd,shift,quarkValues)
 
         #Checking whether the quark already exists
         print(f'Quark to make is: \n{fullQuarkPath}')
@@ -103,16 +98,18 @@ def MakePropagator(quark,jobValues,filestub,parameters,timer,*args,**kwargs):
                 print(f'Skipping {quark} quark. Propagator already exists')
                 return fullQuarkPath
         
+        scheduler = jobValues['scheduler'].lower()
+        numGPUs = parameters[scheduler+'Params']['NUMGPUS']
         
         #Get propagator report file and call the MPI
-        reportFile = dirs.FullDirectories(directory='propReport',**quarkValues,**parameters['sourcesink'])['propReport'].replace('QUARK',quark)
+        reportFile = dirs.FullDirectories(parameters,directory='propReport',kd=kd,shift=shift,**quarkValues,**parameters['sourcesink'])['propReport'].replace('QUARK',quark)
         timer.startTimer('Propagators')
-        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,**parameters['slurmParams'])
+        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,numGPUs=numGPUs)
         timer.stopTimer('Propagators')        
         return fullQuarkPath
 
 
-def MakePropInputFiles(filestub,quark,quarkValues,parameters,*args,**kwargs):
+def MakePropInputFiles(parameters,filestub,quark,kd,shift,quarkValues,*args,**kwargs):
         '''
         Makes the input files for quarkpropGPU.x.
 
@@ -135,14 +132,14 @@ def MakePropInputFiles(filestub,quark,quarkValues,parameters,*args,**kwargs):
         #Source file needs to be made before u and s adjustments due to the 
         #Laplacian Eigenmode file. quark is passed to get the correct modefile.
         #Needs to be the actual flavour, not the label.
-        quarkValues['sourcetype_num'] = files.MakeSourceFile(filestub,quark,quarkValues)
+        quarkValues['sourcetype_num'] = files.MakeSourceFile(parameters,filestub,quark,kd,quarkValues)
 
         #Reducing the number of propagators we make as some propagators are
         #effectively duplicates. ie. u props are d props with -2*kd, nl props
         #are neutral d props
         #quarkLabel will always be d or s and goes into
         #the propagator filename
-        quarkValues['kd'] *= QuarkCharge(quark)
+        kd *= QuarkCharge(quark)
         if quark in ['s','nh']:
                 quarkLabel = 's'
         else:
@@ -153,13 +150,13 @@ def MakePropInputFiles(filestub,quark,quarkValues,parameters,*args,**kwargs):
                 quarkValues['kappa'] = parameters['propcfun']['strangeKappa']
 
         #Assembling the quark prefix
-        quarkPrefix = dirs.FullDirectories(directory='prop',**quarkValues,**parameters['sourcesink'])['prop']
+        quarkPrefix = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**quarkValues,**parameters['sourcesink'])['prop']
         quarkValues['quarkPrefix'] = quarkPrefix.replace('QUARK',quarkLabel)
         #Compiling full prop path
         fullQuarkPath = f'{quarkValues["quarkPrefix"]}k{quarkValues["kappa"]}.{parameters["directories"]["propFormat"]}'
                 
         #Can now make the .quarkprop input file
-        files.MakePropFile(filestub,**quarkValues,**parameters['directories'],**parameters['propcfun'])
+        files.MakePropFile(filestub,kd=kd,shift=shift,**quarkValues,**parameters['directories'],**parameters['propcfun'])
 
         return fullQuarkPath
 
@@ -191,5 +188,4 @@ def CallMPI(executable,reportFile,numGPUs=0,arguments=[],filestub='',**kwargs):
                        f.write(runDetails.stderr)
         print(f'Report file is: {reportFile}')
         print(f'Time is {datetime.now()}')
-        
         #end CallMPI

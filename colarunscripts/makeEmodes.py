@@ -15,34 +15,33 @@ from datetime import datetime       #for writing out the time
 
 from colarunscripts import directories as dirs
 from colarunscripts import shifts
-from colarunscripts import parameters as params
 from colarunscripts.makePropagator import CallMPI
+from colarunscripts.particles import QuarkCharge
 from colarunscripts.propFiles import FieldCode, MakeLatticeFile
 from colarunscripts.utilities import SchedulerParams
 
 
-def main(jobValues,timer):
+def main(parameters,kd,shift,jobValues,timer):
 
-    parameters = params.Load()
-
-    filestub = dirs.FullDirectories(directory='lapmodeInput')['lapmodeInput'] + jobValues['jobID'] + '_' + str(jobValues['nthConfig'])
-    inputs = {}
-    MakeLatticeFile(filestub,**parameters['lattice'])
-
-    modeFiles = dirs.LapModeFiles(**jobValues,withExtension=False)
     
-    inputs['configFile'] = dirs.FullDirectories(directory='configFile',**jobValues)['configFile']
+    
+
+    inputs = {}
+    inputs['configFile'] = dirs.FullDirectories(parameters,kd=kd,directory='configFile',**jobValues)['configFile']
     inputs['configFormat'] = parameters['directories']['configFormat']
     inputs['outputFormat'] = parameters['directories']['lapModeFormat']
-    inputs['U1FieldCode'] = FieldCode(**parameters['propcfun'],**jobValues)
-    inputs['shift'] = shifts.FormatShift(jobValues['shift'])
+    inputs['shift'] = shifts.FormatShift(shift)
     inputs['tolerance'] = parameters['propcfun']['tolerance']
     
-    schedulerParams = SchedulerParams(jobValues['scheduler'])
+    schedulerParams = SchedulerParams(parameters,jobValues['scheduler'])
 
     fullFileList = []
     for structure in parameters['runValues']['structureList']:
+        modeFiles = dirs.LapModeFiles(parameters,kd=kd,quark=structure,**jobValues,withExtension=False)
         for quark in structure:
+
+            filestub = dirs.FullDirectories(parameters,directory='lapmodeInput')['lapmodeInput'] + jobValues['jobID'] + '_' + str(jobValues['nthConfig']) + f'.{quark}'
+            MakeLatticeFile(filestub,**parameters['lattice'])
 
             fullFile = modeFiles[quark] + '.' + parameters['directories']['lapModeFormat']
             print()
@@ -53,13 +52,17 @@ def main(jobValues,timer):
                 continue
             print(f'Eigenmode to make is: {fullFile}')
 
+            inputs['U1FieldCode'] = FieldCode(kd=kd*QuarkCharge(quark),**parameters['propcfun'],**jobValues)
             inputs['outputPrefix'] = modeFiles[quark]
             MakeLap2ModesFile(filestub,**inputs,**parameters['laplacianEigenmodes'])
 
-            reportFile = dirs.FullDirectories(directory='lapmodeReport',**jobValues)['lapmodeReport'].replace('QUARK',quark)
+            scheduler = jobValues['scheduler'].lower()
+            numGPUs = parameters[scheduler+'Params']['NUMGPUS']
+            
+            reportFile = dirs.FullDirectories(parameters,directory='lapmodeReport',kd=kd,shift=shift,**jobValues)['lapmodeReport'].replace('QUARK',quark)
 
             timer.startTimer('Eigenmodes')
-            CallMPI(parameters['laplacianEigenmodes']['lapmodeExecutable'],reportFile,filestub=filestub,**schedulerParams)
+            CallMPI(parameters['laplacianEigenmodes']['lapmodeExecutable'],reportFile,filestub=filestub,numGPUs=numGPUs)
             timer.stopTimer('Eigenmodes')
                     
             fullFileList.append(fullFile)

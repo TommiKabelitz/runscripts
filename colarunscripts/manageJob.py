@@ -59,8 +59,8 @@ def main():
     else:
         ncon = 1
     
-    for nthConfig in range(1,ncon+1):
-        
+    #for nthConfig in range(1,ncon+1):
+    for nthConfig in [1]:
         jobValues['nthConfig'] = nthConfig
 
         doConfiguration(jobValues,timer)
@@ -94,7 +94,8 @@ def doConfiguration(jobValues,timer,*args,**kwargs):
     #That's it for preparation of job values. Now start making propagators
     #and correlation functions
 
-    if jobValues['sinkType'] == 'laplacian' or jobValues['sourceType'] == 'lp':
+    #if jobValues['sinkType'] == 'laplacian' or jobValues['sourceType'] == 'lp':
+    if False:
         print(50*'_')
         print()
         print('Making eigenmodes')
@@ -177,6 +178,7 @@ def PrintJobValues(jobValues):
         except KeyError:
             print(f'{key} not in JobValues')
 
+            
 def Input():
     '''
     Parses input from the command line.

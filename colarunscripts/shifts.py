@@ -8,7 +8,7 @@ Also contains a function for formatting the kappa value.
 import re
 
 
-def FormatShift(shift,*args,**kwargs):
+def FormatShift(shift,returnType=str,*args,**kwargs):
     '''
     Returns the x and t shift from a string of form x08y16z24t32.
 
@@ -48,12 +48,41 @@ def FormatShift(shift,*args,**kwargs):
                 output.append(shifts['x'])
             except KeyError:
                 output.append('0')
-                
-    #Casting again for leading zeros
-    return ' '.join([str(int(x)) for x in output])
+
+    #Casting to int to remove leading zeros
+    output = [int(x) for x in output]
+
+    if returnType is str:
+              return ' '.join([str(x) for x in output])
+    elif returnType is int:
+        return output
+    else:
+        raise ValueError('returnType must be str or int')
 
 
+    
+def CompareShifts(shift1,shift2,*args,**kwargs):
+    """
+    Returns True if two shifts only differ in time shift
 
+    Arguments:
+    shift1,shift2 -- str: The shifts formatted as defined in 
+                          FormatShift.
+    """
+
+    #Making sure both are proper shifts
+    if None in [shift1,shift2]:
+        return False
+
+    shift1 = FormatShift(shift1,returnType=int)
+    shift2 = FormatShift(shift2,returnType=int)
+
+    if shift1[0:2] == shift2[0:2]:
+        return True
+    else:
+        return False
+
+    
 def FormatKappa(kappa,*args,**kwargs):
     '''
     Formats a kappa value into the form 0.kappa .
