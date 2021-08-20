@@ -69,7 +69,7 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     #Runscript directory
     directories['script'] = runFileDir + 'scripts/'
     #scheduler_output directory
-    directories['stdout'] = runFileDir + 'stdout/'
+    directories['stdout'] = runFileDir + 'stdout/' + base.runIdentifier
     #parameter file copies
     directories['parameters'] = runFileDir + 'parameters/'
     
