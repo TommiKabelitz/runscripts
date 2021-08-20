@@ -36,7 +36,6 @@ def main(originalParametersFile,newParametersFile,kappa,nthConfig,numSimultaneou
     pp(jobValues)
     JobLoops(parameters,jobValues['shifts'],jobValues['kds'],jobValues)
 
-    ncon = 4
     SubmitNext(nthConfig,numSimultaneousJobs,testing,newParametersFile,ncon)
 
 
@@ -71,9 +70,12 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
                 path = pathlib.Path(eigenMode)
                 path.unlink(missing_ok=True)
             print()
-        timer.writeFullReport(final=True)
-            
 
+        timer.writeFullReport(final=True)
+        print()
+        print(50*'_')    
+        print()
+        
 def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
     """
     Runs eigenmode, propagator and cfun code for the one configuration.
@@ -170,7 +172,6 @@ def PrintJobValues(jobValues):
 
 
 def SubmitNext(nthConfig,numSimultaneousJobs,testing,oldParametersFile,ncon):
-    exit()
     
     nextConfig = int(nthConfig) + int(numSimultaneousJobs)
     print(f'Submitting configuration {nextConfig}')

@@ -21,11 +21,15 @@ import subprocess                     #for running scripts
 from datetime import datetime         #for writing out the time
 from os.path import dirname, realpath #for grabbing the directory of this script
 from pathlib import Path                                     
+import pprint
+
 #local modules
 import colarunscripts.configIDs as cfg
 import colarunscripts.directories as dirs
 import colarunscripts.parameters as params
 
+#nice printing for dictionaries, replace print with pp
+pp = pprint.PrettyPrinter(indent=4).pprint 
 
 def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
     '''
@@ -132,7 +136,7 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,inputArgs):
         
     command.append(filename)
 
-
+    
     out = subprocess.run(command,text=True,capture_output=capture_output)
 
     try:
@@ -172,15 +176,16 @@ def MakeSlurmRunscript(parameters,filename,originalParametersFile,kappa,doArrayJ
         if 'test' not in out.stdout:
             raise ValueError('Test queue does not exist on your machine. Try "-t headnode" or "-t interactive".')
         else:
-            schedulerDetails['queue'] = 'test'
-            schedulerDetails['time'] = '00:05:00'
-            schedulerDetails['memory'] = 16    
+            schedulerDetails['QUEUE'] = 'test'
+            schedulerDetails['TIME'] = '00:05:00'
+            schedulerDetails['MEMORY'] = 16    
+            schedulerDetails['JOBSTORAGE'] = 10
+            schedulerDetails['NUMCPUS'] = 0
+            schedulerDetails['NUMGPUS'] = 0
     elif testing == 'fullqueue':
-        schedulerDetails['time'] = '02:00:00'
+        schedulerDetails['TIME'] = '02:00:00'
     elif testing == 'interactive':
         raise ValueError('Interactive jobs not presently supported by slurm. Try "-t headnode".')
-
-
     
     template = Path(schedulerDetails['runscriptTemplate'])
     runscript = Path(filename)
@@ -215,20 +220,22 @@ def MakePBSRunscript(parameters,filename,originalParametersFile,kappa,doArrayJob
         
     #Getting slurm request details, ie. queue, num nodes, gpus etc.
     schedulerDetails = parameters['pbsParams']
-        
+    schedulerDetails['OUTPUTDIR'] = dirs.FullDirectories(parameters,directory='stdout')['stdout']
+    
     if testing in ['testqueue','interactivetestqueue']:
         out = subprocess.run('qstat -Q',text=True,capture_output=True,shell=True)
         #Gadi test queue is called express
         if 'express' not in out.stdout:
             raise ValueError('Test queue does not exist on your machine. Try "-t headnode" or "-t interactive".')
         else:
-            schedulerDetails['queue'] = 'express'
-            schedulerDetails['time'] = '01:00:00'
-            schedulerDetails['memory'] = 16
-            schedulerDetails['numCPUs'] = 4
+            schedulerDetails['QUEUE'] = 'express'
+            schedulerDetails['TIME'] = '00:30:00'
+            schedulerDetails['MEMORY'] = 16
+            schedulerDetails['JOBSTORAGE'] = 10
+            schedulerDetails['NUMCPUS'] = 4
+            schedulerDetails['NUMGPUS'] = 0
     elif testing == 'fullqueue':
-        schedulerDetails['time'] = '02:00:00'
-
+        schedulerDetails['TIME'] = '02:00:00'
 
         
     template = Path(schedulerDetails['runscriptTemplate'])
