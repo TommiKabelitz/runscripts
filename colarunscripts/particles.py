@@ -343,7 +343,7 @@ def lambda0_2():
                            '-1.0/sqrt(6.0) * [d^{a} (C) s^{b} ] (\gamma_{5}) u^{c}']
     return props
 
-def lambda0bar_2():
+def lambda0_2bar():
 
     props = {}
 
