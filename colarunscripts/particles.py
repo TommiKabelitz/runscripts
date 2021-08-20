@@ -316,19 +316,18 @@ def sigma0_2():
     props['lorentz_indices'] = []
     props['gamma_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-
     props['cfun_terms'] = ['1.0/sqrt(2.0) * [u^{a} (C) s^{b}] (\gamma_{5}) d^{c}',
-                           '1.0/sqrt(2.0) * [u^{a} (C) s^{b}] (\gamma_{5}) d^{c}']
+                           '1.0/sqrt(2.0) * [d^{a} (C) s^{b}] (\gamma_{5}) u^{c}']
     return props
-#NOT THESE
+
 def sigma0_2bar():
 
     props = {}
 
     props['gamma_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0/sqrt(2.0) * Ad^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap} ]',
-                           '-1.0/sqrt(2.0) * Au^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap} ]']
+    props['cfun_terms'] = ['-1.0/sqrt(2.0) * Ad^{cp} (\gamma_{5}) [As^{bp} (C) Au^{ap} ]',
+                           '-1.0/sqrt(2.0) * Au^{cp} (\gamma_{5}) [As^{bp} (C) Ad^{ap} ]']
     return props
 
 
@@ -339,9 +338,9 @@ def lambda0_2():
     props['lorentz_indices'] = []
     props['gamma_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['2.0/sqrt(6.0) * [u^{a} (C\gamma_{5}) d^{b} ] (I) s^{c}',
-                           '1.0/sqrt(6.0) * [u^{a} (C\gamma_{5}) s^{b} ] (I) d^{c}',
-                           '-1.0/sqrt(6.0) * [d^{a} (C\gamma_{5}) s^{b} ] (I) u^{c}']
+    props['cfun_terms'] = ['2.0/sqrt(6.0) * [u^{a} (C) d^{b} ] (\gamma_{5}) s^{c}',
+                           '1.0/sqrt(6.0) * [u^{a} (C) s^{b} ] (\gamma_{5}) d^{c}',
+                           '-1.0/sqrt(6.0) * [d^{a} (C) s^{b} ] (\gamma_{5}) u^{c}']
     return props
 
 def lambda0bar_2():
@@ -350,9 +349,9 @@ def lambda0bar_2():
 
     props['gamma_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-2.0/sqrt(6.0) * As^{cp} (I) [Ad^{bp} (C\gamma_{5}) Au^{ap} ]',
-                           '-1.0/sqrt(6.0) * Ad^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap} ]',
-                           '1.0/sqrt(6.0) * Au^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap} ]']
+    props['cfun_terms'] = ['-2.0/sqrt(6.0) * As^{cp} (\gamma_{5}) [Ad^{bp} (C) Au^{ap} ]',
+                           '-1.0/sqrt(6.0) * Ad^{cp} (\gamma_{5}) [As^{bp} (C) Au^{ap} ]',
+                           '1.0/sqrt(6.0) * Au^{cp} (\gamma_{5}) [As^{bp} (C) Ad^{ap} ]']
     return props
 
 
