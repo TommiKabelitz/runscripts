@@ -1,6 +1,6 @@
 #Standard library modules
 import os
-
+import re
 import colarunscripts.parameters as params
 
 '''
@@ -100,13 +100,17 @@ def GetJobID(environmentVariables):
     jobIDLabels = ['SLURM_ARRAY_JOB_ID',
                    'SLURM_JOB_ID',
                    'PBS_ARRAYID',
-                   'PBS_JOB_ID']
+                   'PBS_JOBID']
     
     for label in jobIDLabels:
+        print(label)
         try:
             jobID = environmentVariables[label]
-            return jobID
+            pattern = re.compile(r'\d+')
+            print(f'found: {pattern.findall(jobID)[0]}')
+            return pattern.findall(jobID)[0]
         except KeyError:
+            print('not found')
             continue
     else:
         return '1'

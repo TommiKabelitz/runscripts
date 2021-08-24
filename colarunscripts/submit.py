@@ -27,6 +27,7 @@ import pprint
 import colarunscripts.configIDs as cfg
 import colarunscripts.directories as dirs
 import colarunscripts.parameters as params
+from colarunscripts.utilities import GetJobID
 
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
@@ -93,9 +94,9 @@ def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
 
         #Making the runscript
         if values['scheduler'] == 'slurm':
-            MakeSlurmRunscript(parameters,filename,inputArgs['parametersfile'],kappa,values['doArrayJobs'],nthConfig=nthConfig,**inputArgs)
+            MakeSlurmRunscript(parameters,filename,kappa,values['doArrayJobs'],nthConfig=nthConfig,**inputArgs)
         elif values['scheduler'] == 'PBS':
-            MakePBSRunscript(parameters,filename,inputArgs['parametersfile'],kappa,values['doArrayJobs'],nthConfig=nthConfig,**inputArgs)
+            MakePBSRunscript(parameters,filename,kappa,values['doArrayJobs'],nthConfig=nthConfig,**inputArgs)
         else:
             raise ValueError('Unknown scheduler specified')
         subprocess.run(['chmod','+x',filename]) #executable permission
@@ -113,7 +114,8 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,inputArgs):
     print(f'Running {filename}')
 
     if inputArgs['testing'] == 'headnode':
-        params.CopyParamsFile(inputArgs['parametersfile'],jobID=1)
+        jobID = GetJobID(os.environ) 
+        params.CopyParamsFile(inputArgs['parametersfile'],jobID=jobID)
         subprocess.run([filename])
         return
 
@@ -150,7 +152,7 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,inputArgs):
     params.CopyParamsFile(inputArgs['parametersfile'],jobID)
 
 
-def MakeSlurmRunscript(parameters,filename,originalParametersFile,kappa,doArrayJobs,nthConfig=1,numjobs=1,testing=None,*args,**kwargs):
+def MakeSlurmRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,numjobs=1,testing=None,*args,**kwargs):
     '''
     Makes the runscript to be called by the scheduler.
     
@@ -192,7 +194,6 @@ def MakeSlurmRunscript(parameters,filename,originalParametersFile,kappa,doArrayJ
     text = template.read_text()
     for key,value in schedulerDetails.items():
         text = text.replace(key,str(value))
-    text = text.replace('ORIGINALPARAMETERSFILE',originalParametersFile)
     text = text.replace('PARAMETERSDIR',dirs.FullDirectories(parameters,directory='parameters')['parameters'])
     text = text.replace('KAPPA',str(kappa))
     text = text.replace('NTHCONFIG',str(nthConfig))
@@ -202,7 +203,7 @@ def MakeSlurmRunscript(parameters,filename,originalParametersFile,kappa,doArrayJ
     runscript.write_text(text)
 
 
-def MakePBSRunscript(parameters,filename,originalParametersFile,kappa,doArrayJobs,nthConfig=1,numjobs=1,testing=None,*args,**kwargs):
+def MakePBSRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,numjobs=1,testing=None,*args,**kwargs):
     '''
     Makes the runscript to be called by the scheduler.
     
@@ -243,7 +244,6 @@ def MakePBSRunscript(parameters,filename,originalParametersFile,kappa,doArrayJob
     text = template.read_text()
     for key,value in schedulerDetails.items():
         text = text.replace(key,str(value))
-    text = text.replace('ORIGINALPARAMETERSFILE',originalParametersFile)
     text = text.replace('PARAMETERSDIR',dirs.FullDirectories(parameters,directory='parameters')['parameters'])
     text = text.replace('KAPPA',str(kappa))
     text = text.replace('NTHCONFIG',str(nthConfig))
@@ -323,6 +323,7 @@ def MakePBSRunscript(parameters,filename,originalParametersFile,kappa,doArrayJob
 
     
 def main(nthConfig,inputArgs):
+
     print(f'Time is {datetime.now()}')
 
     parametersFile = inputArgs['parametersfile']

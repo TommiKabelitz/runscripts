@@ -23,7 +23,7 @@ from colarunscripts.utilities import GetJobID
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
 
-def main(originalParametersFile,newParametersFile,kappa,nthConfig,numSimultaneousJobs,testing,*args,**kwargs):
+def main(newParametersFile,kappa,nthConfig,numSimultaneousJobs,testing,*args,**kwargs):
 
     parameters = params.Load(parametersFile=newParametersFile)
     jobValues = parameters['runValues']
@@ -36,6 +36,7 @@ def main(originalParametersFile,newParametersFile,kappa,nthConfig,numSimultaneou
     pp(jobValues)
     JobLoops(parameters,jobValues['shifts'],jobValues['kds'],jobValues)
 
+    ncon = 1
     SubmitNext(nthConfig,numSimultaneousJobs,testing,newParametersFile,ncon)
 
 
@@ -174,21 +175,21 @@ def PrintJobValues(jobValues):
 def SubmitNext(nthConfig,numSimultaneousJobs,testing,oldParametersFile,ncon):
     
     nextConfig = int(nthConfig) + int(numSimultaneousJobs)
-    print(f'Submitting configuration {nextConfig}')
-    
+        
     inputArgs = {}
     inputArgs['numjobs'] = numSimultaneousJobs
     inputArgs['parametersfile'] = oldParametersFile
     inputArgs['testing'] = testing
 
     if nextConfig <= ncon:
+        print(f'Submitting configuration {nextConfig}')
         submit.main(nextConfig,inputArgs)
-
+    else:
+        print('No new configurations to submit')
 
 def Input():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('originalParametersFile',type=str)
     parser.add_argument('parametersDir',type=str)
     parser.add_argument('kappa',type=int)
     parser.add_argument('nthConfig',type=int)
@@ -206,5 +207,6 @@ if __name__ == '__main__':
     inputArgs = Input()
     jobID = GetJobID(os.environ)    
     inputArgs['newParametersFile'] = f'{inputArgs["parametersDir"]}{jobID}_parameters.yml'
-
+    print(f'Parameters file to use: {inputArgs["newParametersFile"]}')
+    
     main(**inputArgs)
