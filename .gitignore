@@ -4,6 +4,7 @@ fort.100
 parameters.yml
 /colarunscripts/__pycache__/*
 /LandauModes/*
+/parametersFiles/*
 /runFiles/*
 /__pycache__/*
 /COLA_runscripts.egg-info/*
