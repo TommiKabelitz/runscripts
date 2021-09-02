@@ -107,10 +107,8 @@ def GetJobID(environmentVariables):
         try:
             jobID = environmentVariables[label]
             pattern = re.compile(r'\d+')
-            print(f'found: {pattern.findall(jobID)[0]}')
             return pattern.findall(jobID)[0]
         except KeyError:
-            print('not found')
             continue
     else:
         return '1'
