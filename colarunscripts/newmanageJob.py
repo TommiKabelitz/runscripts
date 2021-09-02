@@ -23,20 +23,22 @@ from colarunscripts.utilities import GetJobID
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
 
-def main(newParametersFile,kappa,nthConfig,numSimultaneousJobs,testing,*args,**kwargs):
+def main(newParametersFile,kappa,nthConfig,numSimultaneousJobs,ncon,testing,*args,**kwargs):
 
     parameters = params.Load(parametersFile=newParametersFile)
     jobValues = parameters['runValues']
 
-    start,ncon = cfg.ConfigDetails(kappa,jobValues['runPrefix'])
+    if ncon != 0:
+        start,_ = cfg.ConfigDetails(kappa,jobValues['runPrefix'])
+    else:
+        start,ncon = cfg.ConfigDetails(kappa,jobValues['runPrefix'])
+
     jobValues['nthConfig'] = nthConfig
     jobValues['cfgID'] = cfg.ConfigID(nthConfig,jobValues['runPrefix'],start)
     jobValues['jobID'] = GetJobID(os.environ)
     jobValues['kappa'] = kappa
     pp(jobValues)
     JobLoops(parameters,jobValues['shifts'],jobValues['kds'],jobValues)
-
-    ncon = 1
     SubmitNext(nthConfig,numSimultaneousJobs,testing,newParametersFile,ncon)
 
 
@@ -194,6 +196,7 @@ def Input():
     parser.add_argument('kappa',type=int)
     parser.add_argument('nthConfig',type=int)
     parser.add_argument('numSimultaneousJobs',type=int)
+    parser.add_argument('ncon',type=int)
     parser.add_argument('testing')
 
     args = parser.parse_args()

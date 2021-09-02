@@ -86,6 +86,9 @@ def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
         # elif inputArgs['testing'] in ['fullqueue','testqueue']:
         #     jobList = ['1']
         # else:
+
+        #Old mechanic still here, should be updated. Is for array jobs
+        #and missing configs which is broken anyway.
         jobList = [str(i) for i in range(1,401)]
 
 
@@ -152,7 +155,7 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,inputArgs):
     params.CopyParamsFile(inputArgs['parametersfile'],jobID)
 
 
-def MakeSlurmRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,numjobs=1,testing=None,*args,**kwargs):
+def MakeSlurmRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs=1,nconfigurations=0,testing=None,*args,**kwargs):
     '''
     Makes the runscript to be called by the scheduler.
     
@@ -160,11 +163,14 @@ def MakeSlurmRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,numjobs
     which manages the rest of the job.
 
     Arguments:
-    filename -- str: the name of the file to make
-    kappa    -- int: kappa value of the particular job
-    kd       -- int: field strength of the particular job
-    shift    -- str: lattice shift of the particular job
-    testing  -- str: type of test submission
+    parameters      -- dict:
+    filename        -- str: the name of the file to make
+    kappa           -- int: kappa value of the particular job
+    doArrayJobs     -- bool:
+    nthConfig       -- int:
+    simjobs         -- int:
+    nconfigurations -- int:
+    testing         -- str: type of test submission
 
     '''
 
@@ -197,13 +203,14 @@ def MakeSlurmRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,numjobs
     text = text.replace('PARAMETERSDIR',dirs.FullDirectories(parameters,directory='parameters')['parameters'])
     text = text.replace('KAPPA',str(kappa))
     text = text.replace('NTHCONFIG',str(nthConfig))
-    text = text.replace('NUMJOBS',str(numjobs))
+    text = text.replace('NUMJOBS',str(simjobs))
+    text = text.replace('NCON',str(nconfigurations))
     text = text.replace('TESTING',str(testing))
     
     runscript.write_text(text)
 
 
-def MakePBSRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,numjobs=1,testing=None,*args,**kwargs):
+def MakePBSRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs=1,nconfigurations=0,testing=None,*args,**kwargs):
     '''
     Makes the runscript to be called by the scheduler.
     
@@ -247,7 +254,8 @@ def MakePBSRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,numjobs=1
     text = text.replace('PARAMETERSDIR',dirs.FullDirectories(parameters,directory='parameters')['parameters'])
     text = text.replace('KAPPA',str(kappa))
     text = text.replace('NTHCONFIG',str(nthConfig))
-    text = text.replace('NUMJOBS',str(numjobs))
+    text = text.replace('NUMJOBS',str(simjobs))
+    text = text.replace('NCON',str(nconfigurations))
     text = text.replace('TESTING',str(testing))
     
     runscript.write_text(text)
