@@ -45,7 +45,7 @@ def main(parameters,kd,shift,jobValues,timer,*args,**kwargs):
 
 
 def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,**kwargs):
-    """
+    '''
     Makes the input files and then the actual correlation functions.
 
     Arguments:
@@ -56,27 +56,41 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
                       calculation time.
 
 
-    """
+    '''
    
     #Getting a dictionary of paths to all possible props
     #(props don't necessarily exist unless required)
     propDict = CompilePropPaths(parameters,kd,shift,jobValues)
 
-    #Making files which are reused for all structures
-    MakeReusableFiles(parameters,filestub,kd,jobValues)
+    logFile = jobValues['inputSummary']['cfun']
     
+    with open(logFile,'a') as f:
+        f.write('\nInput files not dependent on structure:\n')
+        
+    #Making files which are reused for all structures
+    MakeReusableFiles(parameters,filestub,logFile,kd,jobValues)
+    
+    with open(logFile,'a') as f:
+        f.write('\nInput files dependent on structure:\n')
+
     #Looping over different structures
     for structure in parameters['runValues']['structureList']:
 
-        print(f'\nDoing structure set: {structure}\n')
+        with open(logFile,'a') as f,open(jobValues['inputSummary']['interp'],'a') as g:
 
-        #Just printing quark paths for reference
-        print(f'Quark paths are: ')
-        for quark in structure:
-            print(f'{quark}: {propDict[quark]}')
+            print(f'\nDoing structure set: {structure}\n')
+            f.write(f'\nDoing structure set: {structure}\n')
+            g.write(f'\nDoing structure set: {structure}\n')
+                
+            #Just printing quark paths for reference
+            print(f'Quark paths are: ')
+            f.write(f'Quark paths are:\n')
+            for quark in structure:
+                print(f'{quark}: {propDict[quark]}')
+                f.write(f'{quark}: {propDict[quark]}\n')
 
         print('Making structure specific files')
-        MakeSpecificFiles(parameters,filestub,kd,shift,structure,propDict,jobValues)
+        MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jobValues)
       
         #Preparing final variables for call to cfungen
         executable = parameters['propcfun']['cfgenExecutable']
@@ -142,7 +156,7 @@ def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
 
 
 
-def MakeReusableFiles(parameters,filestub,kd,jobValues,*args,**kwargs):
+def MakeReusableFiles(parameters,filestub,logFile,kd,jobValues,*args,**kwargs):
     '''
     Makes the input files which are structure independent and reusable.
 
@@ -156,21 +170,25 @@ def MakeReusableFiles(parameters,filestub,kd,jobValues,*args,**kwargs):
     
     print('Making input files independent of structure')
 
-    files.MakeLatticeFile(filestub,**parameters['lattice'])
+    files.MakeLatticeFile(filestub,logFile,**parameters['lattice'])
         
-    files.MakeConfigIDsFile(filestub,**jobValues)
+    files.MakeConfigIDsFile(filestub,logFile,**jobValues)
 
     #Getting the gauge field configuration file, then making the relevant input 
     #file
     configFile = dirs.FullDirectories(parameters,directory='configFile',**jobValues)['configFile']
-    files.MakeGFSFile(filestub,parameters['directories']['configFormat'],configFile)
+    files.MakeGFSFile(filestub,logFile,parameters['directories']['configFormat'],configFile)
     
     #Making the smearing file, still read in for Laplacian sink (I think)
-    files.MakePropSmearingFile(filestub,kd=kd,**parameters['sourcesink'],**jobValues)
+    files.MakePropSmearingFile(filestub,logFile,kd=kd,**parameters['sourcesink'],**jobValues)
 
+    #Making the particle stubs file
+    particleList = jobValues['particleList']
+    files.MakePartStubsFile(filestub,logFile,particleList)
 
+    
 
-def MakeSpecificFiles(parameters,filestub,kd,shift,structure,propDict,jobValues):
+def MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jobValues):
     '''
     Makes the files which depend on structure and cannot be reused.
 
@@ -187,7 +205,7 @@ def MakeSpecificFiles(parameters,filestub,kd,shift,structure,propDict,jobValues)
     #Making Laplacian Sink File
     modeFiles = dirs.LapModeFiles(parameters,kd=kd,quark=structure,**jobValues)   #(dict)
     lapModeFiles = [modeFiles[quark] for quark in structure]   #(above as list) 
-    files.MakeLPSinkFile(filestub,lapModeFiles=lapModeFiles,**parameters['sourcesink'])
+    files.MakeLPSinkFile(filestub,logFile,lapModeFiles=lapModeFiles,**parameters['sourcesink'])
 
     #Setting isospin symmetry based on field strength
     if kd == 0:
@@ -198,20 +216,13 @@ def MakeSpecificFiles(parameters,filestub,kd,shift,structure,propDict,jobValues)
     #Correlation function filepath
     cfunPrefix = dirs.FullDirectories(parameters,directory='cfun',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['cfun']
     
-    #Writing number of operator pairs to the particle_stubs file
-    particleList = jobValues['particleList']
-    files.AppendPartStub( filestub,numParticlePairs=len(particleList) )
-
     #Looping over operator pairs
-    for chi,chibar in particleList:
+    for chi,chibar in jobValues['particleList']:
         #compiling the particle stub ie. 5319732_4protonprotonbar
         partstub = filestub + chi + chibar
         
         #Making the interpolator file using that stub
-        files.MakeInterpFile(partstub,chi,chibar,structure,cfunPrefix,isospinSym,**parameters['propcfun'])
-
-        #appending that stub into the particle stubs file
-        files.AppendPartStub(filestub,partstub=partstub)
+        files.MakeInterpFile(partstub,jobValues['inputSummary']['interp'],chi,chibar,structure,cfunPrefix,isospinSym,**parameters['propcfun'])
 
         #Getting the details regarding the hadronic projection (fourier vs landau, etc...)
         hadronicProjection = HadronicProjection(parameters,kd,chi,structure)
@@ -219,10 +230,10 @@ def MakeSpecificFiles(parameters,filestub,kd,shift,structure,propDict,jobValues)
         #Making the files which hold the paths to the propagators in the u,d,s 
         #spots. Returns the paths to those files. Apparently must be fed in
         #order u,s,d. I don't know why - apparently because u,s often degenerate
-        propList = files.MakePropPathFiles(filestub,propDict,structure)
+        propList = files.MakePropPathFiles(filestub,logFile,propDict,structure)
         propList[1],propList[2] = propList[2],propList[1]
 
-        files.MakePropCfunInfoFile(filestub,propList,**parameters['directories'],**parameters['propcfun'],**parameters['runValues'],**hadronicProjection)
+        files.MakePropCfunInfoFile(filestub,logFile,propList,**parameters['directories'],**parameters['propcfun'],**parameters['runValues'],**hadronicProjection)
 
 
 def HadronicProjection(parameters,kd,particle,structure,*args,**kwargs):

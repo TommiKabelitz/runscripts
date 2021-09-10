@@ -9,10 +9,11 @@ from colarunscripts import directories as dirs
 from colarunscripts import parameters as params
 from colarunscripts import shifts
 from colarunscripts import sources as src
+from colarunscripts.utilities import VariablePrinter
 
-def MakeLatticeFile(filestub,extent,*args,**kwargs):
+def MakeLatticeFile(filestub,logFile,extent):
     '''
-    Make the .lat input file for quarkpropGPU.x.
+    Make the .lat input file for cfungenGPU.x.
     
     Arguments:
     filestub -- string: The filename, without the .lat extension
@@ -21,14 +22,19 @@ def MakeLatticeFile(filestub,extent,*args,**kwargs):
                          direction. Order is [nx,ny,nz,nt].
     '''
     extension = '.lat'
-
+    
+    #Writing to the file
     with open(filestub+extension,'w') as f:
-        for dim in extent:
-            f.write(f'{dim}\n')
+        f.write('\n'.join(str(dim) for dim in extent))
+        f.write('\n')
 
+    #Writing to the log file
+    with open(logFile,'a') as f:
+        f.write(f'\n{extension=}\n')
+        f.write('\n'.join(f'{dim:20}= {val}' for dim,val in zip(['x','y','z','t'],extent)))
+        f.write('\n')
 
-
-def MakeCloverFile(filestub,bcx,bcy,bcz,bct,u0,C_SW,*args,**kwargs):
+def MakeCloverFile(filestub,logFile,bcx,bcy,bcz,bct,u0,C_SW,*args,**kwargs):
         '''
         Make the .fm_clover input file for qpropGPU.x.
 
@@ -36,7 +42,8 @@ def MakeCloverFile(filestub,bcx,bcy,bcz,bct,u0,C_SW,*args,**kwargs):
         filename -- string: The filename to write lattice details to.
         '''
         extension = '.fm_clover'
-
+        
+        #Writing to file
         with open(filestub+extension,'w') as f:
                 f.write(f'{bcx}\n')
                 f.write(f'{bcy}\n')
@@ -45,9 +52,18 @@ def MakeCloverFile(filestub,bcx,bcy,bcz,bct,u0,C_SW,*args,**kwargs):
                 f.write(f'{u0}\n')
                 f.write(f'{C_SW}\n')
 
+        #Writing to log file
+        with open(logFile,'a') as f:
+                f.write(f'\n{extension=}\n')
+                VariablePrinter(f'{bcx=}\n',fileObject=f,nameWidth=20)
+                VariablePrinter(f'{bcy=}\n',fileObject=f,nameWidth=20)
+                VariablePrinter(f'{bcz=}\n',fileObject=f,nameWidth=20)
+                VariablePrinter(f'{bct=}\n',fileObject=f,nameWidth=20)
+                VariablePrinter(f'{u0=}\n',fileObject=f,nameWidth=20)
+                VariablePrinter(f'{C_SW=}\n',fileObject=f,nameWidth=20)
 
 
-def MakeSourceFile(parameters,filestub,quark,kd,quarkValues,*args,**kwargs):
+def MakeSourceFile(parameters,filestub,logFile,quark,kd,quarkValues,*args,**kwargs):
         
         sourceVals = parameters['sourcesink']
 
@@ -58,13 +74,13 @@ def MakeSourceFile(parameters,filestub,quark,kd,quarkValues,*args,**kwargs):
         #Writing the actual source file using the appropriate function
         #in sources.py. sourcetype_num is required for .qprop input file
         FileWriter = getattr(src,quarkValues['sourceType'])
-        sourcetype_num = FileWriter(filestub,**sourceVals)
+        sourcetype_num = FileWriter(filestub,logFile,**sourceVals)
 
         return sourcetype_num
 
 
 
-def MakePropFile(filestub,configFile,configFormat,quarkPrefix,propFormat,parallelIO,fermionAction,kappa,shift,U1FieldType,U1FieldQuanta,kd,tolerance,sourcetype_num,*args,**kwargs):
+def MakePropFile(filestub,logFile,configFile,configFormat,quarkPrefix,propFormat,parallelIO,fermionAction,kappa,shift,U1FieldType,U1FieldQuanta,kd,tolerance,sourcetype_num,*args,**kwargs):
     '''
 
     '''
@@ -73,7 +89,8 @@ def MakePropFile(filestub,configFile,configFormat,quarkPrefix,propFormat,paralle
     shift = shifts.FormatShift(shift)
     kappa = shifts.FormatKappa(kappa)
     U1FieldCode = FieldCode(U1FieldType,U1FieldQuanta,kd)
-    
+
+    #Writing to file
     with open(filestub+extension,'w') as f:
         f.write(f'{configFile}\n')
         f.write(f'{configFormat}\n')
@@ -87,6 +104,20 @@ def MakePropFile(filestub,configFile,configFormat,quarkPrefix,propFormat,paralle
         f.write(f'{tolerance}\n')
         f.write(f'{sourcetype_num}\n')
 
+    #Writing to log file
+    with open(logFile,'a') as f:
+        f.write(f'\n{extension=}\n')
+        VariablePrinter(f'{configFile=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{configFormat=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{quarkPrefix=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{propFormat=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{parallelIO=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{fermionAction=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{kappa=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{shift=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{U1FieldCode=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{tolerance=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{sourcetype_num=}\n',fileObject=f,nameWidth=20)
 
 
 def FieldCode(U1FieldType,U1FieldQuanta,kd,*args,**kwargs):

@@ -40,7 +40,6 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     baseDirectories = parameters['directories']
     tempStorage = parameters['tempStorage']
 
-
     #Scanning for and replacing any environment variables
     tempDir = GetEnvironmentVar(tempStorage['tempFS']) + '/'
 
@@ -51,20 +50,24 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     #Constructing directory tree
     outputDir = base.baseOutputDir + base.runIdentifier + base.outputTree
 
-    #Directory for holding run specific files
-    runFileDir = base.runscriptDir + 'runFiles/'
-
+    #Directory for holding report files
+    reportDir = outputDir + 'reports/'
+    
     #Appending output file names and saving to directories dictionary
-    directories['propReport'] = outputDir + 'reports/' +  base.propFileBase + '.proprep'
-    directories['cfunReport'] = outputDir +'reports/' + base.cfunFileBase + 'CONFIGID_STRUCTURE.cfunrep'
-    directories['lapmodeReport'] = outputDir +'reports/' + base.lapModeReport + '.lapmoderep'
     directories['cfun'] = outputDir + 'cfuns/' + base.cfunFileBase
+    directories['propReport'] = reportDir +  base.propFileBase + '.proprep'
+    directories['cfunReport'] = reportDir + base.cfunFileBase + 'CONFIGID_STRUCTURE.cfunrep'
+    directories['lapmodeReport'] = reportDir + base.lapModeReport + '.lapmoderep'
+    directories['inputReport'] = reportDir + base.inputReport + '.TYPEinputrep'
     
     ##Saving other file paths and directories to directories dictionary
     #Configuration Files
     directories['configFile'] = base.configDir + base.configFilename
     #Landau file
     directories['landau'] = base.landauDir + base.landauFile
+
+    #Directory for holding run specific files
+    runFileDir = base.runscriptDir + 'runFiles/'
 
     #Runscript directory
     directories['script'] = runFileDir + 'scripts/'
@@ -95,11 +98,12 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
         directory = [directory]
     elif type(directory) != list:
         raise TypeError
+
     #return directories that are common to the full dictionary and directory
     return {key:directories[key] for key in directory if key in directories.keys()}  
 
 
-def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=[0],nModes_lpsnk=0,cfgID='',structure=[],kH=0,*args,**kwargs):
+def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=[0],nModes_lpsnk=[0],cfgID='',structure=[],kH=0,*args,**kwargs):
     '''
     Replaces placeholders in paths, makes directories and returns file paths.
     
@@ -125,7 +129,7 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
         sinkVal = sweeps_smsnk[0]
         sinkType = 'sm'
     elif sinkType in ['laplacian']:
-        sinkVal = nModes_lpsnk
+        sinkVal = nModes_lpsnk[0]
         sinkType = 'lp'
     
     #Replace all possible placeholders

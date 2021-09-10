@@ -11,15 +11,12 @@ The parameters.yml file must be located one directory above this file
 #standard library modules
 import os                             #environmental vars
 import pathlib
-import pprint                         #for nice directory printing
 import subprocess                     #for running commands
 import yaml                           #yaml importing
 
 #local modules
 from colarunscripts import directories as dirs
-
-#nice printing for dictionaries, replace print with pp
-pp = pprint.PrettyPrinter(indent=4).pprint 
+from colarunscripts.utilities import pp
 
 def Load(parametersFile='',writeOut=False,*args,**kwargs):
     '''

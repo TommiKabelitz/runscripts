@@ -24,9 +24,8 @@ from colarunscripts import makeEmodes
 from colarunscripts import makePropagator
 from colarunscripts import parameters as params
 from colarunscripts import simpleTime
+from colarunscripts.utilities import pp
 
-#nice printing for dictionaries, replace print with pp
-pp = pprint.PrettyPrinter(indent=4).pprint 
 
 def main():
 
@@ -71,7 +70,7 @@ def main():
     timer.writeFullReport(final=True)
 
 def doConfiguration(jobValues,timer,*args,**kwargs):
-    """
+    '''
     Runs eigenmode, propagator and cfun code for the one configuration.
 
     Arguments:
@@ -80,7 +79,7 @@ def doConfiguration(jobValues,timer,*args,**kwargs):
     timer     -- Timer: Timer object to manage timing of correlation function
                            calculation time.
 
-    """
+    '''
 
     #Compiling the full configuration identification number
     jobValues['cfgID'] = cfg.ConfigID(**jobValues)

@@ -5,10 +5,10 @@ import argparse
 from datetime import datetime
 import os
 import pathlib
-import pprint
 import subprocess
 
 from colarunscripts import configIDs as cfg
+from colarunscripts import directories as dirs
 from colarunscripts import makeCfun
 from colarunscripts import makeEmodes
 from colarunscripts import makePropagator
@@ -16,11 +16,7 @@ from colarunscripts import parameters as params
 from colarunscripts.shifts import CompareShifts
 from colarunscripts import simpleTime 
 from colarunscripts import submit
-from colarunscripts.utilities import GetJobID
-
-
-#nice printing for dictionaries, replace print with pp
-pp = pprint.PrettyPrinter(indent=4).pprint 
+from colarunscripts.utilities import GetJobID,pp
 
 
 def main(newParametersFile,kappa,nthConfig,numSimultaneousJobs,ncon,testing,*args,**kwargs):
@@ -37,6 +33,8 @@ def main(newParametersFile,kappa,nthConfig,numSimultaneousJobs,ncon,testing,*arg
     jobValues['cfgID'] = cfg.ConfigID(nthConfig,jobValues['runPrefix'],start)
     jobValues['jobID'] = GetJobID(os.environ)
     jobValues['kappa'] = kappa
+
+    print()
     pp(jobValues)
     JobLoops(parameters,jobValues['shifts'],jobValues['kds'],jobValues)
     SubmitNext(nthConfig,numSimultaneousJobs,testing,newParametersFile,ncon)
@@ -50,13 +48,29 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
     timer.initialiseTimer('Eigenmodes')
     timer.initialiseTimer('Propagators')
     timer.initialiseTimer('Correlation functions')
-    
+
+    inputSummaries = []
     for shift,nextShift in zip(shifts,[*shifts[1:],None]):
         for kd in kds:
-            
-            paths = doJobSet(parameters,kd,shift,jobValues,timer)
-            
 
+            inputSummary = dirs.FullDirectories(parameters,directory='inputReport',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['inputReport'] 
+            reports = ['emode','prop','cfun','interp']
+            jobValues['inputSummary'] = {rep:inputSummary.replace('TYPE',rep) for rep in reports}
+
+            print()
+            print(f'Input file summaries located at: {jobValues["inputSummary"]}')
+
+            for rep in reports:
+                with open(jobValues['inputSummary'][rep],'w') as f:
+                    f.write(f'Summary of {rep} input files.\n')
+                    f.write('\nValues for this config, field strength and shift\n')
+                    pp(jobValues,stream=f)
+                    f.write(50*'_')
+                    
+
+            paths = doJobSet(parameters,kd,shift,jobValues,timer)
+            inputSummaries.append(list( jobValues['inputSummary'].values() ))
+            
         #removing the propagators
         if jobValues['keepProps'] is False:
             print('All field strengths done, new shift, deleting propagators')
@@ -74,13 +88,19 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
                 path.unlink(missing_ok=True)
             print()
 
+        print('Input file summaries located at:')
+        for reports in inputSummaries:
+            for report in reports:
+                print(report)
+            print()
+            
         timer.writeFullReport(final=True)
         print()
         print(50*'_')    
         print()
         
 def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
-    """
+    '''
     Runs eigenmode, propagator and cfun code for the one configuration.
 
     Arguments:
@@ -89,7 +109,7 @@ def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
     timer     -- Timer: Timer object to manage timing of correlation function
                            calculation time.
 
-    """
+    '''
 
     print(50*'_')
     print()
