@@ -100,7 +100,7 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
         print()
         
 def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
-    '''
+    """
     Runs eigenmode, propagator and cfun code for the one configuration.
 
     Arguments:
@@ -109,7 +109,7 @@ def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
     timer     -- Timer: Timer object to manage timing of correlation function
                            calculation time.
 
-    '''
+    """
 
     print(50*'_')
     print()
@@ -160,7 +160,7 @@ def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
     return paths
 
 def PrintJobValues(jobValues):
-    '''
+    """
     Prints the values specific to the current job to the screen.
 
     Allows easy checking of run values in the job output file.
@@ -168,7 +168,7 @@ def PrintJobValues(jobValues):
     Arguments:
     jobValues -- dict: Dictionary containing the variables to print out
 
-    '''
+    """
     
     #A list of the variables to print
     #(some variables in there are a waste of time)

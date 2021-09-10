@@ -1,10 +1,10 @@
-'''
+"""
 Functions to make the files required by cfungen.
 
 All functions require the input filestub, the log file and the relevant
 parameters which they print to file. MakePartStubsFile is the exception.
 
-'''
+"""
 
 from colarunscripts.configIDs import ConfigID
 from colarunscripts import particles
@@ -12,7 +12,7 @@ from colarunscripts.utilities import WriteListLengthnList,VariablePrinter
 
 
 def MakePropPathFiles(filestub,logFile,propDict,structure,*args,**kwargs):
-    '''
+    """
     Make the files containing paths to propagators.
 
     These are 3, one for each of the u,d,s quarks, files. Each file contains
@@ -28,7 +28,7 @@ def MakePropPathFiles(filestub,logFile,propDict,structure,*args,**kwargs):
     Return:
     propList -- str list: List of files we make. Get written to .prop_cfun_info
                           file
-    '''
+    """
 
     #File extension, QUARK to be replaced to differentiate the files
     extension = '.QUARK.propinfo'
@@ -61,7 +61,7 @@ def MakePropPathFiles(filestub,logFile,propDict,structure,*args,**kwargs):
 
 
 def MakePartStubsFile(filestub,logFile,particleList,*args,**kwargs):
-    '''
+    """
     Creates the particle stubs file.
 
     Top of file should be the number of particle pairs with the 
@@ -73,7 +73,7 @@ def MakePartStubsFile(filestub,logFile,particleList,*args,**kwargs):
     particleList -- list: list of lists containing the chi and chibar
                           pairs to be made. 
 
-    '''
+    """
     #File extension
     extension = '.part_stubs'
 
@@ -94,7 +94,7 @@ def MakePartStubsFile(filestub,logFile,particleList,*args,**kwargs):
 
 
 def MakeInterpFile(partstub,logFile,chi,chibar,structure,cfunPrefix,isospinSym,su3FlavLimit,*args,**kwargs):
-    '''
+    """
     Makes the interpolator file containing particle specific information.
 
     chi and chibar are seperate in the case that we want to do different source 
@@ -110,7 +110,7 @@ def MakeInterpFile(partstub,logFile,chi,chibar,structure,cfunPrefix,isospinSym,s
     isospinSym   -- char: Boolean for isospin symmetry
     su3FlavLimit -- char: Boolean for SU(3) flavour limit
 
-    '''
+    """
 
     #File extension
     extension = '.interp'
@@ -171,7 +171,7 @@ def MakeInterpFile(partstub,logFile,chi,chibar,structure,cfunPrefix,isospinSym,s
 
 
 def MakeConfigIDsFile(filestub,logFile,cfgID,*args,**kwargs):
-    '''
+    """
     Makes the configuration ID file.
 
     In the current implementation, only writing the current config ID to the
@@ -181,7 +181,7 @@ def MakeConfigIDsFile(filestub,logFile,cfgID,*args,**kwargs):
     filestub -- str: The base file to write the ID to
     logFile  -- str: The input logFile to also write inputs to.
     cfgID    -- str: The ID to write
-    '''
+    """
 
     #File extension
     extension = '.cfg_ids'
@@ -198,7 +198,7 @@ def MakeConfigIDsFile(filestub,logFile,cfgID,*args,**kwargs):
 
 
 def MakePropCfunInfoFile(filestub,logFile,propList,propFormat,cfunFormat,parallelIO,gmaRep,gellMannRep,pmin,pmax,doUstar,sinkType,useLandau,fullLandauFile='',nLandauModes=0,kd_q='',*args,**kwargs):
-    '''
+    """
     Makes the file containing information relevant to props and cfuns.
 
     This is a busy file. It contains firstly information about the propagators
@@ -227,7 +227,7 @@ def MakePropCfunInfoFile(filestub,logFile,propList,propFormat,cfunFormat,paralle
     nLandauModes   -- int: The number of landau modes to project
     kd_q           -- str: Field strength experienced by each quark (charge*kd)
                            eg. "2 -1 0" for u d n at kd=-1
-    '''
+    """
 
     #File extension
     extension = '.prop_cfun_info'
@@ -280,7 +280,7 @@ def MakePropCfunInfoFile(filestub,logFile,propList,propFormat,cfunFormat,paralle
             VariablePrinter(f'{propFile=}\n',fileObject=f,nameWidth=20)
 
 def MakeLatticeFile(filestub,logFile,extent):
-    '''
+    """
     Make the .lat input file for cfungenGPU.x.
     
     Arguments:
@@ -289,7 +289,7 @@ def MakeLatticeFile(filestub,logFile,extent):
     logFile  -- str: The input logFile to also write inputs to.
     extent   -- int list: number of lattice point in each 
                          direction. Order is [nx,ny,nz,nt].
-    '''
+    """
     extension = '.lat'
     
     #Writing to the file
@@ -306,7 +306,7 @@ def MakeLatticeFile(filestub,logFile,extent):
 
 
 def MakeGFSFile(filestub,logFile,configFormat,configFile,*args,**kwargs):
-    '''
+    """
     Makes that gauge field input file.
 
     Arguments:
@@ -315,7 +315,7 @@ def MakeGFSFile(filestub,logFile,configFormat,configFile,*args,**kwargs):
     configFormat -- str: The file extension of the gauge field files
     configFile   -- str: The path of the configuration file (no extension)
 
-    '''
+    """
 
     #File extension
     extension = '.gfs'
@@ -335,7 +335,7 @@ def MakeGFSFile(filestub,logFile,configFormat,configFile,*args,**kwargs):
         
 
 def MakeLPSinkFile(filestub,logFile,nDim_lpsnk,lapModeFiles,baseSinkCode,nModes_lpsnk,*args,**kwargs):
-    '''
+    """
     Makes the Laplacian sink file.
 
     Arguments:
@@ -351,7 +351,7 @@ def MakeLPSinkFile(filestub,logFile,nDim_lpsnk,lapModeFiles,baseSinkCode,nModes_
     nModes_lpsnk -- int: Number of modes to truncate the Laplacian
                          at.
     
-    '''
+    """
     
     #File extension
     extension = '.qpsnk_lp'
@@ -387,7 +387,7 @@ def MakeLPSinkFile(filestub,logFile,nDim_lpsnk,lapModeFiles,baseSinkCode,nModes_
 
 
 def MakePropSmearingFile(filestub,logFile,sinkSmearcode,alpha_smsnk,u0_smsnk,kd,swpsFat_lnk,useStout_lnk,alphaFat_lnk,sweeps_smsnk,*args,**kwargs):
-    '''
+    """
     Makes the input file related to smearing (sink and link).
 
     Arguments:
@@ -401,7 +401,7 @@ def MakePropSmearingFile(filestub,logFile,sinkSmearcode,alpha_smsnk,u0_smsnk,kd,
     useStout_lnk  -- char: Whether to do stout link smearing
     alphaFat_lnk  -- float: Link smearing intensity
     sweeps_smsnk  -- int: Number of sink smearing sweeps
-    '''
+    """
 
     #File extension
     extension = '.prop_sm_params'

@@ -1,4 +1,4 @@
-'''
+"""
 Manages the job, calling makePropagator.py, makeCfun.py makeEmodes.py.
 
 Is called by the basic slurm runscript in ./scripts after modules are loaded 
@@ -9,7 +9,7 @@ Should not be called manually from the command line.
 Input arguments pass the job specific values in so that they can be fed to 
 makePropagator.py, makeCfun.py makeEmodes.py.
 
-'''
+"""
 
 #standard library modules
 import argparse                      #input parsing
@@ -70,7 +70,7 @@ def main():
     timer.writeFullReport(final=True)
 
 def doConfiguration(jobValues,timer,*args,**kwargs):
-    '''
+    """
     Runs eigenmode, propagator and cfun code for the one configuration.
 
     Arguments:
@@ -79,7 +79,7 @@ def doConfiguration(jobValues,timer,*args,**kwargs):
     timer     -- Timer: Timer object to manage timing of correlation function
                            calculation time.
 
-    '''
+    """
 
     #Compiling the full configuration identification number
     jobValues['cfgID'] = cfg.ConfigID(**jobValues)
@@ -144,7 +144,7 @@ def doConfiguration(jobValues,timer,*args,**kwargs):
     
 
 def PrintJobValues(jobValues):
-    '''
+    """
     Prints the values specific to the current job to the screen.
 
     Allows easy checking of run values in the job output file.
@@ -152,7 +152,7 @@ def PrintJobValues(jobValues):
     Arguments:
     jobValues -- dict: Dictionary containing the variables to print out
 
-    '''
+    """
     
     #A list of the variables to print
     #(some variables in there are a waste of time)
@@ -179,7 +179,7 @@ def PrintJobValues(jobValues):
 
             
 def Input():
-    '''
+    """
     Parses input from the command line.
 
     Parses the job specific values which are originally specified in 
@@ -187,7 +187,7 @@ def Input():
     
     Returns:
     values -- dict: dictionary containing the values from the command line
-    '''
+    """
 
     #Initialising the parser
     parser = argparse.ArgumentParser()

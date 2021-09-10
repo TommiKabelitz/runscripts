@@ -1,10 +1,10 @@
-'''
+"""
 Functions to make the files required by quarkprop.
 
 All functions require the input filestub and the relevant
 parameters which they print to file.
 
-'''
+"""
 from colarunscripts import directories as dirs
 from colarunscripts import parameters as params
 from colarunscripts import shifts
@@ -12,7 +12,7 @@ from colarunscripts import sources as src
 from colarunscripts.utilities import VariablePrinter
 
 def MakeLatticeFile(filestub,logFile,extent):
-    '''
+    """
     Make the .lat input file for cfungenGPU.x.
     
     Arguments:
@@ -20,7 +20,7 @@ def MakeLatticeFile(filestub,logFile,extent):
                          to write lattice details to.
     extent -- int list: number of lattice point in each 
                          direction. Order is [nx,ny,nz,nt].
-    '''
+    """
     extension = '.lat'
     
     #Writing to the file
@@ -35,12 +35,12 @@ def MakeLatticeFile(filestub,logFile,extent):
         f.write('\n')
 
 def MakeCloverFile(filestub,logFile,bcx,bcy,bcz,bct,u0,C_SW,*args,**kwargs):
-        '''
+        """
         Make the .fm_clover input file for qpropGPU.x.
 
         Arguments:
         filename -- string: The filename to write lattice details to.
-        '''
+        """
         extension = '.fm_clover'
         
         #Writing to file
@@ -81,9 +81,9 @@ def MakeSourceFile(parameters,filestub,logFile,quark,kd,quarkValues,*args,**kwar
 
 
 def MakePropFile(filestub,logFile,configFile,configFormat,quarkPrefix,propFormat,parallelIO,fermionAction,kappa,shift,U1FieldType,U1FieldQuanta,kd,tolerance,sourcetype_num,*args,**kwargs):
-    '''
+    """
 
-    '''
+    """
     extension = '.quarkprop'
 
     shift = shifts.FormatShift(shift)
@@ -121,7 +121,7 @@ def MakePropFile(filestub,logFile,configFile,configFormat,quarkPrefix,propFormat
 
 
 def FieldCode(U1FieldType,U1FieldQuanta,kd,*args,**kwargs):
-        '''
+        """
         Returns the formatted field code for the quarkprop input file
 
         Arguments:
@@ -132,5 +132,5 @@ def FieldCode(U1FieldType,U1FieldQuanta,kd,*args,**kwargs):
         
         Should at some stage be impoved so that it can deal with more flexible
         input.
-        '''
+        """
         return '['+U1FieldType+':'+U1FieldQuanta+'='+str(kd)+']'

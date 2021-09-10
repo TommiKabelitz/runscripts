@@ -1,4 +1,4 @@
-'''
+"""
 Module for making correlation function by calling cfungenGPU.x
 
 'main()' function is called by  manageJob.py which passes the job specific
@@ -6,7 +6,7 @@ details to this function.
 
 This script is not intended to  be called fromthe command line
 
-'''
+"""
 
 #standard library modules
 import pprint                       #nice dictionary printing (for debugging)
@@ -26,7 +26,7 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 
 def main(parameters,kd,shift,jobValues,timer,*args,**kwargs):
-    '''
+    """
     Main function. Begins correlation function production process
 
     Arguments:
@@ -34,7 +34,7 @@ def main(parameters,kd,shift,jobValues,timer,*args,**kwargs):
                        kd, shift, nthConfig, etc...
     timer     -- Timer: Timer object to manage timing of correlation function
                        calculation time.
-    '''
+    """
 
     #compiling the filestub for the input files to feed to cfungen
     filestub = dirs.FullDirectories(parameters,directory='cfunInput')['cfunInput'] + jobValues['jobID'] + '_' + str(jobValues['nthConfig'])
@@ -45,7 +45,7 @@ def main(parameters,kd,shift,jobValues,timer,*args,**kwargs):
 
 
 def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,**kwargs):
-    '''
+    """
     Makes the input files and then the actual correlation functions.
 
     Arguments:
@@ -56,7 +56,7 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
                       calculation time.
 
 
-    '''
+    """
    
     #Getting a dictionary of paths to all possible props
     #(props don't necessarily exist unless required)
@@ -105,7 +105,7 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
         timer.stopTimer('Correlation functions')
 
 def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
-    '''
+    """
     Creates a dictionary of propagator paths for all quarks in the quarkList.
 
     Arguments:
@@ -113,7 +113,7 @@ def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
     parameters -- dict: Dictionary of all of the run parameters.
                         From parameters.yml
 
-    '''
+    """
 
     #Will change the kd value in jobvalues so saving it to fix at the end
     kd_original = kd
@@ -157,7 +157,7 @@ def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
 
 
 def MakeReusableFiles(parameters,filestub,logFile,kd,jobValues,*args,**kwargs):
-    '''
+    """
     Makes the input files which are structure independent and reusable.
 
     Arguments:
@@ -166,7 +166,7 @@ def MakeReusableFiles(parameters,filestub,logFile,kd,jobValues,*args,**kwargs):
     parameters -- dict: Dictionary of all of the run parameters.
                         From parameters.yml
 
-    '''
+    """
     
     print('Making input files independent of structure')
 
@@ -189,7 +189,7 @@ def MakeReusableFiles(parameters,filestub,logFile,kd,jobValues,*args,**kwargs):
     
 
 def MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jobValues):
-    '''
+    """
     Makes the files which depend on structure and cannot be reused.
 
     Arguments:
@@ -200,7 +200,7 @@ def MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jo
     parameters -- dict: Dictionary of all of the run parameters.
                         From parameters.yml
     
-    '''
+    """
     
     #Making Laplacian Sink File
     modeFiles = dirs.LapModeFiles(parameters,kd=kd,quark=structure,**jobValues)   #(dict)
@@ -237,7 +237,7 @@ def MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jo
 
 
 def HadronicProjection(parameters,kd,particle,structure,*args,**kwargs):
-    '''
+    """
     Returns the details for the hadronic projection.
 
     Arguments:
@@ -247,7 +247,7 @@ def HadronicProjection(parameters,kd,particle,structure,*args,**kwargs):
     parameters -- dict: Dictionary of all of the run parameters.
                         From parameters.yml
 
-    '''
+    """
     
     #Projection type depends on field strength
     if kd == 0:

@@ -1,4 +1,4 @@
-'''
+"""
 Module for making propagators by calling quarkpropGPU.x.
 
 'main()' function is called by manageJob.py which passes the job specific
@@ -6,7 +6,7 @@ details to this function.
 
 This script is not intended to be called from the command line.
 
-'''
+"""
 
 #standard library modules
 import copy                         #deep copying of dictionaries
@@ -24,7 +24,7 @@ from colarunscripts.utilities import pp
 
 
 def main(parameters,kd,shift,jobValues,timer,*args,**kwargs):
-        '''
+        """
         Main function. Begins propagator production process.
 
         Loops over the different quarks in the structure list, calling 
@@ -36,7 +36,7 @@ def main(parameters,kd,shift,jobValues,timer,*args,**kwargs):
         timer     -- Timer: Timer object to manage timing of correlation function
                            calculation time.
 
-        '''
+        """
         
         #File stub for propagator input files. QUARK to be autoreplaced
         filestub = 'prop' + jobValues['jobID'] + '_' + str(jobValues['nthConfig'])+'.QUARK'
@@ -74,7 +74,7 @@ def main(parameters,kd,shift,jobValues,timer,*args,**kwargs):
 
 
 def MakePropagator(parameters,quark,kd,shift,jobValues,filestub,logFile,timer,*args,**kwargs):
-        '''
+        """
         Prepares the input files for making propagators using quarkpropGPU.x.
 
         Arguments
@@ -85,7 +85,7 @@ def MakePropagator(parameters,quark,kd,shift,jobValues,filestub,logFile,timer,*a
                             From parameters.yml
         timer      -- Timer: Timer object to manage timing of correlation function
                             calculation time.
-        '''
+        """
 
         #Copying jobValues dictionary. Deepcopy so that we can change items for
         #this quark only.
@@ -120,7 +120,7 @@ def MakePropagator(parameters,quark,kd,shift,jobValues,filestub,logFile,timer,*a
 
 
 def MakePropInputFiles(parameters,filestub,logFile,quark,kd,shift,quarkValues,*args,**kwargs):
-        '''
+        """
         Makes the input files for quarkpropGPU.x.
 
         Arguments:
@@ -133,7 +133,7 @@ def MakePropInputFiles(parameters,filestub,logFile,quark,kd,shift,quarkValues,*a
 
         Returns:
         fullQuarkPath -- str: The full path to the quark to be made
-        '''
+        """
         
         #Making input files
         files.MakeLatticeFile(filestub,logFile,**parameters['lattice'])
@@ -172,7 +172,7 @@ def MakePropInputFiles(parameters,filestub,logFile,quark,kd,shift,quarkValues,*a
 
 
 def CallMPI(executable,reportFile,numGPUs=0,arguments=[],filestub='',**kwargs):
-        '''
+        """
         Calls the executable using mpirun now that input files are made.
 
         Arguments:
@@ -181,7 +181,7 @@ def CallMPI(executable,reportFile,numGPUs=0,arguments=[],filestub='',**kwargs):
         reportFile -- str: The  reportfile to write the output of the executable to
         numGPUs    -- int: The  number of GPUs available to run on
 
-        '''
+        """
         print(f'Time is {datetime.now()}')
         print('mpi-running "' + ' '.join([executable]+arguments) + '"')
         print(f'On {numGPUs} GPUs')

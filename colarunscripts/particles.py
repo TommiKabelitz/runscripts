@@ -1,4 +1,4 @@
-'''
+"""
 Module of particle operators to be used.
 
 Added particles should follow the same format as those already
@@ -8,7 +8,7 @@ field should have each term added as an item in a list.
 There are also a couple of utility functions at the bottom
 QuarkCharge, HadronicCharge
 
-'''
+"""
 ########################################Baryons        
 
 
@@ -381,12 +381,12 @@ def pipbar():
 #Actual utility functions
 
 def QuarkCharge(quark,*args,**kwargs):
-    '''
+    """
     Returns the charge of a given quark.
 
     Arguments:
     quark -- char: quark in question
-    '''
+    """
 
     if quark == 'u':
         return -2
@@ -399,7 +399,7 @@ def QuarkCharge(quark,*args,**kwargs):
 
 
 def HadronicCharge(kd,particle,structure,*args,**kwargs):
-    '''
+    """
     Calculates the hadronic charge of a particle.
 
     Takes into account the particle, the quark structure being used
@@ -409,7 +409,7 @@ def HadronicCharge(kd,particle,structure,*args,**kwargs):
     kd        -- int: Background field strength
     particle  -- str: The particle to calculate
     structure -- char list: The quark structure in form [u,d,s]
-    '''
+    """
 
     #Interp functions contain quarks: u,d,s and anti quarks Au,Du,Ds.
     #Will count instances of each, but counting u,d,s will also count

@@ -1,4 +1,4 @@
-'''
+"""
 Module for making Laplacian Eigenmodes by calling lap2modesGPU.x.
 
 'main()' function is called by manageJob.py which passes the job specific
@@ -6,7 +6,7 @@ details to this function.
 
 This script is not intended to be called from the command line.
 
-'''
+"""
 
 #standard library modules
 import pathlib                      #for checking existence of files

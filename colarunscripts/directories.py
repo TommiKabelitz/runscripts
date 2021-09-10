@@ -1,4 +1,4 @@
-'''
+"""
 Module for constructing the required directory and file paths.
 
 Main functions:
@@ -7,7 +7,7 @@ Main functions:
   FullDirectories      -- Replaces the placeholders and makes the directories
 
 
-'''
+"""
 
 import os.path                        #For getting directories from filepaths
 import pathlib                        #For making directories
@@ -23,7 +23,7 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 
 def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
-    '''
+    """
     Constructs the file paths with placeholder names still present.
     
     Key-word arguments:
@@ -31,7 +31,7 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
                                       file paths to return 
     Returns:
     directories -- dictionary:        The full file paths.
-    '''
+    """
 
     #Initialising empty output directory
     directories = {}
@@ -104,7 +104,7 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
 
 
 def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=[0],nModes_lpsnk=[0],cfgID='',structure=[],kH=0,*args,**kwargs):
-    '''
+    """
     Replaces placeholders in paths, makes directories and returns file paths.
     
     Key-word arguments:
@@ -112,7 +112,7 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
                                       file paths to make and return 
     Other key-word arguments: See their default value for their proper type.
                               Are all used for replacement of placeholders
-    '''
+    """
     #Get a dictionary of directory(ies) before replacement of placeholders
     directories = GetBaseDirectories(parameters,directory)
     
@@ -162,7 +162,7 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
 
 
 def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,*args,**kwargs):
-    '''
+    """
     Returns dictionary of Laplacian eigenmode files.
 
     If quark is not specified, the quark list in parameters.yml
@@ -177,7 +177,7 @@ def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,
     Returns:
     lapModeFiles -- dict: Dictionary of eigenmode file paths.
                           Quarks as keys.
-    '''
+    """
 
     tempStorage = parameters['tempStorage']
     extension = '.' + parameters['directories']['lapModeFormat']
