@@ -1,0 +1,7 @@
+#Examples of the input files created by the runscripts for each of the COLA binaries
+As of COLA version 222
+
+Note: 
+ - These input files do not work. The comments break them.
+ - All lines beginning with a # are comments and must be removed entirely	
+   not left blank
