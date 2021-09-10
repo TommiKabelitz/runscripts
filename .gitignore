@@ -8,3 +8,4 @@ parameters.yml
 /runFiles/*
 /__pycache__/*
 /COLA_runscripts.egg-info/*
+/parametersFiles/*

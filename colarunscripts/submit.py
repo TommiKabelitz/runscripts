@@ -21,11 +21,16 @@ import subprocess                     #for running scripts
 from datetime import datetime         #for writing out the time
 from os.path import dirname, realpath #for grabbing the directory of this script
 from pathlib import Path                                     
+import pprint
+
 #local modules
 import colarunscripts.configIDs as cfg
 import colarunscripts.directories as dirs
 import colarunscripts.parameters as params
+from colarunscripts.utilities import GetJobID
 
+#nice printing for dictionaries, replace print with pp
+pp = pprint.PrettyPrinter(indent=4).pprint 
 
 def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
     '''
@@ -81,6 +86,9 @@ def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
         # elif inputArgs['testing'] in ['fullqueue','testqueue']:
         #     jobList = ['1']
         # else:
+
+        #Old mechanic still here, should be updated. Is for array jobs
+        #and missing configs which is broken anyway.
         jobList = [str(i) for i in range(1,401)]
 
 
@@ -89,9 +97,9 @@ def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
 
         #Making the runscript
         if values['scheduler'] == 'slurm':
-            MakeSlurmRunscript(parameters,filename,inputArgs['parametersfile'],kappa,values['doArrayJobs'],nthConfig=nthConfig,**inputArgs)
+            MakeSlurmRunscript(parameters,filename,kappa,values['doArrayJobs'],nthConfig=nthConfig,**inputArgs)
         elif values['scheduler'] == 'PBS':
-            MakePBSRunscript(parameters,filename,inputArgs['parametersfile'],kappa,values['doArrayJobs'],nthConfig=nthConfig,**inputArgs)
+            MakePBSRunscript(parameters,filename,kappa,values['doArrayJobs'],nthConfig=nthConfig,**inputArgs)
         else:
             raise ValueError('Unknown scheduler specified')
         subprocess.run(['chmod','+x',filename]) #executable permission
@@ -109,7 +117,8 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,inputArgs):
     print(f'Running {filename}')
 
     if inputArgs['testing'] == 'headnode':
-        params.CopyParamsFile(inputArgs['parametersfile'],jobID=1)
+        jobID = GetJobID(os.environ) 
+        params.CopyParamsFile(inputArgs['parametersfile'],jobID=jobID)
         subprocess.run([filename])
         return
 
@@ -132,7 +141,7 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,inputArgs):
         
     command.append(filename)
 
-
+    
     out = subprocess.run(command,text=True,capture_output=capture_output)
 
     try:
@@ -146,7 +155,7 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,inputArgs):
     params.CopyParamsFile(inputArgs['parametersfile'],jobID)
 
 
-def MakeSlurmRunscript(parameters,filename,originalParametersFile,kappa,doArrayJobs,nthConfig=1,numjobs=1,testing=None,*args,**kwargs):
+def MakeSlurmRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs=1,nconfigurations=0,testing=None,*args,**kwargs):
     '''
     Makes the runscript to be called by the scheduler.
     
@@ -154,11 +163,14 @@ def MakeSlurmRunscript(parameters,filename,originalParametersFile,kappa,doArrayJ
     which manages the rest of the job.
 
     Arguments:
-    filename -- str: the name of the file to make
-    kappa    -- int: kappa value of the particular job
-    kd       -- int: field strength of the particular job
-    shift    -- str: lattice shift of the particular job
-    testing  -- str: type of test submission
+    parameters      -- dict:
+    filename        -- str: the name of the file to make
+    kappa           -- int: kappa value of the particular job
+    doArrayJobs     -- bool:
+    nthConfig       -- int:
+    simjobs         -- int:
+    nconfigurations -- int:
+    testing         -- str: type of test submission
 
     '''
 
@@ -172,32 +184,33 @@ def MakeSlurmRunscript(parameters,filename,originalParametersFile,kappa,doArrayJ
         if 'test' not in out.stdout:
             raise ValueError('Test queue does not exist on your machine. Try "-t headnode" or "-t interactive".')
         else:
-            schedulerDetails['queue'] = 'test'
-            schedulerDetails['time'] = '00:05:00'
-            schedulerDetails['memory'] = 16    
+            schedulerDetails['QUEUE'] = 'test'
+            schedulerDetails['TIME'] = '00:05:00'
+            schedulerDetails['MEMORY'] = 16    
+            schedulerDetails['JOBSTORAGE'] = 10
+            schedulerDetails['NUMCPUS'] = 0
+            schedulerDetails['NUMGPUS'] = 0
     elif testing == 'fullqueue':
-        schedulerDetails['time'] = '02:00:00'
+        schedulerDetails['TIME'] = '02:00:00'
     elif testing == 'interactive':
         raise ValueError('Interactive jobs not presently supported by slurm. Try "-t headnode".')
-
-
     
     template = Path(schedulerDetails['runscriptTemplate'])
     runscript = Path(filename)
     text = template.read_text()
     for key,value in schedulerDetails.items():
         text = text.replace(key,str(value))
-    text = text.replace('ORIGINALPARAMETERSFILE',originalParametersFile)
     text = text.replace('PARAMETERSDIR',dirs.FullDirectories(parameters,directory='parameters')['parameters'])
     text = text.replace('KAPPA',str(kappa))
     text = text.replace('NTHCONFIG',str(nthConfig))
-    text = text.replace('NUMJOBS',str(numjobs))
+    text = text.replace('NUMJOBS',str(simjobs))
+    text = text.replace('NCON',str(nconfigurations))
     text = text.replace('TESTING',str(testing))
     
     runscript.write_text(text)
 
 
-def MakePBSRunscript(parameters,filename,originalParametersFile,kappa,doArrayJobs,nthConfig=1,numjobs=1,testing=None,*args,**kwargs):
+def MakePBSRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs=1,nconfigurations=0,testing=None,*args,**kwargs):
     '''
     Makes the runscript to be called by the scheduler.
     
@@ -215,20 +228,22 @@ def MakePBSRunscript(parameters,filename,originalParametersFile,kappa,doArrayJob
         
     #Getting slurm request details, ie. queue, num nodes, gpus etc.
     schedulerDetails = parameters['pbsParams']
-        
+    schedulerDetails['OUTPUTDIR'] = dirs.FullDirectories(parameters,directory='stdout')['stdout']
+    
     if testing in ['testqueue','interactivetestqueue']:
         out = subprocess.run('qstat -Q',text=True,capture_output=True,shell=True)
         #Gadi test queue is called express
         if 'express' not in out.stdout:
             raise ValueError('Test queue does not exist on your machine. Try "-t headnode" or "-t interactive".')
         else:
-            schedulerDetails['queue'] = 'express'
-            schedulerDetails['time'] = '01:00:00'
-            schedulerDetails['memory'] = 16
-            schedulerDetails['numCPUs'] = 4
+            schedulerDetails['QUEUE'] = 'express'
+            schedulerDetails['TIME'] = '00:30:00'
+            schedulerDetails['MEMORY'] = 16
+            schedulerDetails['JOBSTORAGE'] = 10
+            schedulerDetails['NUMCPUS'] = 4
+            schedulerDetails['NUMGPUS'] = 0
     elif testing == 'fullqueue':
-        schedulerDetails['time'] = '02:00:00'
-
+        schedulerDetails['TIME'] = '02:00:00'
 
         
     template = Path(schedulerDetails['runscriptTemplate'])
@@ -236,11 +251,11 @@ def MakePBSRunscript(parameters,filename,originalParametersFile,kappa,doArrayJob
     text = template.read_text()
     for key,value in schedulerDetails.items():
         text = text.replace(key,str(value))
-    text = text.replace('ORIGINALPARAMETERSFILE',originalParametersFile)
     text = text.replace('PARAMETERSDIR',dirs.FullDirectories(parameters,directory='parameters')['parameters'])
     text = text.replace('KAPPA',str(kappa))
     text = text.replace('NTHCONFIG',str(nthConfig))
-    text = text.replace('NUMJOBS',str(numjobs))
+    text = text.replace('NUMJOBS',str(simjobs))
+    text = text.replace('NCON',str(nconfigurations))
     text = text.replace('TESTING',str(testing))
     
     runscript.write_text(text)
@@ -316,6 +331,7 @@ def MakePBSRunscript(parameters,filename,originalParametersFile,kappa,doArrayJob
 
     
 def main(nthConfig,inputArgs):
+
     print(f'Time is {datetime.now()}')
 
     parametersFile = inputArgs['parametersfile']

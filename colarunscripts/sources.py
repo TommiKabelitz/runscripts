@@ -29,26 +29,35 @@ swpsFat_lnk      -- int: Number of link smearing sweeps
 
 '''
 
+from colarunscripts.utilities import VariablePrinter
 
-def pt(filestub,sourceLocation, *args, **kwargs):
+def pt(filestub,logFile,sourceLocation, *args, **kwargs):
 
     sourcetype_num = 1
     extension = '.qpsrc_pt'
 
+    #Writing to file
     with open(filestub+extension,'w') as f:
         for dim in sourceLocation:
             f.write(f'{dim}\n')
     
+    #Writing to log file
+    with open(logFile,'a') as f:
+        f.write(f'{extension=}\n')
+        for dim,loc in zip(sourceLocation,['x','y','z','t']):
+            f.write(f'{loc:20}= {dim}\n')
+
     return sourcetype_num
 
 
 
 
-def sm(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
+def sm(filestub,logFile,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
 
     sourcetype_num = 3
     extension = '.qpsrc_sm'
 
+    #Writing to file
     with open(filestub+extension,'w') as f:
         for dim in sourceLocation:
             f.write(f'{dim}\n')
@@ -60,15 +69,29 @@ def sm(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_sm
         f.write(f'{alphaFat_lnk}\n')
         f.write(f'{swpsFat_lnk}\n')
 
+    #Writing to log file
+    with open(logFile,'a') as f:
+        f.write(f'\n{extension=}\n')
+        for dim,loc in zip(sourceLocation,['x','y','z','t']):
+            f.write(f'{loc:20}= {dim}\n')
+        VariablePrinter(f'{sweeps_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{alpha_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{useUzero_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{u0_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{useStout_lnk=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{alphaFat_lnk=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{swpsFat_lnk=}\n',fileObject=f,nameWidth=20)
+
     return sourcetype_num
 
 
 
-def lp(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, sourceLocation, *args, **kwargs):
+def lp(filestub,logFile,lapmodefile, nDim_lpsrc, nModes_lpsrc, sourceLocation, *args, **kwargs):
 
     sourcetype_num = 7
     extension = '.qpsrc_lp'
 
+    #Writing to file
     with open(filestub+extension,'w') as f:
         f.write(f'{lapmodefile}\n')
         f.write(f'{nDim_lpsrc}\n')
@@ -76,16 +99,27 @@ def lp(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, sourceLocation, *args, **
         for dim in sourceLocation:
             f.write(f'{dim}\n')
 
+    #Writing to log file
+    with open(logFile,'a') as f:
+        VariablePrinter(f'\n{extension=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{lapmodefile=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{nDim_lpsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{nModes_lpsrc=}',fileObject=f,nameWidth=20)
+        for dim,loc in zip(sourceLocation,['x','y','z','t']):
+            f.write(f'{loc:20}= {dim}\n')
+
+            
     return sourcetype_num
 
 
 
-def xyz(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
+def xyz(filestub,logFile,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
 
     sourcetype_num = 8
     extension = '.qpsrc_xyz'
 
     smearcode = 'xy'
+    #Writing to file
     with open(filestub+extension,'w') as f:
         f.write(f'{smearcode}\n')
         for dim in sourceLocation:
@@ -98,15 +132,30 @@ def xyz(filestub,sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_s
         f.write(f'{alphaFat_lnk}\n')
         f.write(f'{swpsFat_lnk}\n')
 
+    #Writing to log file
+    with open(logFile,'a') as f:
+        f.write(f'\n{extension=}\n')
+        VariablePrinter(f'{smearcode=}\n',fileObject=f,nameWidth=20)
+        for dim,loc in zip(sourceLocation,['x','y','z','t']):
+            f.write(f'{loc:20}= {dim}\n')
+        VariablePrinter(f'{sweeps_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{alpha_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{useUzero_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{u0_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{useStout_lnk=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{alphaFat_lnk=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{swpsFat_lnk=}\n',fileObject=f,nameWidth=20)
+
     return sourcetype_num
 
 
 
-def lpsm(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
+def lpsm(filestub,logFile,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
 
     sourcetype_num = 9
     extension = '.qpsrc_lpsm'
 
+    #Writing to file
     with open(filestub+extension,'w') as f:
         f.write(f'{lapmodefile}\n')
         f.write(f'{nDim_lpsrc}\n')
@@ -122,17 +171,35 @@ def lpsm(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourc
         f.write(f'{alphaFat_lnk}\n')
         f.write(f'{swpsFat_lnk}\n')
 
+    #Writing to log file
+    with open(logFile,'a') as f:
+        f.write(f'\n{extension=}\n')
+        VariablePrinter(f'{lapmodefile=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{nDim_lpsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{nModes_lpsrc=}',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{preSmear_lpsmsrc=}',fileObject=f,nameWidth=20)
+        for dim,loc in zip(sourceLocation,['x','y','z','t']):
+            f.write(f'{loc:20}= {dim}\n')
+        VariablePrinter(f'{sweeps_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{alpha_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{useUzero_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{u0_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{useStout_lnk=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{alphaFat_lnk=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{swpsFat_lnk=}\n',fileObject=f,nameWidth=20)
+
     return sourcetype_num
 
 
 
 
-def lpxyz(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
+def lpxyz(filestub,logFile,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sourceLocation, sweeps_smsrc, alpha_smsrc, useUzero_smsrc, u0_smsrc, useStout_lnk, alphaFat_lnk, swpsFat_lnk, *args, **kwargs):
 
     sourcetype_num = 10
     extension = '.qpsrc_lpxyz'
 
     smearcode = 'z'
+    #Writing to file
     with open(filestub+extension,'w') as f:
         f.write(f'{smearcode}\n')
         f.write(f'{lapmodefile}\n')
@@ -148,5 +215,23 @@ def lpxyz(filestub,lapmodefile, nDim_lpsrc, nModes_lpsrc, preSmear_lpsmsrc, sour
         f.write(f'{useStout_lnk}\n')
         f.write(f'{alphaFat_lnk}\n')
         f.write(f'{swpsFat_lnk}\n')
+
+    #Writing to log file
+    with open(logFile,'a') as f:
+        f.write(f'\n{extension=}\n')
+        VariablePrinter('{smearcode=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter('{lapmodefile=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter('{nDim_lpsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter('{nModes_lpsrc=}',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{preSmear_lpsmsrc=}',fileObject=f,nameWidth=20)
+        for dim,loc in zip(sourceLocation,['x','y','z','t']):
+            f.write(f'{loc:20}= {dim}\n')
+        VariablePrinter(f'{sweeps_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{alpha_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{useUzero_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{u0_smsrc=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{useStout_lnk=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{alphaFat_lnk=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{swpsFat_lnk=}\n',fileObject=f,nameWidth=20)
 
     return sourcetype_num

@@ -1,4 +1,4 @@
-'''
+"""
 Module for getting configuration IDs and configuration details.
 
 Contains two main functions.
@@ -14,7 +14,7 @@ Numeric functions (One,Two,...) are helper functions for ConfigDetails.
 NOTE: SOME START AND NCON VALUES DIFFER FROM THOSE ON THE PACS-CS SITE.
       THE VALUES HERE ARE MANUALLY GRABBED FROM THE CONFIGURATIONS PRESENT
       ON PHOENIX. - some may be missing on phoenix
-'''
+"""
 
 #Helper functions for ConfigDetails. Act like select case statement for 
 #kappa value. 
@@ -96,9 +96,9 @@ def Five(kappa,runPrefix):
 
 #12400
 def Six(kappa,runPrefix):
-    '''
+    """
     This is for free field testing, the start point and number of configurations are arbitrary
-    '''
+    """
     start = 1000
     ncon = 5
     return start,ncon
@@ -107,7 +107,7 @@ def Six(kappa,runPrefix):
 
 
 def ConfigDetails(kappa,runPrefix,*args,**kwargs):
-    '''
+    """
     Returns the starting configuration number and total number of configurations
 
     Function arguments:
@@ -119,7 +119,7 @@ def ConfigDetails(kappa,runPrefix,*args,**kwargs):
     Returns:
     start -- int: The first configuration number. Eg 1880
     ncon  -- int: The total number of configurations
-    '''
+    """
     switch = {
         13700:One,
         13727:Two,
@@ -134,7 +134,7 @@ def ConfigDetails(kappa,runPrefix,*args,**kwargs):
     return start,ncon
 
 def ConfigID(nthConfig,runPrefix,start,*args,**kwargs):
-    '''
+    """
     Returns a formatted configuration ID, eg -a-1880
     
     Function arguments:
@@ -146,7 +146,7 @@ def ConfigID(nthConfig,runPrefix,start,*args,**kwargs):
     
     Returns:
     configID -- str: Formatted ID suffix, ie -a-001880.
-    '''
+    """
     #Different series types (runPrefix) have different gaps between 
     #configuration numbers.
     if runPrefix in ['a','b']:

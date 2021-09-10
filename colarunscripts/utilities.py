@@ -1,28 +1,35 @@
 #Standard library modules
 import os
-
-import colarunscripts.parameters as params
+import pprint
+import re
+import sys
 
 '''
 Some utility functions.
 
 '''
 
-def WriteListLengthnList(fileObject,listToWrite):
+def WriteListLengthnList(fileObject,listToWrite,label=None):
     '''
     Writes the length of a list and then the contents to a file.
 
     Arguments:
     fileObject  -- fileObject: the file to write to
     listToWrite -- list: The list to write to the file
+    label       -- str: Label for the variable in the file if desired.
+
     '''
 
     length = len(listToWrite)
-    fileObject.write(f'{length}\n')
+    if label is None:
+        fileObject.write(f'{length}\n')
+    else:#Labling length if desired
+        fileObject.write(f'{label:20}= {length}\n')
+    #Writing list elements
     for element in listToWrite:
         fileObject.write(f'{element}\n')
 
-
+            
 def PrintDictToFile(filename,dictionary,order=None):
         '''
         Prints the values of dictionary to a file, 1 value per line
@@ -100,13 +107,46 @@ def GetJobID(environmentVariables):
     jobIDLabels = ['SLURM_ARRAY_JOB_ID',
                    'SLURM_JOB_ID',
                    'PBS_ARRAYID',
-                   'PBS_JOB_ID']
+                   'PBS_JOBID']
     
     for label in jobIDLabels:
+        print(label)
         try:
             jobID = environmentVariables[label]
-            return jobID
+            pattern = re.compile(r'\d+')
+            return pattern.findall(jobID)[0]
         except KeyError:
             continue
     else:
         return '1'
+
+
+def pp(toPrint,indent=4,stream=None):
+    """
+    Pretty printer, great for dictionaries.
+    
+    Arguments:
+    toPrint -- object: Object to be printed.
+    indent -- int: Distance to indent each new level.
+    stream -- fileObject: Where to print to. Default is sys.stdout.
+    """
+    
+    pprint.PrettyPrinter(indent=indent,stream=stream).pprint(toPrint)
+
+
+def VariablePrinter(toPrint,fileObject=sys.stdout,nameWidth=10):
+    """
+    Prints an f-string formatted variable with desired name width.
+
+    Arguments:
+    toPrint    -- str: String to print. Must be in form variable=27.4
+    fileObject -- openFile: The file to print to. Default prints to stdout.
+    nameWidth  -- int: Field width to print variable name in.
+    """
+
+    #Splitting the string into variable and value. = sign is lost
+    stringParts = toPrint.split('=',maxsplit=1)
+    #Recombining string with formatting
+    formatted = f'{stringParts[0]:{nameWidth}}= {stringParts[1]}'
+    #Writing out the string
+    fileObject.write(formatted)

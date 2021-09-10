@@ -1,4 +1,4 @@
-'''
+"""
 Manages the job, calling makePropagator.py, makeCfun.py makeEmodes.py.
 
 Is called by the basic slurm runscript in ./scripts after modules are loaded 
@@ -9,7 +9,7 @@ Should not be called manually from the command line.
 Input arguments pass the job specific values in so that they can be fed to 
 makePropagator.py, makeCfun.py makeEmodes.py.
 
-'''
+"""
 
 #standard library modules
 import argparse                      #input parsing
@@ -24,9 +24,8 @@ from colarunscripts import makeEmodes
 from colarunscripts import makePropagator
 from colarunscripts import parameters as params
 from colarunscripts import simpleTime
+from colarunscripts.utilities import pp
 
-#nice printing for dictionaries, replace print with pp
-pp = pprint.PrettyPrinter(indent=4).pprint 
 
 def main():
 
@@ -145,7 +144,7 @@ def doConfiguration(jobValues,timer,*args,**kwargs):
     
 
 def PrintJobValues(jobValues):
-    '''
+    """
     Prints the values specific to the current job to the screen.
 
     Allows easy checking of run values in the job output file.
@@ -153,7 +152,7 @@ def PrintJobValues(jobValues):
     Arguments:
     jobValues -- dict: Dictionary containing the variables to print out
 
-    '''
+    """
     
     #A list of the variables to print
     #(some variables in there are a waste of time)
@@ -180,7 +179,7 @@ def PrintJobValues(jobValues):
 
             
 def Input():
-    '''
+    """
     Parses input from the command line.
 
     Parses the job specific values which are originally specified in 
@@ -188,7 +187,7 @@ def Input():
     
     Returns:
     values -- dict: dictionary containing the values from the command line
-    '''
+    """
 
     #Initialising the parser
     parser = argparse.ArgumentParser()

@@ -1,13 +1,14 @@
 #The execution of this file is not done (I think)
 #Need to deal with how it gets called now.
 
+import argparse
 from datetime import datetime
 import os
 import pathlib
-import pprint
 import subprocess
 
 from colarunscripts import configIDs as cfg
+from colarunscripts import directories as dirs
 from colarunscripts import makeCfun
 from colarunscripts import makeEmodes
 from colarunscripts import makePropagator
@@ -15,27 +16,27 @@ from colarunscripts import parameters as params
 from colarunscripts.shifts import CompareShifts
 from colarunscripts import simpleTime 
 from colarunscripts import submit
-from colarunscripts.utilities import GetJobID
+from colarunscripts.utilities import GetJobID,pp
 
 
-#nice printing for dictionaries, replace print with pp
-pp = pprint.PrettyPrinter(indent=4).pprint 
-
-
-def main(originalParametersFile,newParametersFile,kappa,nthConfig,numSimultaneousJobs,testing):
+def main(newParametersFile,kappa,nthConfig,numSimultaneousJobs,ncon,testing,*args,**kwargs):
 
     parameters = params.Load(parametersFile=newParametersFile)
     jobValues = parameters['runValues']
 
-    start,ncon = cfg.ConfigDetails(kappa,jobValues['runPrefix'])
+    if ncon != 0:
+        start,_ = cfg.ConfigDetails(kappa,jobValues['runPrefix'])
+    else:
+        start,ncon = cfg.ConfigDetails(kappa,jobValues['runPrefix'])
+
     jobValues['nthConfig'] = nthConfig
     jobValues['cfgID'] = cfg.ConfigID(nthConfig,jobValues['runPrefix'],start)
     jobValues['jobID'] = GetJobID(os.environ)
     jobValues['kappa'] = kappa
+
+    print()
     pp(jobValues)
     JobLoops(parameters,jobValues['shifts'],jobValues['kds'],jobValues)
-
-    ncon = 4
     SubmitNext(nthConfig,numSimultaneousJobs,testing,newParametersFile,ncon)
 
 
@@ -47,13 +48,29 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
     timer.initialiseTimer('Eigenmodes')
     timer.initialiseTimer('Propagators')
     timer.initialiseTimer('Correlation functions')
-    
+
+    inputSummaries = []
     for shift,nextShift in zip(shifts,[*shifts[1:],None]):
         for kd in kds:
-            
-            paths = doJobSet(parameters,kd,shift,jobValues,timer)
-            
 
+            inputSummary = dirs.FullDirectories(parameters,directory='inputReport',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['inputReport'] 
+            reports = ['emode','prop','cfun','interp']
+            jobValues['inputSummary'] = {rep:inputSummary.replace('TYPE',rep) for rep in reports}
+
+            print()
+            print(f'Input file summaries located at: {jobValues["inputSummary"]}')
+
+            for rep in reports:
+                with open(jobValues['inputSummary'][rep],'w') as f:
+                    f.write(f'Summary of {rep} input files.\n')
+                    f.write('\nValues for this config, field strength and shift\n')
+                    pp(jobValues,stream=f)
+                    f.write(50*'_')
+                    
+
+            paths = doJobSet(parameters,kd,shift,jobValues,timer)
+            inputSummaries.append(list( jobValues['inputSummary'].values() ))
+            
         #removing the propagators
         if jobValues['keepProps'] is False:
             print('All field strengths done, new shift, deleting propagators')
@@ -70,9 +87,18 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
                 path = pathlib.Path(eigenMode)
                 path.unlink(missing_ok=True)
             print()
-        timer.writeFullReport(final=True)
-            
 
+        print('Input file summaries located at:')
+        for reports in inputSummaries:
+            for report in reports:
+                print(report)
+            print()
+            
+        timer.writeFullReport(final=True)
+        print()
+        print(50*'_')    
+        print()
+        
 def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
     """
     Runs eigenmode, propagator and cfun code for the one configuration.
@@ -134,7 +160,7 @@ def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
     return paths
 
 def PrintJobValues(jobValues):
-    '''
+    """
     Prints the values specific to the current job to the screen.
 
     Allows easy checking of run values in the job output file.
@@ -142,7 +168,7 @@ def PrintJobValues(jobValues):
     Arguments:
     jobValues -- dict: Dictionary containing the variables to print out
 
-    '''
+    """
     
     #A list of the variables to print
     #(some variables in there are a waste of time)
@@ -169,15 +195,41 @@ def PrintJobValues(jobValues):
 
 
 def SubmitNext(nthConfig,numSimultaneousJobs,testing,oldParametersFile,ncon):
-    exit()
     
     nextConfig = int(nthConfig) + int(numSimultaneousJobs)
-    print(f'Submitting configuration {nextConfig}')
-    
+        
     inputArgs = {}
     inputArgs['numjobs'] = numSimultaneousJobs
     inputArgs['parametersfile'] = oldParametersFile
     inputArgs['testing'] = testing
 
     if nextConfig <= ncon:
+        print(f'Submitting configuration {nextConfig}')
         submit.main(nextConfig,inputArgs)
+    else:
+        print('No new configurations to submit')
+
+def Input():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('parametersDir',type=str)
+    parser.add_argument('kappa',type=int)
+    parser.add_argument('nthConfig',type=int)
+    parser.add_argument('numSimultaneousJobs',type=int)
+    parser.add_argument('ncon',type=int)
+    parser.add_argument('testing')
+
+    args = parser.parse_args()
+    return vars(args)
+
+
+    
+
+if __name__ == '__main__':
+
+    inputArgs = Input()
+    jobID = GetJobID(os.environ)    
+    inputArgs['newParametersFile'] = f'{inputArgs["parametersDir"]}{jobID}_parameters.yml'
+    print(f'Parameters file to use: {inputArgs["newParametersFile"]}')
+    
+    main(**inputArgs)

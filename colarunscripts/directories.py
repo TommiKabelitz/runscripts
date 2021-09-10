@@ -1,4 +1,4 @@
-'''
+"""
 Module for constructing the required directory and file paths.
 
 Main functions:
@@ -7,7 +7,7 @@ Main functions:
   FullDirectories      -- Replaces the placeholders and makes the directories
 
 
-'''
+"""
 
 import os.path                        #For getting directories from filepaths
 import pathlib                        #For making directories
@@ -23,7 +23,7 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 
 def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
-    '''
+    """
     Constructs the file paths with placeholder names still present.
     
     Key-word arguments:
@@ -31,7 +31,7 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
                                       file paths to return 
     Returns:
     directories -- dictionary:        The full file paths.
-    '''
+    """
 
     #Initialising empty output directory
     directories = {}
@@ -39,7 +39,6 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     #Reading in parameters from parameters.yml
     baseDirectories = parameters['directories']
     tempStorage = parameters['tempStorage']
-
 
     #Scanning for and replacing any environment variables
     tempDir = GetEnvironmentVar(tempStorage['tempFS']) + '/'
@@ -51,14 +50,15 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     #Constructing directory tree
     outputDir = base.baseOutputDir + base.runIdentifier + base.outputTree
 
-    #Directory for holding run specific files
-    runFileDir = base.runscriptDir + 'runFiles/'
-
+    #Directory for holding report files
+    reportDir = outputDir + 'reports/'
+    
     #Appending output file names and saving to directories dictionary
-    directories['propReport'] = outputDir + 'reports/' +  base.propFileBase + '.proprep'
-    directories['cfunReport'] = outputDir +'reports/' + base.cfunFileBase + 'CONFIGID_STRUCTURE.cfunrep'
-    directories['lapmodeReport'] = outputDir +'reports/' + base.lapModeReport + '.lapmoderep'
     directories['cfun'] = outputDir + 'cfuns/' + base.cfunFileBase
+    directories['propReport'] = reportDir +  base.propFileBase + '.proprep'
+    directories['cfunReport'] = reportDir + base.cfunFileBase + 'CONFIGID_STRUCTURE.cfunrep'
+    directories['lapmodeReport'] = reportDir + base.lapModeReport + '.lapmoderep'
+    directories['inputReport'] = reportDir + base.inputReport + '.TYPEinputrep'
     
     ##Saving other file paths and directories to directories dictionary
     #Configuration Files
@@ -66,10 +66,13 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     #Landau file
     directories['landau'] = base.landauDir + base.landauFile
 
+    #Directory for holding run specific files
+    runFileDir = base.runscriptDir + 'runFiles/'
+
     #Runscript directory
     directories['script'] = runFileDir + 'scripts/'
     #scheduler_output directory
-    directories['stdout'] = runFileDir + 'stdout/'
+    directories['stdout'] = runFileDir + 'stdout/' + base.runIdentifier
     #parameter file copies
     directories['parameters'] = runFileDir + 'parameters/'
     
@@ -95,12 +98,13 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
         directory = [directory]
     elif type(directory) != list:
         raise TypeError
+
     #return directories that are common to the full dictionary and directory
     return {key:directories[key] for key in directory if key in directories.keys()}  
 
 
-def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=[0],nModes_lpsnk=0,cfgID='',structure=[],kH=0,*args,**kwargs):
-    '''
+def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=[0],nModes_lpsnk=[0],cfgID='',structure=[],kH=0,*args,**kwargs):
+    """
     Replaces placeholders in paths, makes directories and returns file paths.
     
     Key-word arguments:
@@ -108,7 +112,7 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
                                       file paths to make and return 
     Other key-word arguments: See their default value for their proper type.
                               Are all used for replacement of placeholders
-    '''
+    """
     #Get a dictionary of directory(ies) before replacement of placeholders
     directories = GetBaseDirectories(parameters,directory)
     
@@ -125,7 +129,7 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
         sinkVal = sweeps_smsnk[0]
         sinkType = 'sm'
     elif sinkType in ['laplacian']:
-        sinkVal = nModes_lpsnk
+        sinkVal = nModes_lpsnk[0]
         sinkType = 'lp'
     
     #Replace all possible placeholders
@@ -158,7 +162,7 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
 
 
 def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,*args,**kwargs):
-    '''
+    """
     Returns dictionary of Laplacian eigenmode files.
 
     If quark is not specified, the quark list in parameters.yml
@@ -173,7 +177,7 @@ def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,
     Returns:
     lapModeFiles -- dict: Dictionary of eigenmode file paths.
                           Quarks as keys.
-    '''
+    """
 
     tempStorage = parameters['tempStorage']
     extension = '.' + parameters['directories']['lapModeFormat']

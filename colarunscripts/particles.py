@@ -1,4 +1,4 @@
-'''
+"""
 Module of particle operators to be used.
 
 Added particles should follow the same format as those already
@@ -8,7 +8,7 @@ field should have each term added as an item in a list.
 There are also a couple of utility functions at the bottom
 QuarkCharge, HadronicCharge
 
-'''
+"""
 ########################################Baryons        
 
 
@@ -316,19 +316,18 @@ def sigma0_2():
     props['lorentz_indices'] = []
     props['gamma_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-
     props['cfun_terms'] = ['1.0/sqrt(2.0) * [u^{a} (C) s^{b}] (\gamma_{5}) d^{c}',
-                           '1.0/sqrt(2.0) * [u^{a} (C) s^{b}] (\gamma_{5}) d^{c}']
+                           '1.0/sqrt(2.0) * [d^{a} (C) s^{b}] (\gamma_{5}) u^{c}']
     return props
-#NOT THESE
+
 def sigma0_2bar():
 
     props = {}
 
     props['gamma_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0/sqrt(2.0) * Ad^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap} ]',
-                           '-1.0/sqrt(2.0) * Au^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap} ]']
+    props['cfun_terms'] = ['-1.0/sqrt(2.0) * Ad^{cp} (\gamma_{5}) [As^{bp} (C) Au^{ap} ]',
+                           '-1.0/sqrt(2.0) * Au^{cp} (\gamma_{5}) [As^{bp} (C) Ad^{ap} ]']
     return props
 
 
@@ -339,20 +338,20 @@ def lambda0_2():
     props['lorentz_indices'] = []
     props['gamma_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['2.0/sqrt(6.0) * [u^{a} (C\gamma_{5}) d^{b} ] (I) s^{c}',
-                           '1.0/sqrt(6.0) * [u^{a} (C\gamma_{5}) s^{b} ] (I) d^{c}',
-                           '-1.0/sqrt(6.0) * [d^{a} (C\gamma_{5}) s^{b} ] (I) u^{c}']
+    props['cfun_terms'] = ['2.0/sqrt(6.0) * [u^{a} (C) d^{b} ] (\gamma_{5}) s^{c}',
+                           '1.0/sqrt(6.0) * [u^{a} (C) s^{b} ] (\gamma_{5}) d^{c}',
+                           '-1.0/sqrt(6.0) * [d^{a} (C) s^{b} ] (\gamma_{5}) u^{c}']
     return props
 
-def lambda0bar_2():
+def lambda0_2bar():
 
     props = {}
 
     props['gamma_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-2.0/sqrt(6.0) * As^{cp} (I) [Ad^{bp} (C\gamma_{5}) Au^{ap} ]',
-                           '-1.0/sqrt(6.0) * Ad^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap} ]',
-                           '1.0/sqrt(6.0) * Au^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap} ]']
+    props['cfun_terms'] = ['-2.0/sqrt(6.0) * As^{cp} (\gamma_{5}) [Ad^{bp} (C) Au^{ap} ]',
+                           '-1.0/sqrt(6.0) * Ad^{cp} (\gamma_{5}) [As^{bp} (C) Au^{ap} ]',
+                           '1.0/sqrt(6.0) * Au^{cp} (\gamma_{5}) [As^{bp} (C) Ad^{ap} ]']
     return props
 
 
@@ -382,12 +381,12 @@ def pipbar():
 #Actual utility functions
 
 def QuarkCharge(quark,*args,**kwargs):
-    '''
+    """
     Returns the charge of a given quark.
 
     Arguments:
     quark -- char: quark in question
-    '''
+    """
 
     if quark == 'u':
         return -2
@@ -400,7 +399,7 @@ def QuarkCharge(quark,*args,**kwargs):
 
 
 def HadronicCharge(kd,particle,structure,*args,**kwargs):
-    '''
+    """
     Calculates the hadronic charge of a particle.
 
     Takes into account the particle, the quark structure being used
@@ -410,7 +409,7 @@ def HadronicCharge(kd,particle,structure,*args,**kwargs):
     kd        -- int: Background field strength
     particle  -- str: The particle to calculate
     structure -- char list: The quark structure in form [u,d,s]
-    '''
+    """
 
     #Interp functions contain quarks: u,d,s and anti quarks Au,Du,Ds.
     #Will count instances of each, but counting u,d,s will also count

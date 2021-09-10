@@ -1,0 +1,13 @@
+/g/data3/e31/PACS-CS/RCNF2+1/RC32x64_B1900Kud01377000Ks01364000C1715/RC32x64_B1900Kud01377000Ks01364000C1715-a-001880    #gauge field file
+ildg       #gauge field format 
+/scratch/e31/tk9944/tmp/BF-2/13770Modess32t64kB-2-a-001880    #eigenmode output prefix
+clfs       #eigenmode format                                                      
+0.1        #alpha_smearing
+4          #smearing sweeps
+0 0 0 0    #c-shift
+[B:k=-2]   #field code
+96         #number of eigenvectors
+4          #number of auxillary eigenvectors
+1.0d-5     #tolerance
+t          #use random initial
+
