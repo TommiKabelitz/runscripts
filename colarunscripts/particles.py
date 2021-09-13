@@ -377,6 +377,25 @@ def pipbar():
     props['cfun_terms'] = ['-1.0 * [Au^{ep} (\gamma_{5}) d^{ep}']
     return props
 
+def kaonp():
+
+    props = {}
+
+    props['lorentz_indices'] = []
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = []
+    props['cfun_terms'] = ['1.0 * [As^{e} (\gamma_{5}) u^{e}]']
+    return props
+
+def kaonpbar():
+
+    props = {}
+
+    props['gamma_matrices'] = []
+    props['levi_civita_indices'] = []
+    props['cfun_terms'] = ['-1.0 * [Au^{ep} (\gamma_{5}) s^{ep}']
+    return props
+
 
 #Actual utility functions
 
