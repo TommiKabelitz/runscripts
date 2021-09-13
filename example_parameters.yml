@@ -1,47 +1,63 @@
+
 # Values that are likely to change most frequently between runs
 # Quantities in square brackets [] are lists, comma separated entries
 runValues:
   kappaValues: [13770]
-  kds: [1]
+  #kds: [-2,-1,0,1,2]
+  kds: [-1]
+  #shifts: [x00t00,x00t16,x00t32,x00t48]
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
   sinkType: laplacian
-  structureList: [[u,d,s],[nl,d,s],[nh,d,s]]
-  #  structureList: [[u,d,s],[nl,d,s],[nh,d,s],[nl,nl,s],[nh,nh,s],[nl,nl,d],[nh,nh,d],[d,d,nl],[d,d,nh],[s,s,nl],[s,s,nh]]
-  particleList: [[proton,protonbar],[sigmap,sigmapbar],[sigmam,sigmambar],[neutron,neutronbar],[cascade0,cascade0bar],[cascadem,cascadembar],[sigma0,sigma0bar],[lambda0,lambda0bar],[sigma0,lambda0bar],[lambda0,sigma0bar],[pip,pipbar]]
+  structureList: [[u,d,s]]
+  #,[nl,d,s],[nh,d,s],[u,u,s],[d,d,s]]
+  particleList: [[proton_1,proton_1bar],     [proton_2,proton_2bar]]     #[proton_1,proton_2bar],     [proton_2,proton_1bar],
+                 # [sigmap_1,sigmap_1bar],     [sigmap_2,sigmap_2bar],     [sigmap_1,sigmap_2bar],     [sigmap_2,sigmap_1bar],
+                 # [sigmam_1,sigmam_1bar],     [sigmam_2,sigmam_2bar],     [sigmam_1,sigmam_2bar],     [sigmam_2,sigmam_1bar],
+                 # [neutron_1,neutron_1bar],   [neutron_2,neutron_2bar],   [neutron_1,neutron_2bar],   [neutron_2,neutron_1bar],
+                 # [cascade0_1,cascade0_1bar], [cascade0_2,cascade0_2bar], [cascade0_1,cascade0_2bar], [cascade0_2,cascade0_1bar],
+                 # [cascadem_1,cascadem_1bar], [cascadem_2,cascadem_2bar], [cascadem_1,cascadem_2bar], [cascadem_2,cascadem_1bar],
+                 # [sigma0_1,sigma0_1bar],     [sigma0_2,sigma0_2bar],     [sigma0_1,sigma0_2bar],     [sigma0_2,sigma0_1bar],
+                 # [lambda0_1,lambda0_1bar],   [lambda0_2,lambda0_2bar],   [lambda0_1,lambda0_2bar],   [lambda0_2,lambda0_1bar],
+                 # [sigma0_1,lambda0_1bar],    [sigma0_2,lambda0_2bar],    [sigma0_1,lambda0_2bar],    [sigma0_2,lambda0_1bar],
+                 # [lambda0_1,sigma0_1bar],    [lambda0_2,sigma0_2bar],    [lambda0_1,sigma0_2bar],    [lambda0_2,sigma0_2bar],
+                 # [pip,pipbar]]
   scheduler: PBS
   doArrayJobs: False
   keepProps: False
-  keepEmodes: True
+  keepEmodes: False
   
 tempStorage:
   #Phoenix is $TMPFS, Gadi is $TMPDIR
   tempFS: $TMPDIR
   #What to store temporarily
   props: True
-  lapmodes: False
+  lapmodes: True
 
 #time format is D-HH:MM:SS, must be in quotes
-#memory in GB
+      #memory in GB
 slurmParams:
-  queue: batch
-  nodes: 1
-  numCPUs: 4
-  time: '4:00:00'
-  numGPUs: 4
-  memory: 64
-  jobStorage: 20
+  runscriptTemplate: /home/a1724542/PhD/runscripts/phoenixTemplate
+  QUEUE: batch
+  NODES: 1
+  NUMCPUS: 4
+  TIME: '8:00:00'
+  NUMGPUS: 4
+  MEMORY: 64
+  JOBSTORAGE: 20
   
 pbsParams:
-  project: e31
-  queue: gpuvolta
-  numCPUs: 48
-  numGPUs: 4
-  time: '01:00:00'
-  memory: 64
-  jobStorage: 20
-  linkStorage: gdata/e31+scratch/e31
+  runscriptTemplate: /home/566/tk9944/PhD/runscripts/gadiTemplate
+  PROJECT: e31
+  QUEUE: gpuvolta
+  NUMCPUS: 48
+  NUMGPUS: 4
+  TIME: '1:00:00'
+  MEMORY: 64
+  JOBSTORAGE: 100
+  LINKSTORAGE: gdata/e31+scratch/e31
+  
   
 #All caps sections are replaced with the relevant value at the appropriate time
 #Currently KAPPA,SOURCE,SINK,CONFIGID,KD,SHIFT are available for replacement
@@ -49,25 +65,28 @@ pbsParams:
 directories:
   runscriptDir: /home/566/tk9944/PhD/runscripts/
   baseOutputDir: /scratch/e31/tk9944/WorkingStorage/
-  runIdentifier: PhDRunOne/
+  runIdentifier: LoopOrderingTest/
   outputTree: kKAPPA/BFKD/shSHIFT/
   
   propFileBase: QUARK_SOSOURCE_icfgCONFIGID
   propFormat: prop
+
   cfunFileBase: SOSOURCE_icfg
-  #cfunFileBase: SOSOURCE_SISINK_icfg
   cfunFormat: gencf
-  
+
+  inputReport: SOSOURCESISINK_icfgCONFIGID
+
   configDir: /g/data3/e31/PACS-CS/RCNF2+1/RC32x64_B1900Kud0KAPPA00Ks01364000C1715/
   configFilename: RC32x64_B1900Kud0KAPPA00Ks01364000C1715CONFIGID
   configFormat: ildg
   
-  lapModeDir: /scratch/e31/rjb566/Lap2modes/RC32x64_B1900Kud0KAPPA00Ks01364000C1715/as0nsm0/
-  lapModeFile: BFKD/KAPPAModess32t64kBKDCONFIGID.l2ev
+  lapModeFormat: clfs
+  lapModeDir: /scratch/e31/tk9944/oldlap2modes
+  lapModeFile: /BFKD/KAPPAModess32t64kBKDCONFIGID
   lapModeReport: QUARK_icfgCONFIGID
-  
-  landauDir: /scratch/e31/tk9944/PhD/LandauModes/LandauModes/
-  landauFile: LandauModeBasisRealSourcenM18nxNXnyNYx00y00kBKH.dat
+
+  landauDir: /scratch/e31/tk9944/PhD/LandauPhases/
+  landauFile: LandauPhasenxNXnyNYx0y0kBmax12step1.dat
 
   modules: /home/566/tk9944/gadi_modules.sh
 
@@ -92,7 +111,7 @@ sourcesink:
   #Applies to smeared sink
   useStout_lnk: t
   alphaFat_lnk: 0.1
-  swpsFat_lnk: 4
+  swpsFat_lnk: 10
 
   #Sink smearing related parameters
   sweeps_smsnk: [0,100]
@@ -105,16 +124,17 @@ sourcesink:
   #replaced by the relevant value
   nDim_lpsnk: 2
   baseSinkCode: silpMODES  
-  nModes_lpsnk: [64,96]
+  nModes_lpsnk: [96]
 
 laplacianEigenmodes:
-  lapmodeExecutable: /home/566/tk9944/PhD/cola/trunk/bin/lap2dmodes.x
+  lapmodeExecutable: /home/566/tk9944/PhD/cola-dev/trunk/cuda/lap2dmodesGPU.xx
   #link smearing values here are just for the eigenmode code.
   #For no smearing, set both to zero
   alpha_smearing: 0.1
   smearing_sweeps: 4
   numEvectors: 96
   numAuxEvectors: 4
+  tolerance: '1.0d-6'
   doRandomInitial: t
   inputModeFile: ''
   
@@ -126,7 +146,7 @@ propcfun:
   U1FieldQuanta: k
   #13665 is from Ben Menadue's thesis to get kaon mass right
   strangeKappa: 13665
-  qpropExecutable: /home/566/tk9944/PhD/cola/trunk/cuda/quarkpropGPU.x
+  qpropExecutable: /home/566/tk9944/PhD/cola-dev/trunk/cuda/quarkpropGPU.xx
   #Dictionary of clover values
   clover:
     bcx: 1.0
@@ -143,23 +163,7 @@ propcfun:
   gellMannRep: fundamental
   doUstar: f
   quarkList: [u,d,s,nl,nh]
-  cfgenExecutable: /home/566/tk9944/PhD/cola/trunk/cfgen/cuda/cfungenGPU.x
+  cfgenExecutable: /home/566/tk9944/PhD/cola-dev/trunk/cfgen/cuda/cfungenGPU.xx
   
 lattice:
   extent: [32,32,32,64]
-
-#Some variables for the projection types
-#Other relevant variables get set/calculated by the code
-hadronicProjection:
-  fourier:
-    projection: Fourier
-    useLandau: f
-    fullLandauFile: Fourier
-    pmin: 0
-    pmax: 0
-
-  landau:
-    useLandau: t
-    pmin: 0
-    pmax: 0
-  

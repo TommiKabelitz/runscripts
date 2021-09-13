@@ -241,22 +241,26 @@ def HadronicProjection(parameters,kd,particle,structure,*args,**kwargs):
     Returns the details for the hadronic projection.
 
     Arguments:
+    parameters -- dict: Dictionary of all of the run parameters.
+                        From parameters.yml
     kd         -- int: The field strength
     particle   -- str: The hadron in question
     structure  -- str: list: Quark structure
-    parameters -- dict: Dictionary of all of the run parameters.
-                        From parameters.yml
+    
 
     """
+
+    details = {'pmin':0,
+               'pmax':0}
     
     #Projection type depends on field strength
     if kd == 0:
         #Fourier project at zero field strength where Landau levels vanish
-        return parameters['hadronicProjection']['fourier']
+        details['useLandau'] = 'f'
+        return details
     else:
         #At non-zero field strength, do a projection to the Landau levels.
-        #First get base details.
-        details = parameters['hadronicProjection']['landau']
+        details['useLandau'] = 't'
 
         effectiveQuarkCharge = []
         for quark in structure:

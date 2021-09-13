@@ -28,7 +28,6 @@ def main(parameters,kd,shift,jobValues,timer):
     inputs['configFormat'] = parameters['directories']['configFormat']
     inputs['outputFormat'] = parameters['directories']['lapModeFormat']
     inputs['shift'] = shifts.FormatShift(shift)
-    inputs['tolerance'] = parameters['propcfun']['tolerance']
     
     schedulerParams = SchedulerParams(parameters,jobValues['scheduler'])
 
