@@ -56,7 +56,7 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     #Appending output file names and saving to directories dictionary
     directories['cfun'] = outputDir + 'cfuns/' + base.cfunFileBase
     directories['propReport'] = reportDir +  base.propFileBase + '.proprep'
-    directories['cfunReport'] = reportDir + base.cfunFileBase + 'CONFIGID_STRUCTURE.cfunrep'
+    directories['cfunReport'] = reportDir + base.cfunFileBase + 'CONFIGIDsiSINK_STRUCTURE.cfunrep'
     directories['lapmodeReport'] = reportDir + base.lapModeReport + '.lapmoderep'
     directories['inputReport'] = reportDir + base.inputReport + '.TYPEinputrep'
     
