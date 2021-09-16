@@ -20,6 +20,7 @@ from colarunscripts import cfgenFiles as files
 from colarunscripts import particles as part
 from colarunscripts.makePropagator import CallMPI
 from colarunscripts.particles import QuarkCharge
+from colarunscripts.shifts import FormatShift
 #nice printing for dictionaries, replace print with pp
 pp = pprint.PrettyPrinter(indent=4).pprint 
 
@@ -68,7 +69,7 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
         f.write('\nInput files not dependent on structure:\n')
         
     #Making files which are reused for all structures
-    MakeReusableFiles(parameters,filestub,logFile,kd,jobValues)
+    MakeReusableFiles(parameters,filestub,logFile,kd,shift,jobValues)
     
     with open(logFile,'a') as f:
         f.write('\nInput files dependent on structure:\n')
@@ -156,7 +157,7 @@ def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
 
 
 
-def MakeReusableFiles(parameters,filestub,logFile,kd,jobValues,*args,**kwargs):
+def MakeReusableFiles(parameters,filestub,logFile,kd,shift,jobValues,*args,**kwargs):
     """
     Makes the input files which are structure independent and reusable.
 
@@ -177,7 +178,7 @@ def MakeReusableFiles(parameters,filestub,logFile,kd,jobValues,*args,**kwargs):
     #Getting the gauge field configuration file, then making the relevant input 
     #file
     configFile = dirs.FullDirectories(parameters,directory='configFile',**jobValues)['configFile']
-    files.MakeGFSFile(filestub,logFile,parameters['directories']['configFormat'],configFile)
+    files.MakeGFSFile(filestub,logFile,parameters['directories']['configFormat'],configFile,FormatShift(shift))
     
     #Making the smearing file, still read in for Laplacian sink (I think)
     files.MakePropSmearingFile(filestub,logFile,kd=kd,**parameters['sourcesink'],**jobValues)
@@ -205,7 +206,7 @@ def MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jo
     #Making Laplacian Sink File
     modeFiles = dirs.LapModeFiles(parameters,kd=kd,quark=structure,**jobValues)   #(dict)
     lapModeFiles = [modeFiles[quark] for quark in structure]   #(above as list) 
-    files.MakeLPSinkFile(filestub,logFile,lapModeFiles=lapModeFiles,**parameters['sourcesink'])
+    files.MakeLPSinkFile(filestub,logFile,shift=FormatShift(shift),lapModeFiles=lapModeFiles,**parameters['sourcesink'])
 
     #Setting isospin symmetry based on field strength
     if kd == 0:

@@ -110,7 +110,6 @@ def GetJobID(environmentVariables):
                    'PBS_JOBID']
     
     for label in jobIDLabels:
-        print(label)
         try:
             jobID = environmentVariables[label]
             pattern = re.compile(r'\d+')

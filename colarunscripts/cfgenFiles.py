@@ -305,7 +305,7 @@ def MakeLatticeFile(filestub,logFile,extent):
 
 
 
-def MakeGFSFile(filestub,logFile,configFormat,configFile,*args,**kwargs):
+def MakeGFSFile(filestub,logFile,configFormat,configFile,shift,*args,**kwargs):
     """
     Makes that gauge field input file.
 
@@ -324,17 +324,18 @@ def MakeGFSFile(filestub,logFile,configFormat,configFile,*args,**kwargs):
     with open(filestub+extension,'w') as f:
         f.write(f'1\n')       #Number of configurations we are doing at once    
         f.write(f'{configFormat}\n')
+        f.write(f'{shift}')
         f.write(f'{configFile}\n')
-
+                
     #Writing to the log file
     with open(logFile,'a') as f:
         f.write(f'\n{extension=}\n')
         f.write(f'{"simultaneousConfigs":20}= 1\n')       #Number of configurations we are doing at once    
         VariablePrinter(f'{configFormat=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{shift=}\n',fileObject=f,nameWidth=20)
         VariablePrinter(f'{configFile=}\n',fileObject=f,nameWidth=20)
-        
 
-def MakeLPSinkFile(filestub,logFile,nDim_lpsnk,lapModeFiles,baseSinkCode,nModes_lpsnk,*args,**kwargs):
+def MakeLPSinkFile(filestub,logFile,nDim_lpsnk,shift,lapModeFiles,baseSinkCode,nModes_lpsnk,*args,**kwargs):
     """
     Makes the Laplacian sink file.
 
@@ -362,6 +363,7 @@ def MakeLPSinkFile(filestub,logFile,nDim_lpsnk,lapModeFiles,baseSinkCode,nModes_
     #Writing to the file
     with open(filestub+extension,'w') as f:
         f.write(f'{nDim_lpsnk}\n')
+        f.write(f'{shift}\n')
         for modeFile in lapModeFiles:
             f.write(f'{modeFile}\n')
         f.write(f'{nSnk_lp}\n')
@@ -375,6 +377,7 @@ def MakeLPSinkFile(filestub,logFile,nDim_lpsnk,lapModeFiles,baseSinkCode,nModes_
     with open(logFile,'a') as f:
         f.write(f'\n{extension=}\n')
         VariablePrinter(f'{nDim_lpsnk=}\n',fileObject=f,nameWidth=20)
+        VariablePrinter(f'{shift=}\n',fileObject=f,nameWidth=20)
         for modeFile in lapModeFiles:
             VariablePrinter(f'{modeFile=}\n',fileObject=f,nameWidth=20)
         VariablePrinter(f'{nSnk_lp=}\n',fileObject=f,nameWidth=20)
