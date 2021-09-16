@@ -1,75 +1,105 @@
-"""
-Manages the job, calling makePropagator.py, makeCfun.py makeEmodes.py.
+#The execution of this file is not done (I think)
+#Need to deal with how it gets called now.
 
-Is called by the basic slurm runscript in ./scripts after modules are loaded 
-and memory requirements are dealt with.
+import argparse
+from datetime import datetime
+import os
+import pathlib
+import subprocess
 
-Should not be called manually from the command line.
-
-Input arguments pass the job specific values in so that they can be fed to 
-makePropagator.py, makeCfun.py makeEmodes.py.
-
-"""
-
-#standard library modules
-import argparse                      #input parsing
-from datetime import datetime        #for writing out the time
-import pathlib                       #for deleting props
-import pprint                        #nice dictionary printing (for debugging)
-
-#local modules
 from colarunscripts import configIDs as cfg
+from colarunscripts import directories as dirs
 from colarunscripts import makeCfun
 from colarunscripts import makeEmodes
 from colarunscripts import makePropagator
 from colarunscripts import parameters as params
-from colarunscripts import simpleTime
-from colarunscripts.utilities import pp
+from colarunscripts.shifts import CompareShifts
+from colarunscripts import simpleTime 
+from colarunscripts import submit
+from colarunscripts.utilities import GetJobID,pp
 
 
-def main():
+def main(newParametersFile,kappa,nthConfig,numSimultaneousJobs,ncon,testing,*args,**kwargs):
 
-    #Initialising the timer
+    parameters = params.Load(parametersFile=newParametersFile)
+    jobValues = parameters['runValues']
+
+    if ncon != 0:
+        start,_ = cfg.ConfigDetails(kappa,jobValues['runPrefix'])
+    else:
+        start,ncon = cfg.ConfigDetails(kappa,jobValues['runPrefix'])
+
+    jobValues['nthConfig'] = nthConfig
+    jobValues['cfgID'] = cfg.ConfigID(nthConfig,jobValues['runPrefix'],start)
+    jobValues['jobID'] = GetJobID(os.environ)
+    jobValues['kappa'] = kappa
+
+    print()
+    pp(jobValues)
+    JobLoops(parameters,jobValues['shifts'],jobValues['kds'],jobValues)
+    SubmitNext(nthConfig,numSimultaneousJobs,testing,newParametersFile,ncon)
+
+
+
+def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
+
     timer = simpleTime.Timer('Overall')
+    timer.initialiseCheckpoints()
     timer.initialiseTimer('Eigenmodes')
     timer.initialiseTimer('Propagators')
     timer.initialiseTimer('Correlation functions')
-    timer.initialiseCheckpoints()
+
+    inputSummaries = []
+    for shift,nextShift in zip(shifts,[*shifts[1:],None]):
+        for kd in kds:
+
+            inputSummary = dirs.FullDirectories(parameters,directory='inputReport',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['inputReport'] 
+            reports = ['emode','prop','cfun','interp']
+            jobValues['inputSummary'] = {rep:inputSummary.replace('TYPE',rep) for rep in reports}
+
+            print()
+            for summary in jobValues['inputSummary'].values():
+                print(summary)
+            for rep in reports:
+                with open(jobValues['inputSummary'][rep],'w') as f:
+                    f.write(f'Summary of {rep} input files.\n')
+                    f.write('\nValues for this config, field strength and shift\n')
+                    pp(jobValues,stream=f)
+                    f.write(50*'_')
+                    
+
+            paths = doJobSet(parameters,kd,shift,jobValues,timer)
+            inputSummaries.append(list( jobValues['inputSummary'].values() ))
+            
+        #removing the propagators
+        if jobValues['keepProps'] is False:
+            print('All field strengths done, new shift, deleting propagators')
+            for prop in paths['props']:
+                print(f'Deleting {prop}')
+                path = pathlib.Path(prop)
+                path.unlink(missing_ok=True)
+            print()    
     
-    #Getting job specific values from command line
-    inputValues = Input()
-  
-    #Combining job specific values with the runValues from parameters.yml
-    jobValues = {**inputValues,**params.Load()['runValues']}
+        if jobValues['keepEmodes'] is CompareShifts(shift,nextShift) is False:
+            print('Shifting in more than time, deleting eigenmodes')
+            for eigenMode in paths['eigenmodes']:
+                print(f'Deleting {eigenMode}')
+                path = pathlib.Path(eigenMode)
+                path.unlink(missing_ok=True)
+            print()
 
-    print()
-    PrintJobValues(jobValues)
-    ##Getting details about the configurations to use
-    #Starting number and total number of configurations for the specified 
-    #kappa and configuration label (runPrefix)
-    jobValues['start'],jobValues['ncon'] = cfg.ConfigDetails(**jobValues)
-
-    #if we are not using array jobs, we need to loop over 
-    #all configurations. 
-    #The ncon we set here is local, just for the loop. Value in jobValues is
-    #used by prop and cfun routines so left untouched
-    if jobValues['doArrayJobs'] is False:
-        ncon = jobValues['ncon']
-    else:
-        ncon = 1
-    
-    #for nthConfig in range(1,ncon+1):
-    for nthConfig in [1]:
-        jobValues['nthConfig'] = nthConfig
-
-        doConfiguration(jobValues,timer)
-    
-    print(50*'_')
-    print()
-    #Writing report for how long everything took
-    timer.writeFullReport(final=True)
-
-def doConfiguration(jobValues,timer,*args,**kwargs):
+        print('Input file summaries located at:')
+        for reports in inputSummaries:
+            for report in reports:
+                print(report)
+            print()
+            
+        timer.writeFullReport(final=True)
+        print()
+        print(50*'_')    
+        print()
+        
+def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
     """
     Runs eigenmode, propagator and cfun code for the one configuration.
 
@@ -81,25 +111,22 @@ def doConfiguration(jobValues,timer,*args,**kwargs):
 
     """
 
-    #Compiling the full configuration identification number
-    jobValues['cfgID'] = cfg.ConfigID(**jobValues)
-
     print(50*'_')
     print()
 
     #Creating a checkpoint as the configuration starts
-    timer.createCheckpoint(f'Configuration {jobValues["cfgID"]}')
+    checkpointName = f'Set (kd,shift): ({kd},{shift})'
+    timer.createCheckpoint(checkpointName)
     
     #That's it for preparation of job values. Now start making propagators
     #and correlation functions
 
-    #if jobValues['sinkType'] == 'laplacian' or jobValues['sourceType'] == 'lp':
-    if False:
+    if jobValues['sinkType'] == 'laplacian' or jobValues['sourceType'] == 'lp':
         print(50*'_')
         print()
         print('Making eigenmodes')
         print(f'Time is {datetime.now()}')
-        eigenmodePaths = makeEmodes.main(jobValues,timer)
+        eigenmodePaths = makeEmodes.main(parameters,kd,shift,jobValues,timer)
         print("\nEigenmodes done")
         print(f'Time is {datetime.now()}')
         print()
@@ -110,7 +137,7 @@ def doConfiguration(jobValues,timer,*args,**kwargs):
     print()
     print('Making propagators')
     print(f'Time is {datetime.now()}')
-    propPaths = makePropagator.main(jobValues,timer)
+    propPaths = makePropagator.main(parameters,kd,shift,jobValues,timer)
     print("\nPropagators done")
     print(f'Time is {datetime.now()}')
     print(50*'_')
@@ -118,7 +145,7 @@ def doConfiguration(jobValues,timer,*args,**kwargs):
     print()        
     print('Making correlation functions')
     print(f'Time is {datetime.now()}')    
-    makeCfun.main(jobValues,timer)
+    makeCfun.main(parameters,kd,shift,jobValues,timer)
     print("Correlation functions done")
     print(f'Time is {datetime.now()}')
     print(50*'_')
@@ -129,19 +156,8 @@ def doConfiguration(jobValues,timer,*args,**kwargs):
     timer.writeCheckpoint(removeCheckpoint=True)
     print()
     
-    #removing the propagator
-    if jobValues['keepProps'] is False:
-        print('Deleting Propagators')
-        for prop in propPaths:
-            path = pathlib.Path(prop)
-            path.unlink(missing_ok=True)
-    
-    if jobValues['keepEmodes'] is False and eigenmodePaths != []:
-        print('Deleting Eigenmodes')
-        for eigenMode in eigenmodePaths:
-            path = pathlib.Path(eigenMode)
-            path.unlink(missing_ok=True)
-    
+    paths = {'eigenmodes':eigenmodePaths,'props':propPaths}
+    return paths
 
 def PrintJobValues(jobValues):
     """
@@ -177,37 +193,43 @@ def PrintJobValues(jobValues):
         except KeyError:
             print(f'{key} not in JobValues')
 
-            
+
+def SubmitNext(nthConfig,numSimultaneousJobs,testing,oldParametersFile,ncon):
+    
+    nextConfig = int(nthConfig) + int(numSimultaneousJobs)
+        
+    inputArgs = {}
+    inputArgs['numjobs'] = numSimultaneousJobs
+    inputArgs['parametersfile'] = oldParametersFile
+    inputArgs['testing'] = testing
+
+    if nextConfig <= ncon:
+        print(f'Submitting configuration {nextConfig}')
+        submit.main(nextConfig,inputArgs)
+    else:
+        print('No new configurations to submit')
+
 def Input():
-    """
-    Parses input from the command line.
 
-    Parses the job specific values which are originally specified in 
-    the loops of submit.py
-    
-    Returns:
-    values -- dict: dictionary containing the values from the command line
-    """
-
-    #Initialising the parser
     parser = argparse.ArgumentParser()
-
-    #Adding the arguments to the parser
+    parser.add_argument('parametersDir',type=str)
     parser.add_argument('kappa',type=int)
-    parser.add_argument('kd',type=int)
-    parser.add_argument('shift',type=str)
-    parser.add_argument('jobID',type=str)
-    parser.add_argument('nthConfig',type=str)
-    
-    #Actually parsing the command line input
+    parser.add_argument('nthConfig',type=int)
+    parser.add_argument('numSimultaneousJobs',type=int)
+    parser.add_argument('ncon',type=int)
+    parser.add_argument('testing')
+
     args = parser.parse_args()
-    #Converting the input to a dictionary
-    values = vars(args)
-    return values
+    return vars(args)
 
 
-
+    
 
 if __name__ == '__main__':
-     
-    main()
+
+    inputArgs = Input()
+    jobID = GetJobID(os.environ)    
+    inputArgs['newParametersFile'] = f'{inputArgs["parametersDir"]}{jobID}_parameters.yml'
+    print(f'Parameters file to use: {inputArgs["newParametersFile"]}')
+    
+    main(**inputArgs)
