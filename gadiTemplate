@@ -17,4 +17,4 @@ ulimit -s unlimited
 ulimit -c 0
 ulimit -a
 
-python3 /home/566/tk9944/PhD/runscripts/colarunscripts/newmanageJob.py PARAMETERSDIR KAPPA NTHCONFIG NUMJOBS NCON TESTING
+python3 /home/566/tk9944/PhD/runscripts/colarunscripts/manageJob.py PARAMETERSDIR KAPPA NTHCONFIG NUMJOBS NCON TESTING
