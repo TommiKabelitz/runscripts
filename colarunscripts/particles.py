@@ -26,9 +26,9 @@ def proton_1():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) d^{b}] (I) u^{c}']
+    props['interpolator_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) d^{b}] (I) u^{c}']
                            
     return props
 
@@ -36,9 +36,9 @@ def proton_1bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * Au^{cp} (I) [Ad^{bp} (C\gamma_{5}) Au^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * Au^{cp} (I) [Ad^{bp} (C\gamma_{5}) Au^{ap}]']
     return props
 
 
@@ -47,18 +47,18 @@ def sigmap_1():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) s^{b}] (I) u^{c}']
+    props['interpolator_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) s^{b}] (I) u^{c}']
     return props
 
 def sigmap_1bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * Au^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * Au^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap}]']
     return props
 
 
@@ -67,18 +67,18 @@ def sigmam_1():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [d^{a} (C\gamma_{5}) s^{b}] (I) d^{c}']
+    props['interpolator_terms'] = ['1.0 * [d^{a} (C\gamma_{5}) s^{b}] (I) d^{c}']
     return props
 
 def sigmam_1bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * Ad^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * Ad^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap}]']
     return props
 
 
@@ -87,18 +87,18 @@ def neutron_1():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) d^{b}] (I) d^{c}']
+    props['interpolator_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) d^{b}] (I) d^{c}']
     return props
 
 def neutron_1bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * Ad^{cp} (I) [Ad^{bp} (C\gamma_{5}) Au^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * Ad^{cp} (I) [Ad^{bp} (C\gamma_{5}) Au^{ap}]']
     return props
 
 
@@ -107,18 +107,18 @@ def cascade0_1():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) s^{b}] (I) s^{c}']
+    props['interpolator_terms'] = ['1.0 * [u^{a} (C\gamma_{5}) s^{b}] (I) s^{c}']
     return props
 
 def cascade0_1bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * As^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * As^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap}]']
     return props
 
 
@@ -127,18 +127,18 @@ def cascadem_1():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [d^{a} (C\gamma_{5}) s^{b}] (I) s^{c}']
+    props['interpolator_terms'] = ['1.0 * [d^{a} (C\gamma_{5}) s^{b}] (I) s^{c}']
     return props
 
 def cascadem_1bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * As^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * As^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap}]']
     return props
 
 def proton_2():
@@ -146,9 +146,9 @@ def proton_2():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [u^{a} (C) d^{b}] (\gamma_{5}) u^{c}']
+    props['interpolator_terms'] = ['1.0 * [u^{a} (C) d^{b}] (\gamma_{5}) u^{c}']
                            
     return props
 
@@ -156,9 +156,9 @@ def proton_2bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * Au^{cp} (\gamma_{5}) [Ad^{bp} (C) Au^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * Au^{cp} (\gamma_{5}) [Ad^{bp} (C) Au^{ap}]']
     return props
 
 
@@ -167,18 +167,18 @@ def sigmap_2():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [u^{a} (C) s^{b}] (\gamma_{5}) u^{c}']
+    props['interpolator_terms'] = ['1.0 * [u^{a} (C) s^{b}] (\gamma_{5}) u^{c}']
     return props
 
 def sigmap_2bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * Au^{cp} (\gamma_{5}) [As^{bp} (C) Au^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * Au^{cp} (\gamma_{5}) [As^{bp} (C) Au^{ap}]']
     return props
 
 
@@ -187,18 +187,18 @@ def sigmam_2():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [d^{a} (C) s^{b}] (\gamma_{5}) d^{c}']
+    props['interpolator_terms'] = ['1.0 * [d^{a} (C) s^{b}] (\gamma_{5}) d^{c}']
     return props
 
 def sigmam_2bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * Ad^{cp} (\gamma_{5}) [As^{bp} (C) Ad^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * Ad^{cp} (\gamma_{5}) [As^{bp} (C) Ad^{ap}]']
     return props
 
 
@@ -207,18 +207,18 @@ def neutron_2():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [u^{a} (C) d^{b}] (\gamma_{5}) d^{c}']
+    props['interpolator_terms'] = ['1.0 * [u^{a} (C) d^{b}] (\gamma_{5}) d^{c}']
     return props
 
 def neutron_2bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * Ad^{cp} (\gamma_{5}) [Au^{bp} (C) Ad^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * Ad^{cp} (\gamma_{5}) [Au^{bp} (C) Ad^{ap}]']
     return props
 
 
@@ -227,18 +227,18 @@ def cascade0_2():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [u^{a} (C) s^{b}] (\gamma_{5}) s^{c}']
+    props['interpolator_terms'] = ['1.0 * [u^{a} (C) s^{b}] (\gamma_{5}) s^{c}']
     return props
 
 def cascade0_2bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * As^{cp} (\gamma_{5}) [Au^{bp} (C) As^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * As^{cp} (\gamma_{5}) [Au^{bp} (C) As^{ap}]']
     return props
 
 
@@ -247,18 +247,18 @@ def cascadem_2():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0 * [d^{a} (C) s^{b}] (\gamma_{5}) s^{c}']
+    props['interpolator_terms'] = ['1.0 * [d^{a} (C) s^{b}] (\gamma_{5}) s^{c}']
     return props
 
 def cascadem_2bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0 * As^{cp} (\gamma_{5}) [Ad^{bp} (C) As^{ap}]']
+    props['interpolator_terms'] = ['-1.0 * As^{cp} (\gamma_{5}) [Ad^{bp} (C) As^{ap}]']
     return props
 
 
@@ -269,9 +269,9 @@ def sigma0_1():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0/sqrt(2.0) * [u^{a} (C\gamma_{5}) s^{b}] (I) d^{c}',
+    props['interpolator_terms'] = ['1.0/sqrt(2.0) * [u^{a} (C\gamma_{5}) s^{b}] (I) d^{c}',
                            '1.0/sqrt(2.0) * [d^{a} (C\gamma_{5}) s^{b}] (I) u^{c}']
     return props
 
@@ -279,9 +279,9 @@ def sigma0_1bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0/sqrt(2.0) * Ad^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap} ]',
+    props['interpolator_terms'] = ['-1.0/sqrt(2.0) * Ad^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap} ]',
                            '-1.0/sqrt(2.0) * Au^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap} ]']
     return props
 
@@ -291,9 +291,9 @@ def lambda0_1():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['2.0/sqrt(6.0) * [u^{a} (C\gamma_{5}) d^{b} ] (I) s^{c}',
+    props['interpolator_terms'] = ['2.0/sqrt(6.0) * [u^{a} (C\gamma_{5}) d^{b} ] (I) s^{c}',
                            '1.0/sqrt(6.0) * [u^{a} (C\gamma_{5}) s^{b} ] (I) d^{c}',
                            '-1.0/sqrt(6.0) * [d^{a} (C\gamma_{5}) s^{b} ] (I) u^{c}']
     return props
@@ -302,9 +302,9 @@ def lambda0_1bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-2.0/sqrt(6.0) * As^{cp} (I) [Ad^{bp} (C\gamma_{5}) Au^{ap} ]',
+    props['interpolator_terms'] = ['-2.0/sqrt(6.0) * As^{cp} (I) [Ad^{bp} (C\gamma_{5}) Au^{ap} ]',
                            '-1.0/sqrt(6.0) * Ad^{cp} (I) [As^{bp} (C\gamma_{5}) Au^{ap} ]',
                            '1.0/sqrt(6.0) * Au^{cp} (I) [As^{bp} (C\gamma_{5}) Ad^{ap} ]']
     return props
@@ -314,9 +314,9 @@ def sigma0_2():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['1.0/sqrt(2.0) * [u^{a} (C) s^{b}] (\gamma_{5}) d^{c}',
+    props['interpolator_terms'] = ['1.0/sqrt(2.0) * [u^{a} (C) s^{b}] (\gamma_{5}) d^{c}',
                            '1.0/sqrt(2.0) * [d^{a} (C) s^{b}] (\gamma_{5}) u^{c}']
     return props
 
@@ -324,9 +324,9 @@ def sigma0_2bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-1.0/sqrt(2.0) * Ad^{cp} (\gamma_{5}) [As^{bp} (C) Au^{ap} ]',
+    props['interpolator_terms'] = ['-1.0/sqrt(2.0) * Ad^{cp} (\gamma_{5}) [As^{bp} (C) Au^{ap} ]',
                            '-1.0/sqrt(2.0) * Au^{cp} (\gamma_{5}) [As^{bp} (C) Ad^{ap} ]']
     return props
 
@@ -336,9 +336,9 @@ def lambda0_2():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['a;b;c']
-    props['cfun_terms'] = ['2.0/sqrt(6.0) * [u^{a} (C) d^{b} ] (\gamma_{5}) s^{c}',
+    props['interpolator_terms'] = ['2.0/sqrt(6.0) * [u^{a} (C) d^{b} ] (\gamma_{5}) s^{c}',
                            '1.0/sqrt(6.0) * [u^{a} (C) s^{b} ] (\gamma_{5}) d^{c}',
                            '-1.0/sqrt(6.0) * [d^{a} (C) s^{b} ] (\gamma_{5}) u^{c}']
     return props
@@ -347,9 +347,9 @@ def lambda0_2bar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = ['ap;bp;cp']
-    props['cfun_terms'] = ['-2.0/sqrt(6.0) * As^{cp} (\gamma_{5}) [Ad^{bp} (C) Au^{ap} ]',
+    props['interpolator_terms'] = ['-2.0/sqrt(6.0) * As^{cp} (\gamma_{5}) [Ad^{bp} (C) Au^{ap} ]',
                            '-1.0/sqrt(6.0) * Ad^{cp} (\gamma_{5}) [As^{bp} (C) Au^{ap} ]',
                            '1.0/sqrt(6.0) * Au^{cp} (\gamma_{5}) [As^{bp} (C) Ad^{ap} ]']
     return props
@@ -363,18 +363,18 @@ def pip():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = []
-    props['cfun_terms'] = ['1.0 * [Ad^{e} (\gamma_{5}) u^{e}]']
+    props['interpolator_terms'] = ['1.0 * [Ad^{e} (\gamma_{5}) u^{e}]']
     return props
 
 def pipbar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = []
-    props['cfun_terms'] = ['-1.0 * [Au^{ep} (\gamma_{5}) d^{ep}']
+    props['interpolator_terms'] = ['-1.0 * [Au^{ep} (\gamma_{5}) d^{ep}']
     return props
 
 def kaonp():
@@ -382,18 +382,18 @@ def kaonp():
     props = {}
 
     props['lorentz_indices'] = []
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = []
-    props['cfun_terms'] = ['1.0 * [As^{e} (\gamma_{5}) u^{e}]']
+    props['interpolator_terms'] = ['1.0 * [As^{e} (\gamma_{5}) u^{e}]']
     return props
 
 def kaonpbar():
 
     props = {}
 
-    props['gamma_matrices'] = []
+    props['gell_mann_matrices'] = []
     props['levi_civita_indices'] = []
-    props['cfun_terms'] = ['-1.0 * [Au^{ep} (\gamma_{5}) s^{ep}']
+    props['interpolator_terms'] = ['-1.0 * [Au^{ep} (\gamma_{5}) s^{ep}']
     return props
 
 
@@ -442,7 +442,7 @@ def HadronicCharge(kd,particle,structure,*args,**kwargs):
 
     #Particle interpolating field. Only ever need one term as all
     #terms have same base quark structure.
-    particleInterp = globals()[particle]()['cfun_terms'][0]
+    particleInterp = globals()[particle]()['interpolator_terms'][0]
 
     #Looping over quarks
     for quark in ['u','d','s']:

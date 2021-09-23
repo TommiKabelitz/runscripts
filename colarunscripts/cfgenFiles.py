@@ -1,3 +1,4 @@
+
 """
 Functions to make the files required by cfungen.
 
@@ -128,17 +129,17 @@ def MakeInterpFile(partstub,logFile,chi,chibar,structure,cfunPrefix,isospinSym,s
         f.write(f'{cfunName}\n')
         f.write(f'{cfunPrefix}\n')
         WriteListLengthnList(f,particle_details['lorentz_indices'])
-        WriteListLengthnList(f,particle_details['gamma_matrices'])
+        WriteListLengthnList(f,particle_details['gell_mann_matrices'])
         WriteListLengthnList(f,particle_details['levi_civita_indices'])
-        WriteListLengthnList(f,particle_details['cfun_terms'])
+        WriteListLengthnList(f,particle_details['interpolator_terms'])
         
     #Getting the anti-particle details from the particles module
     particle_details = getattr(particles,chibar)()
     #Writing the sink details to the file
     with open(partstub+extension,'a') as f:
-        WriteListLengthnList(f,particle_details['gamma_matrices'])
+        WriteListLengthnList(f,particle_details['gell_mann_matrices'])
         WriteListLengthnList(f,particle_details['levi_civita_indices'])
-        WriteListLengthnList(f,particle_details['cfun_terms'])
+        WriteListLengthnList(f,particle_details['interpolator_terms'])
         f.write(f'{isospinSym}\n')
         f.write(f'{su3FlavLimit}\n')
 
