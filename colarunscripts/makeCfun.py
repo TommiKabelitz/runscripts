@@ -130,10 +130,10 @@ def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
         #The rest we get through charge manipulation (u=-2*d,nl=0*d,nh=0*nh).
         kd *= QuarkCharge(quark)
         if quark in ['s','nh']:
-            quarkLabel = 's'
+            quarkLabel = 'h'
             jobValues['kappa'] = parameters['propcfun']['strangeKappa']
-        else: #['u','d','nl]
-            quarkLabel = 'd'
+        else:
+            quarkLabel = 'l'
         
         #Getting the base propagator file
         propFile = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['prop']

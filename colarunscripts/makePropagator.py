@@ -147,13 +147,13 @@ def MakePropInputFiles(parameters,filestub,logFile,quark,kd,shift,quarkValues,*a
         #Reducing the number of propagators we make as some propagators are
         #effectively duplicates. ie. u props are d props with -2*kd, nl props
         #are neutral d props
-        #quarkLabel will always be d or s and goes into
+        #quarkLabel will always be l (light) or h (heavy) and goes into
         #the propagator filename
         kd *= QuarkCharge(quark)
         if quark in ['s','nh']:
-                quarkLabel = 's'
+                quarkLabel = 'h'
         else:
-                quarkLabel = 'd'
+                quarkLabel = 'l'
                 
         #Adjusting for u and s quarks, can't be done earlier, see above
         if quark in ['s','nh']:
