@@ -8,7 +8,7 @@ Also contains a function for formatting the kappa value.
 import re
 
 
-def FormatShift(shift,returnType=str,*args,**kwargs):
+def FormatShift(shift,fullShift='full',returnType=str,*args,**kwargs):
     '''
     Returns the x and t shift from a string of form x08y16z24t32.
 
@@ -52,6 +52,15 @@ def FormatShift(shift,returnType=str,*args,**kwargs):
     #Casting to int to remove leading zeros
     output = [int(x) for x in output]
 
+    if fullShift == 'emode':
+        output[-2:] = [0,0]
+    elif fullShift == 'lpsink':
+        output[:3] = [0,0,0]
+    elif fullShift != 'full':
+        raise ValueError('fullShift must be "full", "emode", or "lpsink"')
+
+
+    
     if returnType is str:
               return ' '.join([str(x) for x in output])
     elif returnType is int:

@@ -178,7 +178,7 @@ def MakeReusableFiles(parameters,filestub,logFile,kd,shift,jobValues,*args,**kwa
     #Getting the gauge field configuration file, then making the relevant input 
     #file
     configFile = dirs.FullDirectories(parameters,directory='configFile',**jobValues)['configFile']
-    files.MakeGFSFile(filestub,logFile,parameters['directories']['configFormat'],configFile,FormatShift(shift))
+    files.MakeGFSFile(filestub,logFile,parameters['directories']['configFormat'],configFile,FormatShift(shift,fullShift='full'))
     
     #Making the smearing file, still read in for Laplacian sink (I think)
     files.MakePropSmearingFile(filestub,logFile,kd=kd,**parameters['sourcesink'],**jobValues)
@@ -206,7 +206,7 @@ def MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jo
     #Making Laplacian Sink File
     modeFiles = dirs.LapModeFiles(parameters,kd=kd,quark=structure,**jobValues)   #(dict)
     lapModeFiles = [modeFiles[quark] for quark in structure]   #(above as list) 
-    files.MakeLPSinkFile(filestub,logFile,shift=FormatShift(shift),lapModeFiles=lapModeFiles,**parameters['sourcesink'])
+    files.MakeLPSinkFile(filestub,logFile,shift=FormatShift(shift,fullShift='lpsink'),lapModeFiles=lapModeFiles,**parameters['sourcesink'])
 
     #Setting isospin symmetry based on field strength
     if kd == 0:

@@ -86,7 +86,7 @@ def MakePropFile(filestub,logFile,configFile,configFormat,quarkPrefix,propFormat
     """
     extension = '.quarkprop'
 
-    shift = shifts.FormatShift(shift)
+    shift = shifts.FormatShift(shift,fullShift='full')
     kappa = shifts.FormatKappa(kappa)
     U1FieldCode = FieldCode(U1FieldType,U1FieldQuanta,kd)
 

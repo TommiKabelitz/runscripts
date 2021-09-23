@@ -27,7 +27,7 @@ def main(parameters,kd,shift,jobValues,timer):
     inputs['configFile'] = dirs.FullDirectories(parameters,kd=kd,directory='configFile',**jobValues)['configFile']
     inputs['configFormat'] = parameters['directories']['configFormat']
     inputs['outputFormat'] = parameters['directories']['lapModeFormat']
-    inputs['shift'] = shifts.FormatShift(shift)
+    inputs['shift'] = shifts.FormatShift(shift,fullShift='emode')
     
     schedulerParams = SchedulerParams(parameters,jobValues['scheduler'])
 
