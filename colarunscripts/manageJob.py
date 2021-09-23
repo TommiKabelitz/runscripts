@@ -33,11 +33,12 @@ def main(newParametersFile,kappa,nthConfig,numSimultaneousJobs,ncon,testing,*arg
     jobValues['cfgID'] = cfg.ConfigID(nthConfig,jobValues['runPrefix'],start)
     jobValues['jobID'] = GetJobID(os.environ)
     jobValues['kappa'] = kappa
-
+    
     print()
     pp(jobValues)
+
     JobLoops(parameters,jobValues['shifts'],jobValues['kds'],jobValues)
-    SubmitNext(nthConfig,numSimultaneousJobs,testing,newParametersFile,ncon)
+    SubmitNext(parameters,jobValues,nthConfig,start,numSimultaneousJobs,testing,newParametersFile,ncon)
 
 
 
@@ -52,7 +53,11 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
     inputSummaries = []
     for shift,nextShift in zip(shifts,[*shifts[1:],None]):
         for kd in kds:
-
+            
+            if CfunsExist(parameters,jobValues,kd,shift) is True:
+                print(f'Correlation functions for {kd=}, {shift=} already exist, skipping.')
+                continue
+            
             inputSummary = dirs.FullDirectories(parameters,directory='inputReport',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['inputReport'] 
             reports = ['emode','prop','cfun','interp']
             jobValues['inputSummary'] = {rep:inputSummary.replace('TYPE',rep) for rep in reports}
@@ -194,16 +199,18 @@ def PrintJobValues(jobValues):
             print(f'{key} not in JobValues')
 
 
-def SubmitNext(nthConfig,numSimultaneousJobs,testing,oldParametersFile,ncon):
+def SubmitNext(parameters,jobValues,nthConfig,start,numSimultaneousJobs,testing,oldParametersFile,ncon):
     
     nextConfig = int(nthConfig) + int(numSimultaneousJobs)
-        
+    
+    jobValues['cfgID'] = cfg.ConfigID(nextConfig,jobValues['runPrefix'],start)
+
     inputArgs = {}
     inputArgs['numjobs'] = numSimultaneousJobs
     inputArgs['parametersfile'] = oldParametersFile
     inputArgs['testing'] = testing
 
-    if nextConfig <= ncon:
+    if nextConfig <= ncon and CfunsExist(parameters,jobValues):
         print(f'Submitting configuration {nextConfig}')
         submit.main(nextConfig,inputArgs)
     else:
@@ -223,6 +230,39 @@ def Input():
     return vars(args)
 
 
+
+def CfunsExist(parameters,jobValues,kd=None,shift=None,*args,**kwargs):
+
+    if kd is shift is None:
+        for shift in jobValues['shifts']:
+            for kd in jobValues['kd']:
+                if CfunsExist(parameters,jobValues,kd,shift) is False:
+                    return False
+
+    
+    if 'laplacian' == jobValues['sinkType']:
+        sinkVals = parameters['sourcesink']['nModes_lpsnk']
+    elif 'smeared' == jobValues['sinkType']:
+        sinkVals = parameters['sourcesink']['sweeps_smsnk']
+        
+    for sinkVal in sinkVals:
+        cfunFilename = dirs.GetCfunFile(parameters,kd=kd,shift=shift,sinkVal=sinkVal,**jobValues)
+
+        for chi,chibar in jobValues['particleList']:
+            for structure in jobValues['structureList']:
+
+                formattedStructure = ''.join(structure)
+                cfun = cfunFilename.replace('CHICHIBAR_STRUCTURE',f'{chi}{chibar}_{formattedStructure}')
+          
+                if pathlib.Path(cfun).is_file() is False:
+                    return False
+
+    return True
+                    
+        
+
+
+    
     
 
 if __name__ == '__main__':

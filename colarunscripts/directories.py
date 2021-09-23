@@ -237,3 +237,17 @@ def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,
         #Resetting field strength
         kd = temp
     return lapModeFiles
+
+
+
+def GetCfunFile(parameters,kappa,kd,shift,sourceType,sinkType,sinkVal,cfgID,*args,**kwargs):
+
+    cfunBase = FullDirectories(parameters,directory='cfun',kappa=kappa,kd=kd,shift=shift,sourceType=sourceType,**parameters['sourcesink'])['cfun']
+
+    if sinkType == 'laplacian':
+        sinkLabel = f'lp{sinkVal}'
+    elif sinkType == 'smeared':
+        sinkLabel = f'sm{sinkVal}'
+
+    cfunFilename = f'{cfunBase}{cfgID}si{sinkLabel}.CHICHIBAR_STRUCTURE.u.2cf'
+    return cfunFilename
