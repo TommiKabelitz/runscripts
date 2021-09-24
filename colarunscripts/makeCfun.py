@@ -185,7 +185,7 @@ def MakeReusableFiles(parameters,filestub,logFile,kd,shift,jobValues,*args,**kwa
 
     #Making the particle stubs file
     particleList = jobValues['particleList']
-    files.MakePartStubsFile(filestub,logFile,particleList)
+    files.MakePartStubsFile(filestub,logFile,kd,particleList)
 
     
 

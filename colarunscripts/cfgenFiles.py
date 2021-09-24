@@ -61,7 +61,7 @@ def MakePropPathFiles(filestub,logFile,propDict,structure,*args,**kwargs):
     return propList
 
 
-def MakePartStubsFile(filestub,logFile,particleList,*args,**kwargs):
+def MakePartStubsFile(filestub,logFile,kd,particleList,*args,**kwargs):
     """
     Creates the particle stubs file.
 
@@ -78,7 +78,9 @@ def MakePartStubsFile(filestub,logFile,particleList,*args,**kwargs):
     #File extension
     extension = '.part_stubs'
 
-    numParticlePairs = len(particleList)
+    updatedList = particles.CheckForVanishingFields(kd,particleList)
+
+    numParticlePairs = len(updatedList)
     with open(filestub+extension,'w') as f, open(logFile,'a') as l:
         l.write(f'\n{extension=}\n')
 
@@ -87,7 +89,7 @@ def MakePartStubsFile(filestub,logFile,particleList,*args,**kwargs):
         VariablePrinter(f'{numParticlePairs=}\n',fileObject=l,nameWidth=20)
 
         #Writing the particle stubs
-        for chi,chibar in particleList:
+        for chi,chibar in updatedList:
             partstub = filestub + chi + chibar
             f.write(f'{partstub}\n')
             l.write(f'{partstub}\n')
@@ -155,17 +157,17 @@ def MakeInterpFile(partstub,logFile,chi,chibar,structure,cfunPrefix,isospinSym,s
         VariablePrinter(f'{cfunName=}\n',fileObject=f,nameWidth=20)
         VariablePrinter(f'{cfunPrefix=}\n',fileObject=f,nameWidth=20)
         WriteListLengthnList(f,particle_details['lorentz_indices'],label='lorentz_indices')
-        WriteListLengthnList(f,particle_details['gamma_matrices'],label='gamma_matrices')
+        WriteListLengthnList(f,particle_details['gell_mann_matrices'],label='gell_mann_matrices')
         WriteListLengthnList(f,particle_details['levi_civita_indices'],label='levi_civita_indices')
-        WriteListLengthnList(f,particle_details['cfun_terms'],label='cfun_terms')
+        WriteListLengthnList(f,particle_details['interpolator_terms'],label='interpolator_terms')
         
     #Getting the anti-particle details from the particles module
     particle_details = getattr(particles,chibar)()
     #Writing the sink details to the file
     with open(logFile,'a') as f:
-        WriteListLengthnList(f,particle_details['gamma_matrices'],label='gamma_matrices')
+        WriteListLengthnList(f,particle_details['gell_mann_matrices'],label='gell_mann_matrices')
         WriteListLengthnList(f,particle_details['levi_civita_indices'],label='levi_civita_indices')
-        WriteListLengthnList(f,particle_details['cfun_terms'],label='cfun_terms')
+        WriteListLengthnList(f,particle_details['interpolator_terms'],label='interpolator_terms')
         VariablePrinter(f'{isospinSym=}\n',fileObject=f,nameWidth=20)
         VariablePrinter(f'{su3FlavLimit=}\n',fileObject=f,nameWidth=20)
 

@@ -464,5 +464,51 @@ def HadronicCharge(kd,particle,structure,*args,**kwargs):
     return charge*kd
 
         
-    
+def CheckForVanishingFields(kd,particleList,*args,**kwargs):
+    """
+    Removes interpolator combinations which vanish under isospin sym.
 
+    Arguments:
+    kd         -- int: Field strength
+    particList -- nested list: List of list of particle names. In form
+                       [chi,chibar].
+
+    Returns:
+    updatedList -- nested list: List of list of particle names. Format as 
+                       above. Function does not act in place.
+    """
+
+    #Isospin symmetry only when kd = 0
+    if kd != 0:
+        return particleList
+
+    #Particles which when combined in any source/sink operator produce should
+    #be placed here. Each inner list will test all permutations of that list.
+    #Separate inner lists will not be compared.
+    #ie. [[a,b,c],[d,e]] would check all permutations of ab,ac,ba... and de...
+    #but not ad,ae...
+    badParticles = [['lambda0','sigma0']]
+
+    badCombinations = []
+    #Getting the combinations which vanish. Assumes aa would not vanish
+    for particleSet in badParticles:
+        badCombinations.append([[p1,p2] for p1 in particleSet for p2 in particleSet if p1 != p2])
+    #Un-nests the list so that we can just use 1 loop
+    badCombinations = [comb for sublist in badCombinations for comb in sublist]
+
+    #Looping through particles and bad combinations
+    badList = []
+    for chi,chibar in particleList:
+        for pair in badCombinations:
+            #Checking if the particles match
+            if pair[0] in chi and pair[1] in chibar:
+                badList.append([chi,chibar])
+
+    #Don't want to modify the original list
+    updatedList = particleList.copy()
+    #Removing vanishing combinations
+    for chi,chibar in badList:
+        updatedList.remove([chi,chibar])
+       
+    return updatedList
+    
