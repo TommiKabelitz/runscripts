@@ -232,28 +232,46 @@ def Input():
 
 
 def CfunsExist(parameters,jobValues,kd=None,shift=None,*args,**kwargs):
+    """
+    Checks whether all cfuns for a parameter set exist.
 
-    if kd is shift is None:
-        for shift in jobValues['shifts']:
-            for kd in jobValues['kd']:
-                if CfunsExist(parameters,jobValues,kd,shift) is False:
-                    return False
+    Arguments:
+    parameters -- dict: Dictionary of all parameters from yml
+    jobValues  -- dict: Dictionary of parameters relevant to this job
+    kd         -- int: field strength for current set (optional)(default: all)
+    shift      -- string: Cshift for current ser (optional)(default:all)
 
+    """
+
+    #Note: As soon as we find something is missing, we can return false as
+    #all cfuns are made in one call. (Structure exempt, on todo list)
     
+    #Recursively calling function for all shifts/kd if not specified
+    if kd is None:
+        for kd in jobValues['kds']:
+            if CfunsExist(parameters,jobValues,kd,shift) is False:
+                return False
+    if shift is None:
+        for shift in jobValues['shifts']:
+            if CfunsExist(parameters,jobValues,kd,shift) is False:
+                return False
+
+    #Grabbing appropriate sink values
     if 'laplacian' == jobValues['sinkType']:
         sinkVals = parameters['sourcesink']['nModes_lpsnk']
     elif 'smeared' == jobValues['sinkType']:
         sinkVals = parameters['sourcesink']['sweeps_smsnk']
-        
+
+    #Looping through everything we need
     for sinkVal in sinkVals:
         cfunFilename = dirs.GetCfunFile(parameters,kd=kd,shift=shift,sinkVal=sinkVal,**jobValues)
 
         for chi,chibar in jobValues['particleList']:
             for structure in jobValues['structureList']:
-
+                #Structure in jobValues['structureList'] is a list
                 formattedStructure = ''.join(structure)
                 cfun = cfunFilename.replace('CHICHIBAR_STRUCTURE',f'{chi}{chibar}_{formattedStructure}')
-          
+                
                 if pathlib.Path(cfun).is_file() is False:
                     return False
 
