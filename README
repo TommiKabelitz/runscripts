@@ -1,23 +1,35 @@
 #Description
 
 COLA runscripts is a library for running COLA (Colour Oriented Linear Algebra) which
-makes propagators and correlation functions.
+makes Laplacian eigenmodes, propagators and correlation functions.
 
-#Installation
+#Virtual Environment
 
-- From directory containing this README, install with
+- To set up virtual environment and install dependencies
+  run:
 
-        pip install --editable .
+     	python3 -m venv env
+	source env/bin/activate
+	python3 -m pip install -r requirements.txt
 
+- Entering virtual environment, run: source/env/bin/activate
+- To leave virtual environment, run: deactivate
+- To update virtual environment, re-run:
+     	python3 -m pip install -r requirements.txt
+  while environment is active
+  
 #Usage
 
-- Set desired parameters in parameters.yml
+- Copy example_parameters.yml to parameters.yml and set parameters as desired
 - Run 
+
 	python submit.py
 
+  from this directory
 - Various testing options also available (-t)
 - Various other command line specifications are also available (python submit.py -h)
 - No other scripts are intended to be run
+- Alternative parameters files should be placed in ./parametersFiles
 
 #Features
 
@@ -26,15 +38,14 @@ makes propagators and correlation functions.
 - Addition of custom particle operators easily available
 - Only minimal propagators and eigenmodes are made
 
-
 #Current problems
 
-- Missing configuration submission is currently broken
+- Available c-shifting logic is currently limited
 
 #TODO
 
-- Add environment for installation and running of code
-- Fix missing configuration submission
+- Make sinkvalues not a pain to deal with
+- Get cfun existence checking available on specific structures
 - Add more documentation, including explanations of all variable in parameters.yml
 - Add testing scripts for easy testing of individual functions
 - Implement production and use of loop props

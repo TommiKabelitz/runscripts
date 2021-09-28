@@ -3,6 +3,9 @@
 #Backup files
 /*~
 
+#Virtual environment directory
+/env/*
+
 #A file containing environment variables for reference
 environ_vars
 
