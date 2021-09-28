@@ -4,7 +4,7 @@ from colarunscripts.submit import main
 
 
 def Input():
-    '''
+    """
     Parses input from the command line.
 
     Returns:
@@ -12,7 +12,7 @@ def Input():
                        value None or one of the choices given below.
                        submitmissing is False by default
 
-    '''
+    """
 
     #Setting up the parser
     parser = argparse.ArgumentParser(description='Submits jobs to the queue. Produces propagators and correlation functions.')
