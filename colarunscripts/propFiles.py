@@ -63,13 +63,13 @@ def MakeCloverFile(filestub,logFile,bcx,bcy,bcz,bct,u0,C_SW,*args,**kwargs):
                 VariablePrinter(f'{C_SW=}\n',fileObject=f,nameWidth=20)
 
 
-def MakeSourceFile(parameters,filestub,logFile,quark,kd,quarkValues,*args,**kwargs):
+def MakeSourceFile(parameters,filestub,logFile,kd,quarkValues,*args,**kwargs):
         
         sourceVals = parameters['sourcesink']
 
         #Getting the eigenmode file. Only used for some sources.
-        lapmodefile = dirs.LapModeFiles(parameters,kd=kd,quark=quark,**quarkValues)[quark]
-        sourceVals['lapmodefile'] = lapmodefile
+        lapmodefile = dirs.LapModeFiles(parameters,kd=kd,quark=None,**quarkValues)
+        sourceVals['lapmodefile'] = lapmodefile['quark']
 
         #Writing the actual source file using the appropriate function
         #in sources.py. sourcetype_num is required for .qprop input file
@@ -80,14 +80,16 @@ def MakeSourceFile(parameters,filestub,logFile,quark,kd,quarkValues,*args,**kwar
 
 
 
-def MakePropFile(filestub,logFile,configFile,configFormat,quarkPrefix,propFormat,parallelIO,fermionAction,kappa,shift,U1FieldType,U1FieldQuanta,kd,tolerance,sourcetype_num,*args,**kwargs):
+def MakePropFile(filestub,logFile,quarkLabel,configFile,configFormat,quarkPrefix,propFormat,parallelIO,fermionAction,kappa,strangeKappa,shift,U1FieldType,U1FieldQuanta,kd,tolerance,sourcetype_num,*args,**kwargs):
     """
 
     """
     extension = '.quarkprop'
 
-    shift = shifts.FormatShift(shift,fullShift='full')
+    if quarkLabel == 'h':
+        kappa = strangeKappa
     kappa = shifts.FormatKappa(kappa)
+    shift = shifts.FormatShift(shift,fullShift='full')
     U1FieldCode = FieldCode(U1FieldType,U1FieldQuanta,kd)
 
     #Writing to file

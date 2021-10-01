@@ -37,32 +37,34 @@ def main(parameters,kd,shift,jobValues,timer):
     for structure in parameters['runValues']['structureList']:
         modeFiles = dirs.LapModeFiles(parameters,kd=kd,quark=structure,**jobValues,withExtension=False)
 
+        print()
+        print(f'Making eigenmodes for structure set: {structure}')
         with open(logFile,'a') as f:
-            f.write(f'{structure=}')
+            f.write(f'\n\n\n{structure=}')
         
         for quark in structure:
 
             with open(logFile,'a') as f:
                 f.write(f'\n{quark=}\n')
-            filestub = dirs.FullDirectories(parameters,directory='lapmodeInput')['lapmodeInput'] + jobValues['jobID'] + '_' + str(jobValues['nthConfig']) + f'.{quark}'
-            MakeLatticeFile(filestub,logFile,**parameters['lattice'])
 
             fullFile = modeFiles[quark] + '.' + parameters['directories']['lapModeFormat']
-            print(f'Eigenmode to make is: {fullFile}')
             print()
             print(5*'-'+f'Doing {quark} quark'+5*'-')
-            inputs['U1FieldCode'] = FieldCode(kd=kd*QuarkCharge(quark),**parameters['propcfun'],**jobValues)
-            inputs['outputPrefix'] = modeFiles[quark]
-            MakeLap2ModesFile(filestub,logFile,**inputs,**parameters['laplacianEigenmodes'])
+            print(f'Eigenmode to make is: {fullFile}')
 
-            
             if pathlib.Path(fullFile).is_file():
                 print('Skipping eigenmode file. File already exists')
                 fullFileList.append(fullFile)
 
                 with open(logFile,'a') as f:
-                    f.write(f'\nSkipping {quark=}. {fullFile} already exists.\n\n')
+                    f.write(f'\nSkipping {quark=}.\n{fullFile}\n File already exists.\n\n')
                 continue
+
+            filestub = dirs.FullDirectories(parameters,directory='lapmodeInput')['lapmodeInput'] + jobValues['jobID'] + '_' + str(jobValues['nthConfig']) + f'.{quark}'
+            inputs['U1FieldCode'] = FieldCode(kd=kd*QuarkCharge(quark),**parameters['propcfun'],**jobValues)
+            inputs['outputPrefix'] = modeFiles[quark]
+            MakeLatticeFile(filestub,logFile,**parameters['lattice'])
+            MakeLap2ModesFile(filestub,logFile,**inputs,**parameters['laplacianEigenmodes'])
             
             scheduler = jobValues['scheduler'].lower()
             numGPUs = parameters[scheduler+'Params']['NUMGPUS']

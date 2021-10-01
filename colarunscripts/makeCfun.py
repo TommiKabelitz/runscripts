@@ -9,7 +9,6 @@ This script is not intended to  be called fromthe command line
 """
 
 #standard library modules
-import pprint                       #nice dictionary printing (for debugging)
 import subprocess                   #for calling cfungenGPU.x
 from datetime import datetime       #for writing out the time
 
@@ -21,8 +20,7 @@ from colarunscripts import particles as part
 from colarunscripts.makePropagator import CallMPI
 from colarunscripts.particles import QuarkCharge
 from colarunscripts.shifts import FormatShift
-#nice printing for dictionaries, replace print with pp
-pp = pprint.PrettyPrinter(indent=4).pprint 
+from colarunscripts.utilities import pp
 
 
 
@@ -80,8 +78,8 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
         with open(logFile,'a') as f,open(jobValues['inputSummary']['interp'],'a') as g:
 
             print(f'\nDoing structure set: {structure}\n')
-            f.write(f'\nDoing structure set: {structure}\n')
-            g.write(f'\nDoing structure set: {structure}\n')
+            f.write(f'\n\nDoing structure set: {structure}\n\n')
+            g.write(f'\n\nDoing structure set: {structure}\n\n')
                 
             #Just printing quark paths for reference
             print(f'Quark paths are: ')
@@ -217,7 +215,21 @@ def MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jo
     #Correlation function filepath
     cfunPrefix = dirs.FullDirectories(parameters,directory='cfun',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['cfun']
     
-    #Looping over operator pairs
+    #Getting the details regarding the hadronic projection (fourier vs landau, etc...)
+    hadronicProjection = HadronicProjection(parameters,kd,structure)
+
+    #Making the files which hold the paths to the propagators in the u,d,s 
+    #spots. Returns the paths to those files.
+    propList = files.MakePropPathFiles(filestub,logFile,propDict,structure)
+    #Exchange the order as the order to feed props in is u,s,d. COLA reads
+    #u and s first, then d if isospin is false.
+    propList[1],propList[2] = propList[2],propList[1]
+
+    files.MakePropCfunInfoFile(filestub,logFile,propList,**parameters['directories'],**parameters['propcfun'],**parameters['runValues'],**hadronicProjection)
+
+    #Looping over operator pairs to make interpolator files
+    #.interp files are structure dependent as the structure
+    #is in the filename of the correlator
     for chi,chibar in jobValues['particleList']:
         #compiling the particle stub ie. 5319732_4protonprotonbar
         partstub = filestub + chi + chibar
@@ -225,19 +237,8 @@ def MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jo
         #Making the interpolator file using that stub
         files.MakeInterpFile(partstub,jobValues['inputSummary']['interp'],chi,chibar,structure,cfunPrefix,isospinSym,**parameters['propcfun'])
 
-        #Getting the details regarding the hadronic projection (fourier vs landau, etc...)
-        hadronicProjection = HadronicProjection(parameters,kd,chi,structure)
 
-        #Making the files which hold the paths to the propagators in the u,d,s 
-        #spots. Returns the paths to those files. Apparently must be fed in
-        #order u,s,d. I don't know why - apparently because u,s often degenerate
-        propList = files.MakePropPathFiles(filestub,logFile,propDict,structure)
-        propList[1],propList[2] = propList[2],propList[1]
-
-        files.MakePropCfunInfoFile(filestub,logFile,propList,**parameters['directories'],**parameters['propcfun'],**parameters['runValues'],**hadronicProjection)
-
-
-def HadronicProjection(parameters,kd,particle,structure,*args,**kwargs):
+def HadronicProjection(parameters,kd,structure,*args,**kwargs):
     """
     Returns the details for the hadronic projection.
 
@@ -245,7 +246,6 @@ def HadronicProjection(parameters,kd,particle,structure,*args,**kwargs):
     parameters -- dict: Dictionary of all of the run parameters.
                         From parameters.yml
     kd         -- int: The field strength
-    particle   -- str: The hadron in question
     structure  -- str: list: Quark structure
     
 

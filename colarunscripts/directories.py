@@ -165,8 +165,8 @@ def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,
     """
     Returns dictionary of Laplacian eigenmode files.
 
-    If quark is not specified, the quark list in parameters.yml
-    is used.
+    If quark is not specified, the charge passed is not adjusted for
+    flavour. It is assumed that is already done
     Arguments:
     kappa -- int: Kappa value for the eigenmodes
     kd    -- int: The field strength
@@ -196,28 +196,31 @@ def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,
 
     #Setting up the quark list depending on quark input
     if quark is None:
-        #Full list from parameters.yml
-        quarkList = parameters['propcfun']['quarkList']
+        adjustkd = False
+        quarkList = ['quark']
     elif type(quark) is list:
         #Using passed list
         quarkList = quark
+        adjustkd = True
     elif type(quark) is str:
         #Converting string to list
         quarkList = [quark]
+        adjustkd = True
     else:
         raise TypeError('Expected "quark" to be of type str or list')
         
     #Initialising output dict
     lapModeFiles = {}
 
-    #Will need to adjust field strength for neutral quarks, so saving
-    #field strength so that it can be reset
+    #Should we need to adjust the field strength based on quark
+    #flavour, we have the true value saved
     temp = kd
 
     #Looping through quarks
     for quark in quarkList:
         #Adjusting strength based on charge
-        kd *= QuarkCharge(quark)
+        if adjustkd is True:
+            kd *= QuarkCharge(quark)
 
         #Replacing kappa,configID, field strength and saving to dict
         modeFile = baseModePath.replace('KAPPA',str(kappa))

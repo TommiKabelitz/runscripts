@@ -1,11 +1,10 @@
-#The execution of this file is not done (I think)
-#Need to deal with how it gets called now.
-
+#standard library modules
 import argparse
 from datetime import datetime
 import os
 import pathlib
 import subprocess
+import sys
 
 from colarunscripts import configIDs as cfg
 from colarunscripts import directories as dirs
@@ -35,7 +34,7 @@ def main(newParametersFile,kappa,nthConfig,numSimultaneousJobs,ncon,testing,*arg
     jobValues['kappa'] = kappa
     
     print()
-    pp(jobValues)
+    PrintJobValues(jobValues)
 
     JobLoops(parameters,jobValues['shifts'],jobValues['kds'],jobValues)
     SubmitNext(parameters,jobValues,nthConfig,start,numSimultaneousJobs,testing,newParametersFile,ncon)
@@ -50,6 +49,12 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
     timer.initialiseTimer('Propagators')
     timer.initialiseTimer('Correlation functions')
 
+    if jobValues['sourceType'] == 'lp' and jobValues['makeProps']:
+        jobValues['makeEmodes'] = True
+    if jobValues['sinkType'] == 'laplacian' and jobValues['makeCfuns'] is True:
+        jobValues['makeEmodes'] = True
+
+  
     inputSummaries = []
     for shift,nextShift in zip(shifts,[*shifts[1:],None]):
         for kd in kds:
@@ -58,34 +63,20 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
                 print(f'Correlation functions for {kd=}, {shift=} already exist, skipping.')
                 continue
             
-            inputSummary = dirs.FullDirectories(parameters,directory='inputReport',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['inputReport'] 
-            reports = ['emode','prop','cfun','interp']
-            jobValues['inputSummary'] = {rep:inputSummary.replace('TYPE',rep) for rep in reports}
-
-            print()
-            for summary in jobValues['inputSummary'].values():
-                print(summary)
-            for rep in reports:
-                with open(jobValues['inputSummary'][rep],'w') as f:
-                    f.write(f'Summary of {rep} input files.\n')
-                    f.write('\nValues for this config, field strength and shift\n')
-                    pp(jobValues,stream=f)
-                    f.write(50*'_')
-                    
-
+            print()                  
             paths = doJobSet(parameters,kd,shift,jobValues,timer)
-            inputSummaries.append(list( jobValues['inputSummary'].values() ))
+            inputSummaries += list( jobValues['inputSummary'].values() )
             
         #removing the propagators
-        if jobValues['keepProps'] is False:
+        if jobValues['keepProps'] is False and jobValues['makeProps'] is True:
             print('All field strengths done, new shift, deleting propagators')
             for prop in paths['props']:
                 print(f'Deleting {prop}')
                 path = pathlib.Path(prop)
                 path.unlink(missing_ok=True)
             print()    
-    
-        if jobValues['keepEmodes'] is CompareShifts(shift,nextShift) is False:
+            
+        if jobValues['makeEmodes'] is not jobValues['keepEmodes'] is CompareShifts(shift,nextShift) is False:
             print('Shifting in more than time, deleting eigenmodes')
             for eigenMode in paths['eigenmodes']:
                 print(f'Deleting {eigenMode}')
@@ -94,10 +85,9 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
             print()
 
         print('Input file summaries located at:')
-        for reports in inputSummaries:
-            for report in reports:
-                print(report)
-            print()
+        for report in inputSummaries:
+            print(report)
+        print()
             
         timer.writeFullReport(final=True)
         print()
@@ -123,38 +113,51 @@ def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
     checkpointName = f'Set (kd,shift): ({kd},{shift})'
     timer.createCheckpoint(checkpointName)
     
-    #That's it for preparation of job values. Now start making propagators
-    #and correlation functions
+    #That's it for preparation of job values. Now start making stuff
 
-    if jobValues['sinkType'] == 'laplacian' or jobValues['sourceType'] == 'lp':
+    jobValues['inputSummary'] = {}
+    
+    #Making eigenmodes
+    if jobValues['makeEmodes'] is True:
         print(50*'_')
         print()
         print('Making eigenmodes')
         print(f'Time is {datetime.now()}')
+        jobValues['inputSummary']['emode'] = PrepareInputReportFile(parameters,'emode',kd,shift,jobValues)
         eigenmodePaths = makeEmodes.main(parameters,kd,shift,jobValues,timer)
         print("\nEigenmodes done")
         print(f'Time is {datetime.now()}')
         print()
     else:
         eigenmodePath = []
-        
-    print(50*'_')
-    print()
-    print('Making propagators')
-    print(f'Time is {datetime.now()}')
-    propPaths = makePropagator.main(parameters,kd,shift,jobValues,timer)
-    print("\nPropagators done")
-    print(f'Time is {datetime.now()}')
-    print(50*'_')
 
-    print()        
-    print('Making correlation functions')
-    print(f'Time is {datetime.now()}')    
-    makeCfun.main(parameters,kd,shift,jobValues,timer)
-    print("Correlation functions done")
-    print(f'Time is {datetime.now()}')
-    print(50*'_')
-    print()
+
+    #Making propagators
+    if jobValues['makeProps'] is True:
+        print(50*'_')
+        print()
+        print('Making propagators')
+        print(f'Time is {datetime.now()}')
+        jobValues['inputSummary']['prop'] = PrepareInputReportFile(parameters,'prop',kd,shift,jobValues)
+        propPaths = makePropagator.main(parameters,kd,shift,jobValues,timer)
+        print("\nPropagators done")
+        print(f'Time is {datetime.now()}')
+        print(50*'_')
+    else:
+        propPaths = []
+
+    #Making cfuns
+    if jobValues['makeCfuns'] is True:
+        print()        
+        print('Making correlation functions')
+        print(f'Time is {datetime.now()}')    
+        jobValues['inputSummary']['cfun'] = PrepareInputReportFile(parameters,'cfun',kd,shift,jobValues)
+        jobValues['inputSummary']['interp'] = PrepareInputReportFile(parameters,'interp',kd,shift,jobValues)
+        makeCfun.main(parameters,kd,shift,jobValues,timer)
+        print("Correlation functions done")
+        print(f'Time is {datetime.now()}')
+        print(50*'_')
+        print()
 
     #Writing out how much time has elapsed since the checkpoint.
     #No longer need the checkpoint, so remove it.
@@ -164,7 +167,21 @@ def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
     paths = {'eigenmodes':eigenmodePaths,'props':propPaths}
     return paths
 
-def PrintJobValues(jobValues):
+def PrepareInputReportFile(parameters,report,kd,shift,jobValues):
+
+    reportFile = dirs.FullDirectories(parameters,directory='inputReport',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['inputReport']
+    reportFile = reportFile.replace('TYPE',report)
+
+    with open(reportFile,'w') as f:
+        f.write(f'Summary of {report} input files.\n')
+        f.write('\nValues for this config, field strength and shift\n')
+        PrintJobValues(jobValues,stream=f)
+        f.write(50*'_'+'\n')
+
+    return reportFile
+
+
+def PrintJobValues(jobValues,stream=sys.stdout):
     """
     Prints the values specific to the current job to the screen.
 
@@ -174,29 +191,33 @@ def PrintJobValues(jobValues):
     jobValues -- dict: Dictionary containing the variables to print out
 
     """
-    
+
     #A list of the variables to print
-    #(some variables in there are a waste of time)
+    #(some variables in jobValues there are a waste of time)
     valuesToPrint = ['kappa',
-                     'kd',
-                     'shift',
-                     'sinkType',
+                     'runPrefix',
+                     'cfgID',
+                     'kds',
+                     'shifts',
                      'sourceType',
+                     'sinkType',
                      'structureList',
                      'particleList']
     
-    print('Job Values:')
+    print('Job Values:',file=stream)
     #Printing the values
     for key in valuesToPrint:
         try:
+            #Printing list across lines for readability
             if type(jobValues[key]) is list:
-                print(f'{key}:')
-                pp(jobValues[key])
+                print(f'{key}:',file=stream)
+                pp(jobValues[key],stream=stream)
             else:
-                print(f'{key}: {jobValues[key]}')
+                print(f'{key}: {jobValues[key]}',file=stream)
         #just in case the key is not present (shouldn't happen)
         except KeyError:
-            print(f'{key} not in JobValues')
+            if stream == sys.stdout:
+                print(key)
 
 
 def SubmitNext(parameters,jobValues,nthConfig,start,numSimultaneousJobs,testing,oldParametersFile,ncon):
