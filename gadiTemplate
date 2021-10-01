@@ -12,6 +12,8 @@
 #PBS -l ngpus=NUMGPUS
 
 echo Running on host `hostname`
+echo Time is `date`
+echo
 source /home/566/tk9944/gadi_modules.sh
 ulimit -s unlimited
 ulimit -c 0
