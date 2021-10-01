@@ -1,5 +1,5 @@
 '''
-Submits jobs to the queue. Making propagators then correlation functions.
+Submits jobs to the queue.
 
 Based on the parameters set in the jobValues section of the parameters.yml 
 file, creates bash scripts to be called by the scheduler to make propagators
@@ -7,10 +7,6 @@ and correlation functions.
 
 The bash scripts will call manageJob.py which manages the running of the 
 job on the node.
-
-Optional command line arguments are available for testing purposes and 
-re-submitting jobs where correlation functions are missing.
-
 '''
 
 #standard library modules
@@ -21,16 +17,12 @@ import subprocess                     #for running scripts
 from datetime import datetime         #for writing out the time
 from os.path import dirname, realpath #for grabbing the directory of this script
 from pathlib import Path                                     
-import pprint
 
 #local modules
 import colarunscripts.configIDs as cfg
 import colarunscripts.directories as dirs
 import colarunscripts.parameters as params
-from colarunscripts.utilities import GetJobID
-
-#nice printing for dictionaries, replace print with pp
-pp = pprint.PrettyPrinter(indent=4).pprint 
+from colarunscripts.utilities import GetJobID, pp
 
 def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
     '''
@@ -52,7 +44,7 @@ def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
     testing       -- str: what type of testing submission to do
     '''
 
-    #Getting the directory for the runscript
+    #Getting the directory for the runscripts
     directory = dirs.FullDirectories(parameters,directory='script')['script']
     
     #If tempstorage for eigenmodes is False and keepEmodes is False
@@ -63,34 +55,15 @@ def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
             print('exiting')
             exit()
 
-    #Looping over parameters to submit
+    #Looping over parameters to submit as separate jobs
     for kappa in values['kappaValues']:
-              
+
+        #Printing parameters to be submitted
         print()
         print('kappa: ',kappa)
         print('kds: ',values['kds'])
         print('shifts: ',values['shifts'])
         print('runPrefix: ',values['runPrefix'])
-
-        # #REWRITE NEEDED
-        # if inputArgs['submitmissing'] is True:
-        #     print()
-        #     # print('This is broken at the moment')
-        #     # exit()
-        #     # print('Checking for missing correlation functions')
-        #     # #All of these not currently in the scope
-        #     # jobList = MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,sinkType)
-        #     # print(f'{len(jobList)} jobs need to be re-run.')
-        #     # if input('Enter y to submit:\n') != 'y':
-        #     #     continue
-        # elif inputArgs['testing'] in ['fullqueue','testqueue']:
-        #     jobList = ['1']
-        # else:
-
-        #Old mechanic still here, should be updated. Is for array jobs
-        #and missing configs which is broken anyway.
-        jobList = [str(i) for i in range(1,401)]
-
 
         #Compiling the runscript filename
         filename =f'{directory}{values["runPrefix"]}{kappa}conf{nthConfig}'
@@ -104,11 +77,14 @@ def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
             raise ValueError('Unknown scheduler specified')
         subprocess.run(['chmod','+x',filename]) #executable permission
 
-        ScheduleJobs(filename,jobList,values['scheduler'],values['doArrayJobs'],inputArgs)
+        #Need ncon if we are doing array jobs - defines end of array
+        _,ncon = cfg.ConfigDetails(kappa,values['runPrefix'])
+        #Scheduling jobs
+        ScheduleJobs(filename,values['scheduler'],values['doArrayJobs'],ncon,inputArgs)
 
 
                 
-def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,inputArgs):
+def ScheduleJobs(filename,scheduler,doArrayJobs,ncon,inputArgs):
 
     command = []
     capture_output = True
@@ -130,9 +106,8 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,inputArgs):
     if inputArgs['testing'] in ['interactive', 'interactivetestqueue']:
             command.append('-I')
             capture_output = False
-    elif doArrayJobs is True or len(jobList) == 1:
-
-        formattedList = ','.join(jobList)
+    elif doArrayJobs is True:
+        formattedList = f'1-{ncon}'#Job ids for array jobs
         if scheduler == 'PBS':
             command.append('-J ')
             command.append(f'{formattedList}')
@@ -140,7 +115,6 @@ def ScheduleJobs(filename,jobList,scheduler,doArrayJobs,inputArgs):
             command.append(f'--array={formattedList}')
         
     command.append(filename)
-
     
     out = subprocess.run(command,text=True,capture_output=capture_output)
 
@@ -181,8 +155,9 @@ def MakeSlurmRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs
     #queue exists
     if testing == 'testqueue':
         out = subprocess.run('sinfo',text=True,capture_output=True,shell=True)
+
         if 'test' not in out.stdout:
-            raise ValueError('Test queue does not exist on your machine. Try "-t headnode" or "-t interactive".')
+            raise ValueError('Test queue does not configured on your machine. Try "-t headnode" or "-t interactive".')
         else:
             schedulerDetails['QUEUE'] = 'test'
             schedulerDetails['TIME'] = '00:05:00'
@@ -190,8 +165,7 @@ def MakeSlurmRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs
             schedulerDetails['JOBSTORAGE'] = 10
             schedulerDetails['NUMCPUS'] = 0
             schedulerDetails['NUMGPUS'] = 0
-    elif testing == 'fullqueue':
-        schedulerDetails['TIME'] = '02:00:00'
+
     elif testing == 'interactive':
         raise ValueError('Interactive jobs not presently supported by slurm. Try "-t headnode".')
     
@@ -202,11 +176,15 @@ def MakeSlurmRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs
         text = text.replace(key,str(value))
     text = text.replace('PARAMETERSDIR',dirs.FullDirectories(parameters,directory='parameters')['parameters'])
     text = text.replace('KAPPA',str(kappa))
-    text = text.replace('NTHCONFIG',str(nthConfig))
+    if doArrayJobs is False:
+        text = text.replace('NTHCONFIG',str(nthConfig))
+    else:
+        text = text.replace('NTHCONFIG','$SLURM_ARRAY_TASK_ID')
     text = text.replace('NUMJOBS',str(simjobs))
     text = text.replace('NCON',str(nconfigurations))
     text = text.replace('TESTING',str(testing))
     
+    #Writing runscript text to runscript file
     runscript.write_text(text)
 
 
@@ -225,7 +203,7 @@ def MakePBSRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs=1
     testing  -- str: type of test submission
 
     '''
-        
+    
     #Getting slurm request details, ie. queue, num nodes, gpus etc.
     schedulerDetails = parameters['pbsParams']
     schedulerDetails['OUTPUTDIR'] = dirs.FullDirectories(parameters,directory='stdout')['stdout']
@@ -241,11 +219,8 @@ def MakePBSRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs=1
             schedulerDetails['MEMORY'] = 16
             schedulerDetails['JOBSTORAGE'] = 10
             schedulerDetails['NUMCPUS'] = 4
-            schedulerDetails['NUMGPUS'] = 0
-    elif testing == 'fullqueue':
-        schedulerDetails['TIME'] = '02:00:00'
+            schedulerDetails['NUMGPUS'] = 0        
 
-        
     template = Path(schedulerDetails['runscriptTemplate'])
     runscript = Path(filename)
     text = template.read_text()
@@ -253,83 +228,18 @@ def MakePBSRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs=1
         text = text.replace(key,str(value))
     text = text.replace('PARAMETERSDIR',dirs.FullDirectories(parameters,directory='parameters')['parameters'])
     text = text.replace('KAPPA',str(kappa))
-    text = text.replace('NTHCONFIG',str(nthConfig))
+    if doArrayJobs is False:
+        text = text.replace('NTHCONFIG',str(nthConfig))
+    else:
+        text = text.replace('NTHCONFIG','$PBS_ARRAY_INDEX')
     text = text.replace('NUMJOBS',str(simjobs))
     text = text.replace('NCON',str(nconfigurations))
     text = text.replace('TESTING',str(testing))
     
+    #Writing runscript text to runscript file
     runscript.write_text(text)
 
-    
-# def MissingCfunList(kappa,kd,shift,runPrefix,start,ncon,sinkType,*args,**kwargs):
-#     '''
-#     Returns a list of configurations for which cfuns are missing.
-
-#     Returned list is comma separated string of integers. Integers are not
-#     configuration IDs, the i'th integer is the i'th missing configuration.
-
-#     Arguments:
-#     kappa     -- int: kappa value of the particular job
-#     kd        -- int: field strength of the particular job
-#     shift     -- str: lattice shift of the particular job
-#     runPrefix -- char: PACS-CS configuration label
-#     start     -- int: The first configuration number. Eg 1880
-#     ncon      -- int: The total number of configurations
-#     sinkType  -- str: The sink type
-
-#     Returns:
-#     missingCfuns -- str list: str list of integers labelling missing configurations.
-#     '''
-
-#     #Loading parameters
-#     parameters = params.Load()
-
-#     #Getting base cfun directory
-#     cfunPrefix = dirs.FullDirectories(directory='cfun',kappa=kappa,kd=kd,shift=shift,**parameters['runValues'],**parameters['sourcesink'])['cfun']
-
-#     #COLA is dumb in the way it puts information about the sink into the
-#     #cfun name, we have to simulate that behaviour here
-#     if sinkType == 'smeared':
-#         sinkLabel = 'sismVAL'    #Hard coded into COLA
-#         sinkVals = parameters['sourcesink']['sweeps_smsnk']
-#     if sinkType == 'laplacian':
-#         #Changing modes to val to simplify things later
-#         sinkLabel = parameters['sourcesink']['baseSinkCode'].replace('MODES','VAL')
-#         sinkVals = parameters['sourcesink']['nModes_lpsnk']
-    
-#     #initialising output list
-#     missing = []
-#     #Looping through structures and particles
-#     for structure in parameters['runValues']['structureList']:
-#         for particlePair in parameters['runValues']['particleList']:
-            
-#             #Compiling cfun filename and path
-#             particleName = ''.join(particlePair)
-#             structureString = ''.join(structure)
-#             baseCfunPath = f'{cfunPrefix}CONFIGIDSINKLABEL.{particleName}_{structureString}.u.2cf'
-
-#             #Looping through the sink values desired
-#             for sinkVal in sinkVals:
-#                 label = sinkLabel.replace('VAL',str(sinkVal))
-#                 cfunPath = baseCfunPath.replace('SINKLABEL',label)
-#                 #Looping through configurations
-#                 for i in range(1,ncon+1):
-#                     #If configuration is already seen to be missing, don't need to check again
-#                     if str(i) in missing:
-#                         continue
-#                     #Replacing base path with specific config ID
-#                     ID = cfg.ConfigID(i,runPrefix,start)
-#                     finalPath = cfunPath.replace('CONFIGID',ID)
-            
-#                     #Checking cfun existence
-#                     if os.path.isfile(finalPath) is False:
-#                         missing.append(str(i))
-
-#     return missing
-
-
-
-    
+   
 def main(nthConfig,inputArgs):
 
     print(f'Time is {datetime.now()}')
