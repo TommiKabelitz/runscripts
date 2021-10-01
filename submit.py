@@ -1,5 +1,11 @@
+"""
+Parses input and calls the job submission code which sets up the jobs.
+"""
+
+#standard library modules
 import argparse
 
+#local modules
 from colarunscripts.submit import main
 
 
@@ -21,8 +27,8 @@ def Input():
     parser.add_argument('-c','--firstconfig',help='The first config to submit. Default is 1.',default=1,type=int)
     parser.add_argument('-s','--simjobs',help='Number of jobs to run simultaneously for each kappa value. Default is 1.',default=1,type=int)
     parser.add_argument('-n','--nconfigurations',help='Number of total configurations to run. Default is all available',default=0,type=int)
-    parser.add_argument('-t','--testing',help='Run in testing mode. Runs on head node (no GPUs). Else submits only 1 configuration to either the test queue (no GPUs) or the full queue.',choices=['headnode','testqueue','fullqueue','interactive','interactivetestqueue'])
-    parser.add_argument('-m','--submitmissing',help='Checks for missing correlation functions, then submits only those configurations. (BROKEN)',action='store_true')
+    parser.add_argument('-t','--testing',help='Run in testing mode. Runs on head node (no GPUs (probably)), in the express queue (probably no GPUs) or submits an interactive job in either the full queue or test queue.',choices=['headnode','testqueue','interactive','interactivetestqueue'])
+
 
     #Parsing the arguments from the command line
     args = parser.parse_args()
@@ -36,9 +42,11 @@ if __name__ == '__main__':
 
     inputArgs = Input()
     
-    firstconfig = inputArgs['firstconfig']
-    simJobs = inputArgs['simjobs']
+    firstConfig = int( inputArgs['firstconfig'] )
+    simJobs     = int( inputArgs['simjobs']     )
 
-    for nthConfig in range(int(firstconfig),int(firstconfig)+int(simJobs)):
+    #Looping through jobs to run simultaneously
+    for ithJob in range(simJobs):
+        nthConfig = ithJob+firstConfig
         main(nthConfig,inputArgs)
 
