@@ -8,65 +8,45 @@ Also contains a function for formatting the kappa value.
 import re
 
 
-def FormatShift(shift,fullShift='full',returnType=str,*args,**kwargs):
-    '''
-    Returns the x and t shift from a string of form x08y16z24t32.
+def FormatShift(shift,form='input',fullShift='full'):
 
-    Arguments:
-    shift -- string: The shift to be formatted. Must be in order
-                     x y z t. If a direction is left out, eg.
-                     x08y24t32, the missing coordinate will be 
-                     filled by the x value, or if x is missing.
-    Example Output: 8 16 24 32
-    Requires regex module.
-    '''
-
+    directions = 'xyzt'
     #Pattern to grab the letters and numbers from the string
-    letters = re.compile('[xyzt]')
+    letters = re.compile(f'[{directions}]')
     numbers = re.compile(r'\d+')
 
-    #Extracting numbers and letters
+    #Extracting numbers and letters that are present
     #Place in dictionary of coordinate:shift amount
-    shifts = dict(zip(letters.findall(shift),numbers.findall(shift)))
+    present = dict(zip(letters.findall(shift),numbers.findall(shift)))
 
-    #If all four directions are present, we can return 
-    if len(shifts) == 4:
-        #Casting to int to remove leading zeros
-        #i.e 00->0,01->1
-        return ' '.join([str(int(x)) for x in shifts.values()])
+    #Substituting zero for anything missing
+    missing = {key:'0' for key in directions if key not in present.keys()}
+    shifts = {**present,**missing}
 
-    #If we don't have all directions present, need to fill the gaps
-    default = ['x','y','z','t']
-    output = []
-    for direction in default:
-        #If direction present, use given value
-        if direction in shifts.keys():
-            output.append(shifts[direction])
-        #If not present, use x value unless missing
-        else:
-            try:
-                output.append(shifts['x'])
-            except KeyError:
-                output.append('0')
-
-    #Casting to int to remove leading zeros
-    output = [int(x) for x in output]
-
+    #Where eigenmodes are concerned, we don't pass full shift as otherwise
+    #end up double shifting gauge fields
     if fullShift == 'emode':
-        output[-2:] = [0,0]
+        shifts['z'] = '0'
+        shifts['t'] = '0'
     elif fullShift == 'lpsink':
-        output[:3] = [0,0,0]
+        shifts['x'] = '0'
+        shifts['y'] = '0'
+        shifts['z'] = '0'
     elif fullShift != 'full':
         raise ValueError('fullShift must be "full", "emode", or "lpsink"')
-
-
     
-    if returnType is str:
-              return ' '.join([str(x) for x in output])
-    elif returnType is int:
-        return output
+    if form == 'input': # ie '0 24 8 6'
+        #casting to int to remove trailing zeros
+        cleaned = [str(int(shifts[key])) for key in directions]
+        return ' '.join(cleaned)
+    elif form == 'label': # ie y24z8t6
+        nonTrivial = [direction+shifts[direction] for direction in shifts if int(shifts[direction]) != 0]
+        if nonTrivial != []:
+            return ''.join(nonTrivial)
+        else:
+            return 'None'
     else:
-        raise ValueError('returnType must be str or int')
+        raise ValueError('form must be "input" or "label"')
 
 
     
@@ -83,8 +63,8 @@ def CompareShifts(shift1,shift2,*args,**kwargs):
     if None in [shift1,shift2]:
         return False
 
-    shift1 = FormatShift(shift1,returnType=int)
-    shift2 = FormatShift(shift2,returnType=int)
+    shift1 = FormatShift(shift1,form='input').split()
+    shift2 = FormatShift(shift2,form='input').split()
 
     if shift1[0:2] == shift2[0:2]:
         return True
