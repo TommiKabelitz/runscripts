@@ -202,7 +202,7 @@ def MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jo
     """
     
     #Making Laplacian Sink File
-    modeFiles = dirs.LapModeFiles(parameters,kd=kd,quark=structure,**jobValues)   #(dict)
+    modeFiles = dirs.LapModeFiles(parameters,kd=kd,shift=shift,quark=structure,**jobValues)   #(dict)
     lapModeFiles = [modeFiles[quark] for quark in structure]   #(above as list) 
     files.MakeLPSinkFile(filestub,logFile,shift=FormatShift(shift,fullShift='lpsink'),lapModeFiles=lapModeFiles,**parameters['sourcesink'])
 

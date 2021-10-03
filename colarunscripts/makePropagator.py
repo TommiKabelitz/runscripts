@@ -157,9 +157,7 @@ def MakePropInputFiles(parameters,filestub,logFile,quarkLabel,kd,shift,quarkValu
         files.MakeLatticeFile(filestub,logFile,**parameters['lattice'])
         files.MakeCloverFile(filestub,logFile,**parameters['propcfun']['clover'])
 
-        #Temp note, kappa is left for later as og kappa goes in directory
-        
-        quarkValues['sourcetype_num'] = files.MakeSourceFile(parameters,filestub,logFile,kd,quarkValues)
+        quarkValues['sourcetype_num'] = files.MakeSourceFile(parameters,filestub,logFile,kd,shift,quarkValues)
 
         quarkValues.pop('strangeKappa')
         #Can now make the .quarkprop input file

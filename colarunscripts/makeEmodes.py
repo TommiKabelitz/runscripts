@@ -35,7 +35,7 @@ def main(parameters,kd,shift,jobValues,timer):
     
     fullFileList = []
     for structure in parameters['runValues']['structureList']:
-        modeFiles = dirs.LapModeFiles(parameters,kd=kd,quark=structure,**jobValues,withExtension=False)
+        modeFiles = dirs.LapModeFiles(parameters,kd=kd,shift=shift,quark=structure,**jobValues,withExtension=False)
 
         print()
         print(f'Making eigenmodes for structure set: {structure}')
