@@ -49,3 +49,4 @@ makes Laplacian eigenmodes, propagators and correlation functions.
 - Add more documentation, including explanations of all variable in parameters.yml
 - Add testing scripts for easy testing of individual functions
 - Implement production and use of loop props
+- Make replacement in file paths much cleaner

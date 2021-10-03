@@ -73,7 +73,7 @@ directories:
   
   lapModeFormat: clfs
   lapModeDir: /scratch/e31/tk9944/oldlap2modes
-  lapModeFile: /BFKD/KAPPAModess32t64kBKDCONFIGID
+  lapModeFile: /shSHIFT/BFKD/KAPPAModess32t64kBKDCONFIGID
   lapModeReport: QUARK_icfgCONFIGID
 
   landauDir: /scratch/e31/tk9944/PhD/LandauPhases/

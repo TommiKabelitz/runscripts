@@ -16,6 +16,7 @@ from argparse import Namespace        #For converting dictionaries to namespaces
 
 from colarunscripts import configIDs as cfg
 from colarunscripts.particles import QuarkCharge
+from colarunscripts.shifts import FormatShift
 from colarunscripts.utilities import GetEnvironmentVar
 
 #Just for nice printing of dictionaries. print -> pp
@@ -161,7 +162,7 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
     
 
 
-def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,*args,**kwargs):
+def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',shift='',quark=None,withExtension=True,*args,**kwargs):
     """
     Returns dictionary of Laplacian eigenmode files.
 
@@ -194,6 +195,12 @@ def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,
     if withExtension is True:
         baseModePath += extension
 
+    baseModePath = baseModePath.replace('KAPPA',str(kappa))
+    baseModePath = baseModePath.replace('CONFIGID',cfgID)
+    formattedShift = FormatShift(shift,form='label',fullShift='emode')
+    baseModePath = baseModePath.replace('SHIFT',formattedShift)
+
+        
     #Setting up the quark list depending on quark input
     if quark is None:
         adjustkd = False
@@ -222,10 +229,8 @@ def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',quark=None,withExtension=True,
         if adjustkd is True:
             kd *= QuarkCharge(quark)
 
-        #Replacing kappa,configID, field strength and saving to dict
-        modeFile = baseModePath.replace('KAPPA',str(kappa))
-        modeFile = modeFile.replace('CONFIGID',cfgID)
-        lapModeFiles[quark] = modeFile.replace('KD',str(kd)) 
+        #Can now replace kd
+        lapModeFiles[quark] = baseModePath.replace('KD',str(kd)) 
 
         #Making directory if it doesn't exist
         path = os.path.dirname(lapModeFiles[quark])
