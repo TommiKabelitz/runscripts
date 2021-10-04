@@ -41,7 +41,7 @@ def Load(parametersFile='',writeOut=False,*args,**kwargs):
 
 
 
-def CopyParamsFile(oldFile,jobID,*args,**kwargs):
+def CopyParamsFile(oldFile,jobID,testing=None,*args,**kwargs):
     """
     Makes a copy of the parameters file to use for this specific job.
 
@@ -53,8 +53,29 @@ def CopyParamsFile(oldFile,jobID,*args,**kwargs):
     parameters = Load(parametersFile=oldFile)
     #File to make
     copyFile = dirs.FullDirectories(parameters,directory='parameters')['parameters'] + f'{jobID}_parameters.yml'
-    
+
+    if testing == 'dryrun':
+        ModifyExecutables(parameters)
+
     print(f'Making copy of parameters file at: {copyFile}')
     print()
-    #Copying file
-    subprocess.run(['cp',oldFile,copyFile])
+    yaml.dump(parameters,open(copyFile,'w'))
+
+
+
+def ModifyExecutables(parameters,*args,**kwargs):
+
+    #Check we have actually been passed a dictionary
+    if type(parameters) is not dict:
+        raise TypeError('parameters must be of type dictionary')
+
+    #Loop through the keys in dictionary looking for executables
+    for key in parameters:
+        #May have nested dictionaries, so recursively call function
+        #in that case
+        if type( parameters[key] ) is dict:
+            ModifyExecutables( parameters[key] )
+
+        #Otherwise, change the executable value if we find one
+        elif 'executable' in key.lower():
+            parameters[key] = 'dryRun'

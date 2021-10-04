@@ -92,9 +92,9 @@ def ScheduleJobs(filename,scheduler,doArrayJobs,ncon,inputArgs):
     print()
     print(f'Running {filename}')
 
-    if inputArgs['testing'] == 'headnode':
+    if inputArgs['testing'] in ['headnode','dryrun']:
         jobID = GetJobID(os.environ) 
-        params.CopyParamsFile(inputArgs['parametersfile'],jobID=jobID)
+        params.CopyParamsFile(inputArgs['parametersfile'],jobID,inputArgs['testing'])
         subprocess.run([filename])
         return
 
