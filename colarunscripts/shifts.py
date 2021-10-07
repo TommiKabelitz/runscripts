@@ -26,7 +26,6 @@ def FormatShift(shift,form='input',fullShift='full'):
     #Where eigenmodes are concerned, we don't pass full shift as otherwise
     #end up double shifting gauge fields
     if fullShift == 'emode':
-        shifts['z'] = '0'
         shifts['t'] = '0'
     elif fullShift == 'lpsink':
         shifts['x'] = '0'
