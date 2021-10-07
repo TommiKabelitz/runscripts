@@ -151,8 +151,8 @@ def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
         print()        
         print('Making correlation functions')
         print(f'Time is {datetime.now()}')    
-        jobValues['inputSummary']['cfun'] = PrepareInputReportFile(parameters,'cfun',kd,shift,jobValues)
         jobValues['inputSummary']['interp'] = PrepareInputReportFile(parameters,'interp',kd,shift,jobValues)
+        jobValues['inputSummary']['cfun'] = PrepareInputReportFile(parameters,'cfun',kd,shift,jobValues)
         makeCfun.main(parameters,kd,shift,jobValues,timer)
         print("Correlation functions done")
         print(f'Time is {datetime.now()}')
@@ -169,11 +169,31 @@ def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
 
 def PrepareInputReportFile(parameters,report,kd,shift,jobValues):
 
-    reportFile = dirs.FullDirectories(parameters,directory='inputReport',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['inputReport']
+    pathArgs = {'kd':kd,'shift':shift,**jobValues,**parameters['sourcesink']}
+    if report in ['prop','emode']:
+        pathArgs['sinkType'] = ''
+    if report == 'emode':
+        pathArgs['sourceType'] = ''
+
+        
+    reportFile = dirs.FullDirectories(parameters,directory='inputReport',**pathArgs)['inputReport']
     reportFile = reportFile.replace('TYPE',report)
 
     with open(reportFile,'w') as f:
         f.write(f'Summary of {report} input files.\n')
+        if report == 'prop' and 'lp' in jobValues['sourceType']:
+            emodeReport = jobValues['inputSummary'].get('emode')
+            f.write(f'\nEigenmode summary file is:\n{emodeReport}\n')
+        elif report == 'cfun':
+            emodeReport = jobValues['inputSummary'].get('emode')
+            propReport = jobValues['inputSummary'].get('prop')
+            interpReport = jobValues['inputSummary'].get('interp')
+            f.write(f'\nPropagator summary file is:\n{propReport}\n')
+            f.write(f'\nInterpolator summary file is:\n{interpReport}\n')
+            if jobValues['sinkType'] == 'laplacian':
+                f.write(f'\nEigenmode summary file is:\n{emodeReport}\n')
+            
+            
         f.write('\nValues for this config, field strength and shift\n')
         PrintJobValues(jobValues,stream=f)
         f.write(50*'_'+'\n')
@@ -252,7 +272,7 @@ def Input():
 
 
 
-def CfunsExist(parameters,jobValues,kd=None,shift=None,*args,**kwargs):
+def CfunsExist(parameters,jobValues,kd=None,shift=None,sinkType=None,*args,**kwargs):
     """
     Checks whether all cfuns for a parameter set exist.
 
@@ -263,6 +283,8 @@ def CfunsExist(parameters,jobValues,kd=None,shift=None,*args,**kwargs):
     shift      -- string: Cshift for current ser (optional)(default:all)
 
     """
+
+    print('in CfunsExist')
 
     #Note: As soon as we find something is missing, we can return false as
     #all cfuns are made in one call. (Structure exempt, on todo list)
@@ -277,26 +299,30 @@ def CfunsExist(parameters,jobValues,kd=None,shift=None,*args,**kwargs):
             if CfunsExist(parameters,jobValues,kd,shift) is False:
                 return False
 
-    #Grabbing appropriate sink values
-    if 'laplacian' == jobValues['sinkType']:
-        sinkVals = parameters['sourcesink']['nModes_lpsnk']
-    elif 'smeared' == jobValues['sinkType']:
-        sinkVals = parameters['sourcesink']['sweeps_smsnk']
+    for sinkType in list(jobValues['sinkType']):
+            
+        #Grabbing appropriate sink values
+        if 'laplacian' == sinkType:
+            sinkVals = parameters['sourcesink']['nModes_lpsnk']
+        elif 'smeared' == sinkType:
+            sinkVals = parameters['sourcesink']['sweeps_smsnk']
 
-    #Looping through everything we need
-    for sinkVal in sinkVals:
-        cfunFilename = dirs.GetCfunFile(parameters,kd=kd,shift=shift,sinkVal=sinkVal,**jobValues)
+        #Looping through everything we need
+        for sinkVal in sinkVals:
+            cfunArgs = {'kd':kd,'shift':shift,'sinkVal':sinkVal,**jobValues}
+            cfunArgs['sinkType'] = sinkType
+            cfunFilename = dirs.GetCfunFile(parameters,**cfunArgs)
 
-        for chi,chibar in jobValues['particleList']:
-            for structure in jobValues['structureList']:
-                #Structure in jobValues['structureList'] is a list
-                formattedStructure = ''.join(structure)
-                cfun = cfunFilename.replace('CHICHIBAR_STRUCTURE',f'{chi}{chibar}_{formattedStructure}')
-                
-                if pathlib.Path(cfun).is_file() is False:
-                    return False
+            for chi,chibar in jobValues['particleList']:
+                for structure in jobValues['structureList']:
+                    #Structure in jobValues['structureList'] is a list
+                    formattedStructure = ''.join(structure)
+                    cfun = cfunFilename.replace('CHICHIBAR_STRUCTURE',f'{chi}{chibar}_{formattedStructure}')
+                    print(f'filename: {cfun}')
+                    if pathlib.Path(cfun).is_file() is False:
+                        return False
 
-    return True
+        return True
                     
         
 

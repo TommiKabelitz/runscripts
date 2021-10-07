@@ -7,7 +7,7 @@ runValues:
   shifts: [x00t00]
   runPrefix: a
   sourceType: sm
-  sinkType: laplacian
+  sinkType: [laplacian]
   structureList: [[u,d,s]]
   particleList: [[proton_1,proton_1bar],     [proton_2,proton_2bar],     [proton_1,proton_2bar],     [proton_2,proton_1bar]]
   scheduler: PBS

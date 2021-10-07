@@ -119,18 +119,20 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
     
     #Setting up which value will be included in the filename with the 
     #source and sink types
-    sourceVal = 0
-    sinkVal = 0
+    sourceVal = ''
+    sinkVal = ''
     if sourceType in ['sm','lpsm','lpxyz','xyz']:
         sourceVal = sweeps_smsrc
-    else:
+    elif sourceType == 'lp':
         sourceVal = nModes_lpsrc
-    
-    if sinkType in ['smeared']:
-        sinkVal = sweeps_smsnk[0]
+
+    if type(sinkType) is list:
+        sinkType = '-'.join(sinkType)
+    elif sinkType in ['smeared']:
+        sinkVal = '-'.join([str(x) for x in sweeps_smsnk])
         sinkType = 'sm'
     elif sinkType in ['laplacian']:
-        sinkVal = nModes_lpsnk[0]
+        sinkVal = '-'.join([str(x) for x in nModes_lpsnk])
         sinkType = 'lp'
     
     #Replace all possible placeholders
@@ -138,8 +140,10 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
         replaced = directories[filetype].replace('KAPPA',str(kappa))
         replaced = replaced.replace('KD',str(kd))
         replaced = replaced.replace('SHIFT',shift)
-        replaced = replaced.replace('SOURCE',sourceType+str(sourceVal))
-        replaced = replaced.replace('SINK',sinkType+str(sinkVal))
+        replaced = replaced.replace('SOURCE',f'{sourceType}{str(sourceVal)}')
+        replaced = replaced.replace('SINK',f'{sinkType}{str(sinkVal)}')
+        replaced = replaced.replace('SOSI_','_')
+        replaced = replaced.replace('SI_','_')
         replaced = replaced.replace('CONFIGID',cfgID)
         replaced = replaced.replace('STRUCTURE',''.join(structure))        
         replaced = replaced.replace('KH',str(kH))

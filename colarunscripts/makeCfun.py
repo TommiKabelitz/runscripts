@@ -62,46 +62,52 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
     propDict = CompilePropPaths(parameters,kd,shift,jobValues)
 
     logFile = jobValues['inputSummary']['cfun']
-    
-    with open(logFile,'a') as f:
-        f.write('\nInput files not dependent on structure:\n')
+
+    sinkTypes = jobValues['sinkType']
+    for sinkType in sinkTypes:
+
+        jobValues['sinkType'] = sinkType
         
-    #Making files which are reused for all structures
-    MakeReusableFiles(parameters,filestub,logFile,kd,shift,jobValues)
-    
-    with open(logFile,'a') as f:
-        f.write('\nInput files dependent on structure:\n')
+        with open(logFile,'a') as f:
+            f.write(f'\nSink type: {jobValues["sinkType"]}\n')
+            f.write('\nInput files not dependent on structure:\n')
 
-    #Looping over different structures
-    for structure in parameters['runValues']['structureList']:
+        #Making files which are reused for all structures
+        MakeReusableFiles(parameters,filestub,logFile,kd,shift,jobValues)
 
-        with open(logFile,'a') as f,open(jobValues['inputSummary']['interp'],'a') as g:
+        with open(logFile,'a') as f:
+            f.write('\nInput files dependent on structure:\n')
 
-            print(f'\nDoing structure set: {structure}\n')
-            f.write(f'\n\nDoing structure set: {structure}\n\n')
-            g.write(f'\n\nDoing structure set: {structure}\n\n')
-                
-            #Just printing quark paths for reference
-            print(f'Quark paths are: ')
-            f.write(f'Quark paths are:\n')
-            for quark in structure:
-                print(f'{quark}: {propDict[quark]}')
-                f.write(f'{quark}: {propDict[quark]}\n')
+        #Looping over different structures
+        for structure in parameters['runValues']['structureList']:
 
-        print('Making structure specific files')
-        MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jobValues)
-      
-        #Preparing final variables for call to cfungen
-        executable = parameters['propcfun']['cfgenExecutable']
+            with open(logFile,'a') as f,open(jobValues['inputSummary']['interp'],'a') as g:
 
-        scheduler = jobValues['scheduler'].lower()
-        numGPUs = parameters[scheduler+'Params']['NUMGPUS']
-        reportFile = dirs.FullDirectories(parameters,directory='cfunReport',kd=kd,shift=shift,structure=structure,**jobValues,**parameters['sourcesink'])['cfunReport']
+                print(f'\nDoing structure set: {structure}\n')
+                f.write(f'\n\nDoing structure set: {structure}\n\n')
+                g.write(f'\n\nDoing structure set: {structure}\n\n')
 
-        #Calling cfungen
-        timer.startTimer('Correlation functions')
-        CallMPI(executable,reportFile,filestub=filestub,numGPUs=numGPUs)
-        timer.stopTimer('Correlation functions')
+                #Just printing quark paths for reference
+                print(f'Quark paths are: ')
+                f.write(f'Quark paths are:\n')
+                for quark in structure:
+                    print(f'{quark}: {propDict[quark]}')
+                    f.write(f'{quark}: {propDict[quark]}\n')
+
+            print('Making structure specific files')
+            MakeSpecificFiles(parameters,filestub,logFile,kd,shift,structure,propDict,jobValues)
+
+            #Preparing final variables for call to cfungen
+            executable = parameters['propcfun']['cfgenExecutable']
+
+            scheduler = jobValues['scheduler'].lower()
+            numGPUs = parameters[scheduler+'Params']['NUMGPUS']
+            reportFile = dirs.FullDirectories(parameters,directory='cfunReport',kd=kd,shift=shift,structure=structure,**jobValues,**parameters['sourcesink'])['cfunReport']
+
+            #Calling cfungen
+            timer.startTimer('Correlation functions')
+            CallMPI(executable,reportFile,filestub=filestub,numGPUs=numGPUs)
+            timer.stopTimer('Correlation functions')
 
 def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
     """
