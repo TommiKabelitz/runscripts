@@ -327,7 +327,7 @@ def MakeGFSFile(filestub,logFile,configFormat,configFile,shift,*args,**kwargs):
     with open(filestub+extension,'w') as f:
         f.write(f'1\n')       #Number of configurations we are doing at once    
         f.write(f'{configFormat}\n')
-        f.write(f'{shift}')
+        f.write(f'{shift}\n')
         f.write(f'{configFile}\n')
                 
     #Writing to the log file
