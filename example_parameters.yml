@@ -29,8 +29,9 @@ tempStorage:
 #time format is D-HH:MM:SS, must be in quotes
 #memory in GB
 slurmParams:
-  runscriptTemplate: /home/a1724542/PhD/runscripts/phoenixTemplate
-  QUEUE: batch
+  runscriptTemplate: /home/a1724542/PhD/runscripts/topazTemplate
+  PARTITION: e31
+  QUEUE: gpuq
   NODES: 1
   NUMCPUS: 4
   TIME: '8:00:00'
