@@ -280,11 +280,9 @@ def CfunsExist(parameters,jobValues,kd=None,shift=None,sinkType=None,*args,**kwa
     parameters -- dict: Dictionary of all parameters from yml
     jobValues  -- dict: Dictionary of parameters relevant to this job
     kd         -- int: field strength for current set (optional)(default: all)
-    shift      -- string: Cshift for current ser (optional)(default:all)
+    shift      -- string: Cshift for current set (optional)(default:all)
 
     """
-
-    print('in CfunsExist')
 
     #Note: As soon as we find something is missing, we can return false as
     #all cfuns are made in one call. (Structure exempt, on todo list)
@@ -298,8 +296,13 @@ def CfunsExist(parameters,jobValues,kd=None,shift=None,sinkType=None,*args,**kwa
         for shift in jobValues['shifts']:
             if CfunsExist(parameters,jobValues,kd,shift) is False:
                 return False
+           
+    if type( jobValues['sinkType'] ) is str:
+        sinkList = [ jobValues['sinkType'] ]
+    else:
+        sinkList = list(jobValues['sinkType'])
 
-    for sinkType in list(jobValues['sinkType']):
+    for sinkType in sinkList:
             
         #Grabbing appropriate sink values
         if 'laplacian' == sinkType:

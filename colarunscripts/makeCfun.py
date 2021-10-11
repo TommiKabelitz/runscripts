@@ -63,9 +63,12 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
 
     logFile = jobValues['inputSummary']['cfun']
 
-    sinkTypes = jobValues['sinkType']
-    for sinkType in sinkTypes:
+    if type( jobValues['sinkType'] ) is str:
+        sinkTypes = [ jobValues['sinkType'] ]
+    else:
+        sinkTypes = jobValues['sinkType']
 
+    for sinkType in sinkTypes:
         jobValues['sinkType'] = sinkType
         
         with open(logFile,'a') as f:
