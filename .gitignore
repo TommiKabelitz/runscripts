@@ -4,7 +4,7 @@
 /*~
 
 #Virtual environment directory
-/env/*
+/env/lib*
 
 #A file containing environment variables for reference
 environ_vars
