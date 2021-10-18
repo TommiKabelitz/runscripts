@@ -104,7 +104,7 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     return {key:directories[key] for key in directory if key in directories.keys()}  
 
 
-def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='',sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=[0],nModes_lpsnk=[0],cfgID='',structure=[],kH=0,*args,**kwargs):
+def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='',sinkTypes=[],sinkType='',sweeps_smsrc=0,nModes_lpsrc=0,sweeps_smsnk=[0],nModes_lpsnk=[0],cfgID='',structure=[],kH=0,*args,**kwargs):
     """
     Replaces placeholders in paths, makes directories and returns file paths.
     
@@ -126,21 +126,20 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
     elif sourceType == 'lp':
         sourceVal = nModes_lpsrc
 
-    if type(sinkType) is list:
-        sinkType = '-'.join(sinkType)
-    elif sinkType in ['smeared']:
+    if sinkType in ['smeared']:
         sinkVal = '-'.join([str(x) for x in sweeps_smsnk])
         sinkType = 'sm'
     elif sinkType in ['laplacian']:
         sinkVal = '-'.join([str(x) for x in nModes_lpsnk])
         sinkType = 'lp'
-    
+
     #Replace all possible placeholders
     for filetype in directories.keys():
         replaced = directories[filetype].replace('KAPPA',str(kappa))
         replaced = replaced.replace('KD',str(kd))
         replaced = replaced.replace('SHIFT',shift)
         replaced = replaced.replace('SOURCE',f'{sourceType}{str(sourceVal)}')
+        replaced = replaced.replace('SINKS','-'.join(sinkTypes))
         replaced = replaced.replace('SINK',f'{sinkType}{str(sinkVal)}')
         replaced = replaced.replace('SOSI_','_')
         replaced = replaced.replace('SI_','_')

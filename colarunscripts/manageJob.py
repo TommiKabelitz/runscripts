@@ -51,7 +51,7 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
 
     if jobValues['sourceType'] == 'lp' and jobValues['makeProps']:
         jobValues['makeEmodes'] = True
-    if jobValues['sinkType'] == 'laplacian' and jobValues['makeCfuns'] is True:
+    if 'laplacian' in jobValues['sinkTypes'] and jobValues['makeCfuns'] is True:
         jobValues['makeEmodes'] = True
 
   
@@ -190,7 +190,7 @@ def PrepareInputReportFile(parameters,report,kd,shift,jobValues):
             interpReport = jobValues['inputSummary'].get('interp')
             f.write(f'\nPropagator summary file is:\n{propReport}\n')
             f.write(f'\nInterpolator summary file is:\n{interpReport}\n')
-            if jobValues['sinkType'] == 'laplacian':
+            if 'laplacian' in jobValues['sinkTypes']:
                 f.write(f'\nEigenmode summary file is:\n{emodeReport}\n')
             
             
@@ -220,7 +220,7 @@ def PrintJobValues(jobValues,stream=sys.stdout):
                      'kds',
                      'shifts',
                      'sourceType',
-                     'sinkType',
+                     'sinkTypes',
                      'structureList',
                      'particleList']
     
@@ -272,7 +272,7 @@ def Input():
 
 
 
-def CfunsExist(parameters,jobValues,kd=None,shift=None,sinkType=None,*args,**kwargs):
+def CfunsExist(parameters,jobValues,kd=None,shift=None,*args,**kwargs):
     """
     Checks whether all cfuns for a parameter set exist.
 
@@ -297,12 +297,7 @@ def CfunsExist(parameters,jobValues,kd=None,shift=None,sinkType=None,*args,**kwa
             if CfunsExist(parameters,jobValues,kd,shift) is False:
                 return False
            
-    if type( jobValues['sinkType'] ) is str:
-        sinkList = [ jobValues['sinkType'] ]
-    else:
-        sinkList = list(jobValues['sinkType'])
-
-    for sinkType in sinkList:
+    for sinkType in jobValues['sinkTypes']:
             
         #Grabbing appropriate sink values
         if 'laplacian' == sinkType:

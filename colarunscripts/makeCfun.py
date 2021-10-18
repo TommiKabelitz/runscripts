@@ -63,16 +63,11 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
 
     logFile = jobValues['inputSummary']['cfun']
 
-    if type( jobValues['sinkType'] ) is str:
-        sinkTypes = [ jobValues['sinkType'] ]
-    else:
-        sinkTypes = jobValues['sinkType']
-
-    for sinkType in sinkTypes:
+    for sinkType in jobValues['sinkTypes']:
         jobValues['sinkType'] = sinkType
         
         with open(logFile,'a') as f:
-            f.write(f'\nSink type: {jobValues["sinkType"]}\n')
+            f.write(f'\nSink type: {sinkType}\n')
             f.write('\nInput files not dependent on structure:\n')
 
         #Making files which are reused for all structures
@@ -84,6 +79,10 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
         #Looping over different structures
         for structure in parameters['runValues']['structureList']:
 
+            if structure != ['u','d','s'] and sinkType == 'smeared':
+                print(f'\nskipping combination of {structure=} and {sinkType=}')
+                continue
+            
             with open(logFile,'a') as f,open(jobValues['inputSummary']['interp'],'a') as g:
 
                 print(f'\nDoing structure set: {structure}\n')
