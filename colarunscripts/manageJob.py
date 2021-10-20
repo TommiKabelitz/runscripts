@@ -129,7 +129,7 @@ def doJobSet(parameters,kd,shift,jobValues,timer,*args,**kwargs):
         print(f'Time is {datetime.now()}')
         print()
     else:
-        eigenmodePath = []
+        eigenmodePaths = []
 
 
     #Making propagators
@@ -316,7 +316,6 @@ def CfunsExist(parameters,jobValues,kd=None,shift=None,*args,**kwargs):
                     #Structure in jobValues['structureList'] is a list
                     formattedStructure = ''.join(structure)
                     cfun = cfunFilename.replace('CHICHIBAR_STRUCTURE',f'{chi}{chibar}_{formattedStructure}')
-                    print(f'filename: {cfun}')
                     if pathlib.Path(cfun).is_file() is False:
                         return False
 
