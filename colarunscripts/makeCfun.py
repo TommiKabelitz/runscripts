@@ -9,8 +9,15 @@ This script is not intended to  be called fromthe command line
 """
 
 #standard library modules
-import subprocess                   #for calling cfungenGPU.x
+import glob                         #for globbing created cfuns
+import pathlib                      #for various path related operations
+import random                       #for avoiding race conditions with tars
+import re                           #for extracting tar file path
+import tarfile                      #for managing the cfun tars
+import time                         #for time.sleep
+import traceback                    #allows printing of the full traceback
 from datetime import datetime       #for writing out the time
+
 
 #local modules
 from colarunscripts import configIDs as cfg
@@ -111,6 +118,12 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
             CallMPI(executable,reportFile,filestub=filestub,numGPUs=numGPUs)
             timer.stopTimer('Correlation functions')
 
+            #Tar new correlation functions together
+            TarCfuns(parameters,kd,shift,structure,sinkType,jobValues)
+        #End structure loop
+    #End sinktype loop
+
+                
 def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
     """
     Creates a dictionary of propagator paths for all quarks in the quarkList.
@@ -278,3 +291,151 @@ def HadronicProjection(parameters,kd,structure,*args,**kwargs):
         details['kd_q'] = ' '.join([str(x) for x in effectiveQuarkCharge])
         details['fullLandauFile'] = dirs.FullDirectories(parameters,directory='landau')['landau']
         return details
+
+
+def TarCfuns(parameters: dict, kd: int, shift: str, structure: list, sinkType: str, jobValues: dict) -> None:
+    """
+    Tars newly created correlation functions together.
+
+    Arguments:
+    parameters -- dict: 
+    kd         -- int:
+    shift      -- str:
+    structure  -- list:
+    sinkType   -- str:
+    jobValues  -- dict
+
+    Globs to create list of files to tar and determines tarfile name based on 
+    what was globbed. Ability to specify what to glob intended for future versions.
+    """
+    
+    #Getting the general path to the cfuns. We intentionally pass * for sinkVal so
+    #that we can glob for that.
+    cfunFiles = dirs.GetCfunFile(parameters,jobValues['kappa'],kd,shift,jobValues['sourceType'],sinkType,'*',jobValues['cfgID'])
+    #Replacing structure placeholder
+    cfunBase = cfunFiles.replace('STRUCTURE',''.join(structure))
+
+    #Removing various parts of the cfun filepath to construct the tar path. Removed
+    #things are combined in the tar. Use regex to remove for generality, probably not
+    #strictly necessary
+    tarPath = re.sub(r'sh(([xyzt]\d+)+|(None))\/','',cfunBase)        #shift
+    tarPath = re.sub(r'icfg-([ab]|([ghijk]M)){1}-\d+','',tarPath)     #config id
+    tarPath = tarPath.replace('.u.2cf','') + '.tar'                   #file extension
+    tarPath = tarPath.replace('*','')                                 #any globs
+    #Ensuring the directory for the tar exists
+    tarDir = pathlib.PurePath(tarPath).parent
+    pathlib.Path(tarDir).mkdir(parents=True,exist_ok=True)
+    print(cfunFiles)
+    print(tarPath)
+
+    #Looping through particles (We want a different tar for each)
+    for chi,chibar in jobValues['particleList']:
+        #Finalising filenames
+        tarFile = tarPath.replace('CHICHIBAR',f'{chi}{chibar}')
+        cfunFiles = cfunBase.replace('CHICHIBAR',f'{chi}{chibar}')
+        cfunList = glob.glob(cfunFiles)        #Doing the glob
+        print(f'{cfunList=}')
+     
+        #Checking that we actually have cfuns to tar
+        if len(cfunList) == 0:
+            print(f'No cfuns for {chi}{chibar}. If you are not debugging, something has gone wrong')
+            continue
+
+        #Putting everything into the tar
+        CreateTar(tarFile,cfunList,shift,jobValues)
+
+def BreakRaceCondition(filePath: str, maxTries: int = 10, *args, **kwargs) -> str:
+    """
+    Breaks race condition of file being accessed by different processes.
+
+    Arguments:
+    filepath -- str: path to file which is being accessed
+    maxTries -- int: number of attempts to access file before giving up.
+
+    Returns:
+    statusFile -- str: The path to the status file made showing the file is open.
+                       Returns failed if it gives up.
+
+    Checks if a status file exists. If the file exists, assumes file is 
+    being accessed, and waits before trying again. Once maxTries is reached,
+    gives up, returning 'failed'.
+    Upon finding no status file, waits a brief random time, just in case,
+    before making the status file, which is returned.
+
+    STATUS FILE MUST BE DELETED AFTER CLOSING FILE OF INTEREST.
+    """
+
+    #Needs to be a pathlib path for touch
+    statusFile = pathlib.Path(filePath+'.status')
+    counter = 0                    #Attempt counter
+    while True:
+        if counter >= maxTries:    #'give up' condition
+            print('maxTries exceeded, skipping file. File open by other process')
+            return 'failed'
+
+        if statusFile.is_file():
+            time.sleep(5)          #wait 5 seconds before trying again
+            counter += 1
+        else:                      #Progressing to opening file
+            break
+        print(counter)
+
+    time.sleep(random.uniform(0,0.1))    #random final wait
+    statusFile.touch(exist_ok=False)     #creating own status file
+    return statusFile
+            
+
+
+def CreateTar(tarPath: str, cfunList: list, shift: str, jobValues: dict, *args,**kwargs) -> None:
+    """
+    Creates/appends the list of cfuns to the tar.
+
+    Arguments:
+    tarPath   -- str: File path to the tar. 
+    cfunList  -- list: List of cfuns to add to the tar
+    shift     -- str: Shift of cfuns to append. For naming inside tar
+    jobValues -- dict: Dictionary of job Values
+  
+    """
+
+    #Need to break race condition with other jobs if doing different configs in
+    #different jobs, otherwise they may try to access the same tar simultaneously
+    statusFile = BreakRaceCondition(tarPath)
+    if statusFile == 'failed':    #If the race condition cannot be broken
+        return
+
+    #try is to ensure statusFile is always deleted, even if something goes wrong here
+    try:
+        print(f'\nPutting cfuns into tar file:\n{tarPath}')
+        #Opening tar in append mode
+        with tarfile.open(name=tarPath,mode='a') as t:
+            #adding all cfuns with name in archive being arcname
+            for cfun in cfunList:
+                #PurePath required to use .name (just how pathlib works). method
+                #extracts just filename.
+                t.add(cfun,arcname=f'/sh{shift}/'+pathlib.PurePosixPath(cfun).name)
+
+        #Deleting cfuns which are in tar. We wait until tar is finalised so we don't
+        #delete the cfun if it fails
+        for cfun in cfunList:
+            path = pathlib.Path(cfun)
+            path.unlink(missing_ok=True)
+              
+        #Writing info files - file containing list of cfgids and list of files
+        with open(tarPath+'cfglist','a') as f:
+            f.write(jobValues['cfgID'])
+        with open(tarPath+'info','a') as i:
+            i.write('\n'.join(cfunList))
+            i.write('\n')
+
+        #Deleting status file
+        statusFile.unlink(missing_ok=True)
+    except:
+        #Deleting status file, then raising exception and exiting
+        statusFile.unlink(missing_ok=True)
+        traceback.print_exc()
+        exit()
+
+
+
+        
