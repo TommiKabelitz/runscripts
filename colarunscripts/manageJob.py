@@ -243,7 +243,6 @@ def PrintJobValues(jobValues,stream=sys.stdout):
 def SubmitNext(parameters,jobValues,nthConfig,start,numSimultaneousJobs,testing,oldParametersFile,ncon):
     
     nextConfig = int(nthConfig) + int(numSimultaneousJobs)
-    
     jobValues['cfgID'] = cfg.ConfigID(nextConfig,jobValues['runPrefix'],start)
 
     inputArgs = {}
@@ -251,7 +250,7 @@ def SubmitNext(parameters,jobValues,nthConfig,start,numSimultaneousJobs,testing,
     inputArgs['parametersfile'] = oldParametersFile
     inputArgs['testing'] = testing
 
-    if nextConfig <= ncon and CfunsExist(parameters,jobValues):
+    if nextConfig <= ncon and CfunsExist(parameters,jobValues) is False:
         print(f'Submitting configuration {nextConfig}')
         submit.main(nextConfig,inputArgs)
     else:
