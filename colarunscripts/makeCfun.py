@@ -356,11 +356,8 @@ def BreakRaceCondition(filePath: str, maxTries: int = 10, *args, **kwargs) -> st
     statusFile -- str: The path to the status file made showing the file is open.
                        Returns failed if it gives up.
 
-    Checks if a status file exists. If the file exists, assumes file is 
-    being accessed, and waits before trying again. Once maxTries is reached,
-    gives up, returning 'failed'.
-    Upon finding no status file, waits a brief random time, just in case,
-    before making the status file, which is returned.
+    Creates a status file, demonstrating that this process has the file open. If the
+    status file already exists, waits before trying again. Gives up when maxTries is reached.
 
     STATUS FILE MUST BE DELETED AFTER CLOSING FILE OF INTEREST.
     """
@@ -372,18 +369,14 @@ def BreakRaceCondition(filePath: str, maxTries: int = 10, *args, **kwargs) -> st
         if counter >= maxTries:    #'give up' condition
             print('maxTries exceeded, skipping file. File open by other process')
             return 'failed'
-
-        if statusFile.is_file():
-            time.sleep(5)          #wait 5 seconds before trying again
-            counter += 1
-        else:                      #Progressing to opening file
-            break
+        #Try to create the status file
+        try:
+            statusFile.touch(exist_ok=False)     #creating own status file
+            return statusFile
+        except FileExistsError:     #If file exists,
+             time.sleep(5)          #wait 5 seconds before trying again
+             counter += 1
         print(counter)
-
-    time.sleep(random.uniform(0,0.1))    #random final wait
-    statusFile.touch(exist_ok=False)     #creating own status file
-    return statusFile
-            
 
 
 def CreateTar(tarPath: str, cfunList: list, shift: str, jobValues: dict, *args,**kwargs) -> None:
@@ -423,7 +416,7 @@ def CreateTar(tarPath: str, cfunList: list, shift: str, jobValues: dict, *args,*
               
         #Writing info files - file containing list of cfgids and list of files
         with open(tarPath+'cfglist','a') as f:
-            f.write(jobValues['cfgID'])
+            f.write(jobValues['cfgID']+'\n')
         with open(tarPath+'info','a') as i:
             i.write('\n'.join(cfunList))
             i.write('\n')
