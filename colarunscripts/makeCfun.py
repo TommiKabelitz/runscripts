@@ -115,7 +115,7 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
 
             #Calling cfungen
             timer.startTimer('Correlation functions')
-            CallMPI(executable,reportFile,filestub=filestub,numGPUs=numGPUs)
+            CallMPI(executable,reportFile,jobValues['runFunction'],filestub=filestub,numGPUs=numGPUs)
             timer.stopTimer('Correlation functions')
 
             #Tar new correlation functions together
