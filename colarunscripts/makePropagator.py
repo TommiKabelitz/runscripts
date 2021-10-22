@@ -135,7 +135,7 @@ def MakePropagator(parameters,quark,kd,shift,jobValues,filestub,logFile,timer,*a
         #Get propagator report file and call the MPI
         reportFile = dirs.FullDirectories(parameters,directory='propReport',kd=kd,shift=shift,**quarkValues,**parameters['sourcesink'])['propReport'].replace('QUARK',quark)
         timer.startTimer('Propagators')
-        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,jobValues['runFunction',arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,numGPUs=numGPUs)
+        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,jobValues['runFunction'],arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,numGPUs=numGPUs)
         timer.stopTimer('Propagators')        
         return fullQuarkPath
 
