@@ -1,7 +1,6 @@
 #!/bin/bash
 #SBATCH --partition=QUEUE
 #SBATCH --nodes=NODES
-#SBATCH --ntasks=NUMCPUS
 #SBATCH --time=TIME
 #SBATCH --mem=MEMORYGB
 #SBATCH --output=OUTPUTDIR
@@ -11,9 +10,9 @@
 echo Running on host `hostname`
 echo Time is `date`
 echo
-source /home/566/tk9944/gadi_modules.sh
+source /home/tkabelitz/topaz_modules.sh
 ulimit -s unlimited
 ulimit -c 0
 ulimit -a
 
-python3 /home/566/tk9944/PhD/runscripts/colarunscripts/manageJob.py PARAMETERSDIR KAPPA NTHCONFIG NUMJOBS NCON TESTING
+python3 /group/e31/tkabelitz/PhD/runscripts/colarunscripts/manageJob.py PARAMETERSDIR KAPPA NTHCONFIG NUMJOBS NCON TESTING
