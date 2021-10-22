@@ -135,7 +135,7 @@ def MakePropagator(parameters,quark,kd,shift,jobValues,filestub,logFile,timer,*a
         #Get propagator report file and call the MPI
         reportFile = dirs.FullDirectories(parameters,directory='propReport',kd=kd,shift=shift,**quarkValues,**parameters['sourcesink'])['propReport'].replace('QUARK',quark)
         timer.startTimer('Propagators')
-        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,numGPUs=numGPUs)
+        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,jobValues['runFunction',arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,numGPUs=numGPUs)
         timer.stopTimer('Propagators')        
         return fullQuarkPath
 
@@ -165,7 +165,7 @@ def MakePropInputFiles(parameters,filestub,logFile,quarkLabel,kd,shift,quarkValu
 
 
 
-def CallMPI(executable,reportFile,numGPUs=0,arguments=[],filestub='',**kwargs):
+def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub='',**kwargs):
         """
         Calls the executable using mpirun now that input files are made.
 
@@ -176,20 +176,28 @@ def CallMPI(executable,reportFile,numGPUs=0,arguments=[],filestub='',**kwargs):
         numGPUs    -- int: The  number of GPUs available to run on
 
         """
+        
+        if runFunction == 'mpirun':
+                command = [runFunction,'-np',str(numGPUs),executable]+arguments
+        elif runFunction == 'srun':
+                command = [runFunction,executable]+arguments
+        else:
+                raise NotImplementedError(f'{runFunction} is not implemented')
+
         print(f'Time is {datetime.now()}')
-        print('mpi-running "' + ' '.join([executable]+arguments) + '"')
+        print(f'Running {" ".join([executable]+arguments)} using{runFunction}')
         print(f'On {numGPUs} GPUs')
         print(f'The input filestub is "{filestub}"')
 
         #If doing a dry testrun. We do everything except call binaries
         #Print path to reportfile as usual though it may not exist
         if executable == 'dryrun':
-                print(f'Report file is: {reportFile}')
+                print(f'Report file would be: {reportFile}')
                 print(f'Time is {datetime.now()}')
                 return
         
         #Running the executable. text=True means input and output are decoded
-        runDetails = subprocess.run(['mpirun','-np',str(numGPUs),executable]+arguments,input=filestub+'\n',text=True,capture_output=True)
+        runDetails = subprocess.run(command,input=filestub+'\n',text=True,capture_output=True)
 
         #Writing output to report file
         with open(reportFile,'w') as f:
