@@ -7,8 +7,18 @@ runValues:
   runPrefix: a
   sourceType: sm
   sinkTypes: [laplacian]
-  structureList: [[u,d,s]]
-  particleList: [[proton_1,proton_1bar],     [proton_2,proton_2bar],     [proton_1,proton_2bar],     [proton_2,proton_1bar]]
+  structureList: [[u,d,s],[nl,d,s],[nh,d,s],[u,u,s],[d,d,s]]
+  particleList: [[proton_1,proton_1bar],     [proton_2,proton_2bar],     [proton_1,proton_2bar],     [proton_2,proton_1bar],
+                 [sigmap_1,sigmap_1bar],     [sigmap_2,sigmap_2bar],     [sigmap_1,sigmap_2bar],     [sigmap_2,sigmap_1bar],
+                 [sigmam_1,sigmam_1bar],     [sigmam_2,sigmam_2bar],     [sigmam_1,sigmam_2bar],     [sigmam_2,sigmam_1bar],
+                 [neutron_1,neutron_1bar],   [neutron_2,neutron_2bar],   [neutron_1,neutron_2bar],   [neutron_2,neutron_1bar],
+                 [cascade0_1,cascade0_1bar], [cascade0_2,cascade0_2bar], [cascade0_1,cascade0_2bar], [cascade0_2,cascade0_1bar],
+                 [cascadem_1,cascadem_1bar], [cascadem_2,cascadem_2bar], [cascadem_1,cascadem_2bar], [cascadem_2,cascadem_1bar],
+                 [sigma0_1,sigma0_1bar],     [sigma0_2,sigma0_2bar],     [sigma0_1,sigma0_2bar],     [sigma0_2,sigma0_1bar],
+                 [lambda0_1,lambda0_1bar],   [lambda0_2,lambda0_2bar],   [lambda0_1,lambda0_2bar],   [lambda0_2,lambda0_1bar],
+                 [sigma0_1,lambda0_1bar],    [sigma0_2,lambda0_2bar],    [sigma0_1,lambda0_2bar],    [sigma0_2,lambda0_1bar],
+                 [lambda0_1,sigma0_1bar],    [lambda0_2,sigma0_2bar],    [lambda0_1,sigma0_2bar],    [lambda0_2,sigma0_2bar],
+                 [pip,pipbar],[kaonp,kaonpbar]]
   scheduler: PBS
   doArrayJobs: False
 
