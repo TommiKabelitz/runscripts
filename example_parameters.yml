@@ -70,9 +70,9 @@ directories:
   configFilename: RC32x64_B1900Kud0KAPPA00Ks01364000C1715CONFIGID
   configFormat: ildg
   
-  lapModeFormat: clfs
-  lapModeDir: /scratch/e31/tk9944/oldlap2modes
+  lapModeDir: /scratch/e31/rjb566/Lap2modes/RC32x64_B1900Kud0KAPPA00Ks01364000C1715/as0nsm0
   lapModeFile: /shSHIFT/BFKD/KAPPAModess32t64kBKDCONFIGID
+  lapModeFormat: clfs
   lapModeReport: QUARK_icfgCONFIGID
 
   landauDir: /scratch/e31/tk9944/PhD/LandauPhases/
@@ -104,7 +104,7 @@ sourcesink:
   swpsFat_lnk: 10
 
   #Sink smearing related parameters
-  sweeps_smsnk: [0,100]
+  sweeps_smsnk: [0,16,35,100,250]
   sinkSmearcode: xyz
   alpha_smsnk: 0.7
   u0_smsnk: 1.0
@@ -121,7 +121,7 @@ laplacianEigenmodes:
   #link smearing values here are just for the eigenmode code.
   #For no smearing, set both to zero
   alpha_smearing: 0.1
-  smearing_sweeps: 4
+  smearing_sweeps: 10
   numEvectors: 96
   numAuxEvectors: 4
   tolerance: '1.0d-6'
