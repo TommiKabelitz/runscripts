@@ -100,7 +100,6 @@ def MakePropagator(parameters,quark,kd,shift,jobValues,filestub,logFile,timer,*a
                 quarkLabel = 'l'
         quarkValues['strangeKappa'] = parameters['propcfun']['strangeKappa']
 
-
         #Assembling the quark path
         quarkPrefix = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**quarkValues,**parameters['sourcesink'])['prop']
         quarkValues['quarkPrefix'] = quarkPrefix.replace('QUARK',quarkLabel)
