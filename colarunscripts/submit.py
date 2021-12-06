@@ -151,6 +151,11 @@ def MakeSlurmRunscript(parameters,filename,kappa,doArrayJobs,nthConfig=1,simjobs
     #Getting slurm request details, ie. queue, num nodes, gpus etc.
     schedulerDetails = parameters['slurmParams']
     schedulerDetails['OUTPUTDIR'] = dirs.FullDirectories(parameters,directory='stdout')['stdout']
+    if doArrayJobs is True:
+        schedulerDetails['OUTPUTDIR'] += 'slurm-%A_%a.out'
+    else:
+        schedulerDetails['OUTPUTDIR'] += 'slurm-%j.out'
+
 
     #Adjusting parameters based on the test run type. Also checking if a test
     #queue exists
