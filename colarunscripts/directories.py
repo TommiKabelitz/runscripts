@@ -81,7 +81,7 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     if tempDir != 'NONE/':
         runFileDir = tempDir
         if tempStorage['props'] is True:
-            outputDir = tempDir + 'props/BFKD/'
+            outputDir = tempDir + base.runIdentifier + base.outputTree
 
     #Propagator output file
     directories['prop'] = outputDir +  base.propFileBase
