@@ -148,14 +148,16 @@ def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
         #Effectively only make 2 types of propagator. Light (d) and heavy (s).
         #The rest we get through charge manipulation (u=-2*d,nl=0*d,nh=0*nh).
         kd *= QuarkCharge(quark)
+
+        #Getting the base propagator file
+        propFile = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['prop']
+
         if quark in ['s','nh']:
             quarkLabel = 'h'
             jobValues['kappa'] = parameters['propcfun']['strangeKappa']
         else:
             quarkLabel = 'l'
         
-        #Getting the base propagator file
-        propFile = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['prop']
         
         #Adding the kappa value and file extension (propFormat) which are 
         #appended by quarkpropGPU.x
