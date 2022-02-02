@@ -118,8 +118,10 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
             CallMPI(executable,reportFile,jobValues['runFunction'],filestub=filestub,numGPUs=numGPUs)
             timer.stopTimer('Correlation functions')
 
-            #Tar new correlation functions together
-            TarCfuns(parameters,kd,shift,structure,sinkType,jobValues)
+            if jobValues['tarCfuns'] is True:
+                #Tar new correlation functions together
+                TarCfuns(parameters,kd,shift,structure,sinkType,jobValues)
+
         #End structure loop
     #End sinktype loop
 
@@ -145,18 +147,24 @@ def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
     #Looping over quarks in quark list
     for quark in parameters['propcfun']['quarkList']:
 
+        kd *= QuarkCharge(quark)
+        #Getting the base propagator file
+        propFile = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['prop']
+
         #Effectively only make 2 types of propagator. Light (d) and heavy (s).
         #The rest we get through charge manipulation (u=-2*d,nl=0*d,nh=0*nh).
+
         kd *= QuarkCharge(quark)
+        
+        #Getting the base propagator file
+        propFile = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['prop']
+
         if quark in ['s','nh']:
             quarkLabel = 'h'
             jobValues['kappa'] = parameters['propcfun']['strangeKappa']
         else:
             quarkLabel = 'l'
-        
-        #Getting the base propagator file
-        propFile = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['prop']
-        
+
         #Adding the kappa value and file extension (propFormat) which are 
         #appended by quarkpropGPU.x
         propFormat = parameters["directories"]["propFormat"]
@@ -170,7 +178,6 @@ def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
         kd = kd_original
         jobValues['kappa'] = kappa_original
         #end quark loop
-
     return propDict
 
 
@@ -308,25 +315,7 @@ def TarCfuns(parameters: dict, kd: int, shift: str, structure: list, sinkType: s
     Globs to create list of files to tar and determines tarfile name based on 
     what was globbed. Ability to specify what to glob intended for future versions.
     """
-    
-    #Getting the general path to the cfuns. We intentionally pass * for sinkVal so
-    #that we can glob for that.
-    cfunFiles = dirs.GetCfunFile(parameters,jobValues['kappa'],kd,shift,jobValues['sourceType'],sinkType,'*',jobValues['cfgID'])
-    #Replacing structure placeholder
-    cfunBase = cfunFiles.replace('STRUCTURE',''.join(structure))
-
-    #Removing various parts of the cfun filepath to construct the tar path. Removed
-    #things are combined in the tar. Use regex to remove for generality, probably not
-    #strictly necessary
-    tarPath = re.sub(r'sh(([xyzt]\d+)+|(None))\/','',cfunBase)        #shift
-    tarPath = re.sub(r'icfg-([ab]|([ghijk]M)){1}-\d+','',tarPath)     #config id
-    tarPath = tarPath.replace('.u.2cf','') + '.tar'                   #file extension
-    tarPath = tarPath.replace('*','')                                 #any globs
-    #Ensuring the directory for the tar exists
-    tarDir = pathlib.PurePath(tarPath).parent
-    pathlib.Path(tarDir).mkdir(parents=True,exist_ok=True)
-    print(cfunFiles)
-    print(tarPath)
+    tarPath,cfunBase = GetTarFile(parameters,kd,shift,sinkType,jobValues,structure)
 
     #Looping through particles (We want a different tar for each)
     for chi,chibar in jobValues['particleList']:
@@ -334,7 +323,6 @@ def TarCfuns(parameters: dict, kd: int, shift: str, structure: list, sinkType: s
         tarFile = tarPath.replace('CHICHIBAR',f'{chi}{chibar}')
         cfunFiles = cfunBase.replace('CHICHIBAR',f'{chi}{chibar}')
         cfunList = glob.glob(cfunFiles)        #Doing the glob
-        print(f'{cfunList=}')
      
         #Checking that we actually have cfuns to tar
         if len(cfunList) == 0:
@@ -344,6 +332,48 @@ def TarCfuns(parameters: dict, kd: int, shift: str, structure: list, sinkType: s
         #Putting everything into the tar
         CreateTar(tarFile,cfunList,shift,jobValues)
 
+
+def GetTarFile(parameters: dict, kd: int, shift: str, sinkType: str, jobValues: dict, structure: list = None, sinkVal: str = '*', *args, **kwargs):
+    """
+    Compiles the directory and filename of the tar.
+
+    Leaves particle unreplaced.
+
+    Arguments:
+    parameters -- dict: 
+    kd         -- int:
+    shift      -- str:
+    sinkType   -- str:
+    jobValues  -- dict
+    structure  -- list:
+    sinkVal    -- str:
+    """
+
+    #Getting the general path to the cfuns. We intentionally pass * for sinkVal so
+    #that we can glob for that.
+    cfunFiles = dirs.GetCfunFile(parameters,jobValues['kappa'],kd,shift,jobValues['sourceType'],sinkType,sinkVal,jobValues['cfgID'])
+
+    if structure is not None:
+        #Replacing structure placeholder
+        cfunBase = cfunFiles.replace('STRUCTURE',''.join(structure))
+    else:
+        cfunBase = cfunFiles
+        
+    #Removing various parts of the cfun filepath to construct the tar path. Removed
+    #things are combined in the tar. Use regex to remove for generality, probably
+    #not strictly necessary
+    tarPath = re.sub(r'sh(([xyzt]\d+)+|(None))\/','',cfunBase)        #shift
+    tarPath = re.sub(r'icfg-([ab]|([ghijk]M)){1}-\d+','',tarPath)     #config id
+    tarPath = tarPath.replace('.u.2cf','') + '.tar'                   #file extension
+    tarPath = tarPath.replace('*','')                                 #any globs
+    #Ensuring the directory for the tar exists
+    tarDir = pathlib.PurePath(tarPath).parent
+    pathlib.Path(tarDir).mkdir(parents=True,exist_ok=True)
+
+    return tarPath, cfunBase
+
+
+        
 def BreakRaceCondition(filePath: str, maxTries: int = 10, *args, **kwargs) -> str:
     """
     Breaks race condition of file being accessed by different processes.
@@ -356,8 +386,9 @@ def BreakRaceCondition(filePath: str, maxTries: int = 10, *args, **kwargs) -> st
     statusFile -- str: The path to the status file made showing the file is open.
                        Returns failed if it gives up.
 
-    Creates a status file, demonstrating that this process has the file open. If the
-    status file already exists, waits before trying again. Gives up when maxTries is reached.
+    Creates a status file, demonstrating that this process has the file open. If 
+    the status file already exists, waits before trying again. Gives up when 
+    maxTries is reached.
 
     STATUS FILE MUST BE DELETED AFTER CLOSING FILE OF INTEREST.
     """

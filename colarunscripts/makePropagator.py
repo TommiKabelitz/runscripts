@@ -100,7 +100,6 @@ def MakePropagator(parameters,quark,kd,shift,jobValues,filestub,logFile,timer,*a
                 quarkLabel = 'l'
         quarkValues['strangeKappa'] = parameters['propcfun']['strangeKappa']
 
-
         #Assembling the quark path
         quarkPrefix = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**quarkValues,**parameters['sourcesink'])['prop']
         quarkValues['quarkPrefix'] = quarkPrefix.replace('QUARK',quarkLabel)
@@ -191,8 +190,8 @@ def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub=''
 
         #If doing a dry testrun. We do everything except call binaries
         #Print path to reportfile as usual though it may not exist
-        if executable == 'dryrun':
-                print(f'Report file would be: {reportFile}')
+        if executable == 'dryRun':
+                print(f'Report file is: {reportFile}')
                 print(f'Time is {datetime.now()}')
                 return
         

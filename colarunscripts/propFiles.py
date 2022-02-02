@@ -18,7 +18,7 @@ def MakeLatticeFile(filestub,logFile,extent):
     Arguments:
     filestub -- string: The filename, without the .lat extension
                          to write lattice details to.
-    extent -- int list: number of lattice point in each 
+    extent -- int list: number of lattice points in each 
                          direction. Order is [nx,ny,nz,nt].
     """
     extension = '.lat'

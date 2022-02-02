@@ -464,7 +464,7 @@ def HadronicCharge(kd,particle,structure,*args,**kwargs):
     return charge*kd
 
         
-def CheckForVanishingFields(kd,particleList,*args,**kwargs):
+def CheckForVanishingFields(kd,particleList=None,chi=None,chibar=None,*args,**kwargs):
     """
     Removes interpolator combinations which vanish under isospin sym.
 
@@ -478,6 +478,12 @@ def CheckForVanishingFields(kd,particleList,*args,**kwargs):
                        above. Function does not act in place.
     """
 
+    if particleList is None:
+        if chi is None or chibar is None:
+            raise ValueError('Either particleList or chi and chibar must be specified with non-None values')
+        
+        particleList = [[chi,chibar]]
+    
     #Isospin symmetry only when kd = 0
     if kd != 0:
         return particleList

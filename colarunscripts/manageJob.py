@@ -3,8 +3,10 @@ import argparse
 from datetime import datetime
 import os
 import pathlib
+import re
 import subprocess
 import sys
+import tarfile
 
 from colarunscripts import configIDs as cfg
 from colarunscripts import directories as dirs
@@ -12,6 +14,7 @@ from colarunscripts import makeCfun
 from colarunscripts import makeEmodes
 from colarunscripts import makePropagator
 from colarunscripts import parameters as params
+from colarunscripts import particles
 from colarunscripts.shifts import CompareShifts
 from colarunscripts import simpleTime 
 from colarunscripts import submit
@@ -61,6 +64,7 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
             
             if CfunsExist(parameters,jobValues,kd,shift) is True:
                 print(f'Correlation functions for {kd=}, {shift=} already exist, skipping.')
+                paths = {'props':[],'eigenmodes':[]}
                 continue
             
             print()                  
@@ -242,19 +246,32 @@ def PrintJobValues(jobValues,stream=sys.stdout):
 
 def SubmitNext(parameters,jobValues,nthConfig,start,numSimultaneousJobs,testing,oldParametersFile,ncon):
     
-    nextConfig = int(nthConfig) + int(numSimultaneousJobs)
-    jobValues['cfgID'] = cfg.ConfigID(nextConfig,jobValues['runPrefix'],start)
+    print(f'Submitting next. {ncon=} {nthConfig=} {numSimultaneousJobs=}')
+    
+    while True:
+
+        nthConfig = int(nthConfig) + int(numSimultaneousJobs)
+        jobValues['cfgID'] = cfg.ConfigID(nthConfig,jobValues['runPrefix'],start)
+
+        if nthConfig > ncon:
+            print(f'No new configurations to submit')
+            return
+        
+        if CfunsExist(parameters,jobValues) is False:
+            break
+        else:
+            print(f'Correlation functions all exist for config ID: {jobValues["cfgID"]}. Skipping')
 
     inputArgs = {}
-    inputArgs['numjobs'] = numSimultaneousJobs
+    inputArgs['simjobs'] = numSimultaneousJobs
     inputArgs['parametersfile'] = oldParametersFile
     inputArgs['testing'] = testing
+    inputArgs['nconfigurations'] = ncon
+    inputArgs['skipDeleteCheck'] = True
+    
+    print(f'Submitting configuration {nthConfig}')
+    submit.main(nthConfig,inputArgs)
 
-    if nextConfig <= ncon and CfunsExist(parameters,jobValues) is False:
-        print(f'Submitting configuration {nextConfig}')
-        submit.main(nextConfig,inputArgs)
-    else:
-        print('No new configurations to submit')
 
 def Input():
 
@@ -310,12 +327,31 @@ def CfunsExist(parameters,jobValues,kd=None,shift=None,*args,**kwargs):
             cfunArgs['sinkType'] = sinkType
             cfunFilename = dirs.GetCfunFile(parameters,**cfunArgs)
 
+            tarArgs = {'kd':kd,'shift':shift,'sinkType':sinkType,'sinkVal':'','jobValues':jobValues}
+            tarFilename,_ = makeCfun.GetTarFile(parameters,**tarArgs)
+            
             for chi,chibar in jobValues['particleList']:
+                if kd == 0:
+                    fields = particles.CheckForVanishingFields(kd,chi=chi,chibar=chibar)
+                    if len(fields) == 0:
+                        continue
+                    
                 for structure in jobValues['structureList']:
                     #Structure in jobValues['structureList'] is a list
                     formattedStructure = ''.join(structure)
                     cfun = cfunFilename.replace('CHICHIBAR_STRUCTURE',f'{chi}{chibar}_{formattedStructure}')
-                    if pathlib.Path(cfun).is_file() is False:
+                    tar = tarFilename.replace('CHICHIBAR_STRUCTURE',f'{chi}{chibar}_{formattedStructure}')
+                    
+                    cfunParts = re.split(r'\/',cfun)
+                    prunedCfun = cfunParts[-3] + '/' + cfunParts[-1]
+                    try:
+                        with tarfile.open(tar,'r') as t:
+                            fileList = t.getnames()
+
+                    except FileNotFoundError:
+                        fileList = []
+
+                    if pathlib.Path(cfun).is_file() is False and prunedCfun not in fileList:
                         return False
 
         return True

@@ -41,10 +41,15 @@ def Input():
 if __name__ == '__main__':
 
     inputArgs = Input()
+
+    inputArgs['skipDeleteCheck'] = False
     
     firstConfig = int( inputArgs['firstconfig'] )
     simJobs     = int( inputArgs['simjobs']     )
 
+    if inputArgs['nconfigurations'] != 0:
+        inputArgs['nconfigurations'] = inputArgs['nconfigurations'] + (firstConfig-1)
+    
     #Looping through jobs to run simultaneously
     for ithJob in range(simJobs):
         nthConfig = ithJob+firstConfig

@@ -47,13 +47,15 @@ def SubmitJobs(parameters,nthConfig,inputArgs,values,*args,**kwargs):
     #Getting the directory for the runscripts
     directory = dirs.FullDirectories(parameters,directory='script')['script']
     
-    #If tempstorage for eigenmodes is False and keepEmodes is False
-    #confirm the user wishes to delete permanently stored emodes
-    if values['keepEmodes'] is parameters['tempStorage']['lapmodes'] is False:
-        print('WARNING: proceeding will result in the deletion of locally stored eigenmodes.')
-        if input('Enter y to proceed: ') != 'y':
-            print('exiting')
-            exit()
+
+    if inputArgs['skipDeleteCheck'] is False: 
+        #If tempstorage for eigenmodes is False and keepEmodes is False
+        #confirm the user wishes to delete permanently stored emodes
+        if values['keepEmodes'] is parameters['tempStorage']['lapmodes'] is False:
+            print('WARNING: proceeding will result in the deletion of locally stored eigenmodes.')
+            if input('Enter y to proceed: ') != 'y':
+                print('exiting')
+                exit()
 
     #Looping over parameters to submit as separate jobs
     for kappa in values['kappaValues']:
@@ -252,6 +254,4 @@ def main(nthConfig,inputArgs):
 
     parametersFile = inputArgs['parametersfile']
     parameters = params.Load(parametersFile=parametersFile)
-
     SubmitJobs(parameters,nthConfig,inputArgs,parameters['runValues'])
-

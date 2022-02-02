@@ -71,6 +71,8 @@ def MakePartStubsFile(filestub,logFile,kd,particleList,*args,**kwargs):
     Arguments:
     filestub     -- str: The base filename without extension to write to.
     logFile      -- str: The input logFile to also write inputs to.
+    kd           -- int: Field strength of current run. Needed to check for
+                         fields that vanish.
     particleList -- list: list of lists containing the chi and chibar
                           pairs to be made. 
 
@@ -78,6 +80,8 @@ def MakePartStubsFile(filestub,logFile,kd,particleList,*args,**kwargs):
     #File extension
     extension = '.part_stubs'
 
+    #New list contains only interpolating combinations which are non-vanishing
+    #at the current field strength. ie removes lambda0sigma0bar
     updatedList = particles.CheckForVanishingFields(kd,particleList)
 
     numParticlePairs = len(updatedList)
@@ -118,12 +122,13 @@ def MakeInterpFile(partstub,logFile,chi,chibar,structure,cfunPrefix,isospinSym,s
     #File extension
     extension = '.interp'
     
-    #The name of the correlation function
+    #The name of the correlation function. ie protonprotonbar_uds
     cfunName = f'{chi}{chibar}_{"".join(structure)}'
 
-    #ACTUAL INPUT FILE
     #Getting the particle details from the particles module
     particle_details = getattr(particles,chi)()
+
+    #ACTUAL INPUT FILE
     #Writing the source details to the file
     #WriteListLengthnList writes first the length of the list, then the elements
     #of the list if it is not empty.

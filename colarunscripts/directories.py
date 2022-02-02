@@ -81,7 +81,7 @@ def GetBaseDirectories(parameters,directory=None,*args,**kwargs):
     if tempDir != 'NONE/':
         runFileDir = tempDir
         if tempStorage['props'] is True:
-            outputDir = tempDir + 'props/BFKD/'
+            outputDir = tempDir + base.runIdentifier + base.outputTree
 
     #Propagator output file
     directories['prop'] = outputDir +  base.propFileBase
@@ -242,7 +242,7 @@ def LapModeFiles(parameters,kappa=0,kd=0,cfgID='',shift='',quark=None,withExtens
             try:
                 pathlib.Path(path).mkdir(parents=True, exist_ok=True)
             except PermissionError:
-                print(f'Permission to create {directory} denied')
+                print(f'Permission to create {path} denied')
 
         
         #Resetting field strength

@@ -28,7 +28,7 @@ NOTE: SOME START AND NCON VALUES DIFFER FROM THOSE ON THE PACS-CS SITE.
 def One(kappa,runPrefix):
     if runPrefix == 'b':
         start = 2510
-        ncon = 399
+        ncon = 400 #Technically 399 as one 4300 does not exist
         return start, ncon
     else:
         raise ValueError("Invalid (kappa,prefix) combination. Terminating")
@@ -37,7 +37,7 @@ def One(kappa,runPrefix):
 def Two(kappa,runPrefix):
     if runPrefix == 'b':
         start = 1310
-        ncon = 397
+        ncon = 400
         return start, ncon
     else:
         raise ValueError("Invalid (kappa,prefix) combination. Terminating")
@@ -50,7 +50,7 @@ def Three(kappa,runPrefix):
         return start, ncon
     elif runPrefix == 'b':
         start = 2510
-        ncon = 249
+        ncon = 250
         return start, ncon
     else:
         raise ValueError("Invalid (kappa,prefix) combination. Terminating")
@@ -63,7 +63,7 @@ def Four(kappa,runPrefix):
         return start, ncon
     elif runPrefix == 'b':
         start = 1780
-        ncon = 399
+        ncon = 400
         return start, ncon
     else:
         raise ValueError("Invalid (kappa,prefix) combination. Terminating")
@@ -88,7 +88,7 @@ def Five(kappa,runPrefix):
             return start, ncon
         elif runPrefix == 'kM':
             start = 1090
-            ncon = 43
+            ncon = 44
             return start, ncon
         else:
             raise ValueError("Invalid (kappa,prefix) combination. Terminating")
