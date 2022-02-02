@@ -179,7 +179,11 @@ def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub=''
         if runFunction == 'mpirun':
                 command = [runFunction,'-np',str(numGPUs),executable]+arguments
         elif runFunction == 'srun':
-                command = [runFunction,executable]+arguments
+                if 'quarkprop' in executable:
+                        numTasks = 1
+                else:
+                        numTasks = 2
+                command = [runFunction,'-n',str(numTasks),executable]+arguments
         else:
                 raise NotImplementedError(f'{runFunction} is not implemented')
 
