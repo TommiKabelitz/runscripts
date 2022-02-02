@@ -182,7 +182,7 @@ def CallMPI(executable,reportFile,numGPUs=0,arguments=[],filestub='',**kwargs):
 
         #If doing a dry testrun. We do everything except call binaries
         #Print path to reportfile as usual though it may not exist
-        if executable == 'dryrun':
+        if executable == 'dryRun':
                 print(f'Report file is: {reportFile}')
                 print(f'Time is {datetime.now()}')
                 return
