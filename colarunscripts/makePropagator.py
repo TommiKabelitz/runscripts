@@ -165,7 +165,7 @@ def MakePropInputFiles(parameters,filestub,logFile,quarkLabel,kd,shift,quarkValu
 
 
 
-def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub='',**kwargs):
+def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=None,filestub='',**kwargs):
         """
         Calls the executable using mpirun now that input files are made.
 
@@ -176,22 +176,29 @@ def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub=''
         numGPUs    -- int: The  number of GPUs available to run on
 
         """
+        if arguments is None:
+                arguments = []
+
+        if 'quarkprop' in executable:
+                numTasks = 1
+        else:
+                numTasks = 2
         
         if runFunction == 'mpirun':
                 command = [runFunction,'-np',str(numGPUs),executable]+arguments
         elif runFunction == 'srun':
-                command = [runFunction,executable]+arguments
+                command = [runFunction,'-n',str(numTasks),executable]+arguments
         else:
                 raise NotImplementedError(f'{runFunction} is not implemented')
 
         print(f'Time is {datetime.now()}')
-        print(f'Running {" ".join([executable]+arguments)} using{runFunction}')
+        print(f'Running {" ".join([executable]+arguments)} using {runFunction}')
         print(f'On {numGPUs} GPUs')
         print(f'The input filestub is "{filestub}"')
 
         #If doing a dry testrun. We do everything except call binaries
         #Print path to reportfile as usual though it may not exist
-        if executable == 'dryrun':
+        if executable == 'dryRun':
                 print(f'Report file would be: {reportFile}')
                 print(f'Time is {datetime.now()}')
                 return
@@ -205,6 +212,7 @@ def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub=''
                #Write the returned error to the file if there is one
                if runDetails.stderr is not None:
                        f.write(runDetails.stderr)
+
         print(f'Report file is: {reportFile}')
         print(f'Time is {datetime.now()}')
         #end CallMPI
