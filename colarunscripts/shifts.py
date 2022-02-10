@@ -9,7 +9,24 @@ import re
 
 
 def FormatShift(shift,form='input',fullShift='full'):
+    """
+    Formats a specified c-shift into the specified format.
 
+    Arguments:
+    shift     -- str: The raw shift to format. Should be of the
+                      form xN1yN2zN3tN4 where xyzt are the directions
+                      and N1,...,N4 the amount shift in each direction.
+                      Missing directions will be assumed to be zero.
+    form      -- str: What the shift should be formatted for. Options
+                      are 'input' and 'label'. 'input' formats ready to
+                      pass to COLA. 'label' formats for in filenames.
+    fullShift -- str: Allows the specification of the type of input file
+                      the shift is being formatted for as some directions
+                      are trivial in these cases. 'emode' for the 
+                      .lap2dmodes file and and 'lpsnk' for the laplacian 
+                      sink file.
+    """
+    
     directions = 'xyzt'
     #Pattern to grab the letters and numbers from the string
     letters = re.compile(f'[{directions}]')
