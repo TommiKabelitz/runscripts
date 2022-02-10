@@ -141,8 +141,9 @@ def FullDirectories(parameters,directory=None,kappa=0,kd=0,shift='',sourceType='
         replaced = replaced.replace('SOURCE',f'{sourceType}{str(sourceVal)}')
         replaced = replaced.replace('SINKS','-'.join(sinkTypes))
         replaced = replaced.replace('SINK',f'{sinkType}{str(sinkVal)}')
-        replaced = replaced.replace('SOSI_','_')
-        replaced = replaced.replace('SI_','_')
+        #Following 2 are for input summaries
+        replaced = replaced.replace('SOSI_','') #Source and sink irrelevant for emodes
+        replaced = replaced.replace('SI_','_')  #Sink irrelevant for props
         replaced = replaced.replace('CONFIGID',cfgID)
         replaced = replaced.replace('STRUCTURE',''.join(structure))        
         replaced = replaced.replace('KH',str(kH))
