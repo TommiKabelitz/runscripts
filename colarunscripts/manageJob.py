@@ -49,7 +49,8 @@ def JobLoops(parameters,shifts,kds,jobValues,*args,**kwargs):
     timer = simpleTime.Timer('Overall')
     timer.initialiseCheckpoints()
     timer.initialiseTimer('Eigenmodes')
-    timer.initialiseTimer('Propagators')
+    timer.initialiseTimer('Light Propagators')
+    timer.initialiseTimer('Heavy Propagators')
     timer.initialiseTimer('Correlation functions')
 
     if jobValues['sourceType'] == 'lp' and jobValues['makeProps']:

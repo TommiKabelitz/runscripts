@@ -133,9 +133,11 @@ def MakePropagator(parameters,quark,kd,shift,jobValues,filestub,logFile,timer,*a
         
         #Get propagator report file and call the MPI
         reportFile = dirs.FullDirectories(parameters,directory='propReport',kd=kd,shift=shift,**quarkValues,**parameters['sourcesink'])['propReport'].replace('QUARK',quark)
-        timer.startTimer('Propagators')
-        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,jobValues['runFunction'],arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,numGPUs=numGPUs)
-        timer.stopTimer('Propagators')        
+        if quark in ['s','nh']:
+                timerLabel = 'Heavy Propagators'
+        else:
+                timerLabel = 'Light Propagators'
+        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,jobValues['runFunction'],arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,numGPUs=numGPUs,timerLabel=timerLabel)
         return fullQuarkPath
 
 
@@ -164,21 +166,27 @@ def MakePropInputFiles(parameters,filestub,logFile,quarkLabel,kd,shift,quarkValu
 
 
 
-def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub='',**kwargs):
+def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub='',timerLabel=None,**kwargs):
         """
         Calls the executable using mpirun now that input files are made.
 
         Arguments:
-        filestub   -- str: Filestub of the input files to pass to the executable
-        executable -- str: The  exeutable to call
-        reportFile -- str: The  reportfile to write the output of the executable to
-        numGPUs    -- int: The  number of GPUs available to run on
-
+        executable  -- str: The executable to call
+        reportFile  -- str: The reportfile to write the output of the executable to
+        runFunction -- str: Function call the executable with, ie. mpirun
+        numGPUs     -- int: The number of GPUs available to run on
+        arguments   -- list: List of arguments to pass to the executable
+        filestub    -- str: Filestub of the input files to pass to the executable
+        timerLabel  -- str: Specify which, if any timer should record execution time
         """
         
+        #Compiling the command based on the different syntax required
         if runFunction == 'mpirun':
                 command = [runFunction,'-np',str(numGPUs),executable]+arguments
         elif runFunction == 'srun':
+                #Using srun can do weird things with the number of CPUs specified.
+                #The propagator code breaks with more than 1 while the others need
+                #2. 
                 if 'quarkprop' in executable:
                         numTasks = 1
                 else:
@@ -199,8 +207,14 @@ def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub=''
                 print(f'Time is {datetime.now()}')
                 return
         
+        if timerLabel is not None:
+                timer.startTimer(timerLabel)
+
         #Running the executable. text=True means input and output are decoded
         runDetails = subprocess.run(command,input=filestub+'\n',text=True,capture_output=True)
+
+        if timerLabel is not None:
+                timer.stopTimer(timerLabel)
 
         #Writing output to report file
         with open(reportFile,'w') as f:
