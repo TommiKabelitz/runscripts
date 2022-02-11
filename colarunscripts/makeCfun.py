@@ -113,10 +113,8 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
             numGPUs = parameters[scheduler+'Params']['NUMGPUS']
             reportFile = dirs.FullDirectories(parameters,directory='cfunReport',kd=kd,shift=shift,structure=structure,**jobValues,**parameters['sourcesink'])['cfunReport']
 
-            #Calling cfungen
-            timer.startTimer('Correlation functions')
-            CallMPI(executable,reportFile,jobValues['runFunction'],filestub=filestub,numGPUs=numGPUs)
-            timer.stopTimer('Correlation functions')
+            timerLabel = 'Correlation functions'
+            CallMPI(executable,reportFile,jobValues['runFunction'],filestub=filestub,numGPUs=numGPUs,timerLabel=timerLabel)
 
             if jobValues['tarCfuns'] is True:
                 #Tar new correlation functions together
