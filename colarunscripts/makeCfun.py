@@ -94,9 +94,8 @@ def MakeCorrelationFunctions(
                 print(f"\nskipping combination of {structure=} and {sinkType=}")
                 continue
 
-            with open(logFile, "a") as f, open(
-                jobValues["inputSummary"]["interp"], "a"
-            ) as g:
+            interpLogFile = jobValues["inputSummary"]["interp"]
+            with open(logFile, "a") as f, open(interpLogFile, "a") as g:
 
                 print(f"\nDoing structure set: {structure}\n")
                 f.write(f"\n\nDoing structure set: {structure}\n\n")
@@ -111,7 +110,14 @@ def MakeCorrelationFunctions(
 
             print("Making structure specific files")
             MakeSpecificFiles(
-                parameters, filestub, logFile, kd, shift, structure, propDict, jobValues
+                parameters,
+                filestub,
+                logFile,
+                kd,
+                shift,
+                structure,
+                propDict,
+                jobValues,
             )
 
             # Preparing final variables for call to cfungen
@@ -137,6 +143,7 @@ def MakeCorrelationFunctions(
                 filestub=filestub,
                 numGPUs=numGPUs,
                 timerLabel=timerLabel,
+                timer=timer
             )
 
             if jobValues["tarCfuns"] is True:

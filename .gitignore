@@ -17,6 +17,7 @@ parameters.yml
 
 #Cached python code
 /colarunscripts/__pycache__/*
+__pycache__/*
 
 #Install data
 /COLA_runscripts.egg-info/*
