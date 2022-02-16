@@ -72,7 +72,7 @@ def main(parameters,kd,shift,jobValues,timer):
             reportFile = dirs.FullDirectories(parameters,directory='lapmodeReport',kd=kd,shift=shift,**jobValues)['lapmodeReport'].replace('QUARK',quark)
 
             timerLabel = 'Eigenmodes'
-            CallMPI(parameters['laplacianEigenmodes']['lapmodeExecutable'],reportFile,jobValues['runFunction'],filestub=filestub,numGPUs=numGPUs,timerLabel=timerLabel)
+            CallMPI(parameters['laplacianEigenmodes']['lapmodeExecutable'],reportFile,jobValues['runFunction'],filestub=filestub,numGPUs=numGPUs,timerLabel=timerLabel,timer=timer)
                     
             fullFileList.append(fullFile)
 

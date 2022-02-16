@@ -137,7 +137,7 @@ def MakePropagator(parameters,quark,kd,shift,jobValues,filestub,logFile,timer,*a
                 timerLabel = 'Heavy Propagators'
         else:
                 timerLabel = 'Light Propagators'
-        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,jobValues['runFunction'],arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,numGPUs=numGPUs,timerLabel=timerLabel)
+        CallMPI(parameters['propcfun']['qpropExecutable'],reportFile,jobValues['runFunction'],arguments=['--solver=CGNE+S','--itermax=1000000'],filestub=filestub,numGPUs=numGPUs,timerLabel=timerLabel,timer=timer)
         return fullQuarkPath
 
 
@@ -166,7 +166,7 @@ def MakePropInputFiles(parameters,filestub,logFile,quarkLabel,kd,shift,quarkValu
 
 
 
-def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub='',timerLabel=None,**kwargs):
+def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub='',timerLabel=None,timer=None,*args,**kwargs):
         """
         Calls the executable using mpirun now that input files are made.
 
@@ -178,6 +178,8 @@ def CallMPI(executable,reportFile,runFunction,numGPUs=0,arguments=[],filestub=''
         arguments   -- list: List of arguments to pass to the executable
         filestub    -- str: Filestub of the input files to pass to the executable
         timerLabel  -- str: Specify which, if any timer should record execution time
+        timer       -- Timer: Timer object that is tracking the execution time
+
         """
         
         #Compiling the command based on the different syntax required
