@@ -1,12 +1,12 @@
 # Programs to be run before every commit, to ensure code quality
 
 repos:
-  # # Use the Uncompromising Code Formatter on code and code blocks in documentation
-  # - repo: https://github.com/ambv/black.git
-  #   rev: 20.8b1
-  #   hooks:
-  #     - id: black
-  #       name: Run black format code
+  # Use the Uncompromising Code Formatter on code and code blocks in documentation
+  - repo: https://github.com/ambv/black.git
+    rev: 20.8b1
+    hooks:
+      - id: black
+        name: Run black format code
 
   # Check `noqa` statements
   - repo: https://github.com/pre-commit/pygrep-hooks.git
@@ -21,9 +21,9 @@ repos:
     hooks:
       - id: check-yaml
         name: Check YAML files
-      # - id: trailing-whitespace
-      #   name: Check trailing whitespace
-      #   exclude: (?x)^(doc/analysis.org)$
+      - id: trailing-whitespace
+        name: Check trailing whitespace
+        exclude: (?x)^(doc/analysis.org)$
       - id: end-of-file-fixer
         name: Check files end in single new line
       - id: mixed-line-ending

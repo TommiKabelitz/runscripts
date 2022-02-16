@@ -143,7 +143,7 @@ def MakeCorrelationFunctions(
                 filestub=filestub,
                 numGPUs=numGPUs,
                 timerLabel=timerLabel,
-                timer=timer
+                timer=timer,
             )
 
             if jobValues["tarCfuns"] is True:

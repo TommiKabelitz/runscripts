@@ -56,7 +56,7 @@ def main(parameters, kd, shift, jobValues, timer):
             with open(logFile, "a") as f:
                 f.write(f"\n{quark=}\n")
 
-            #Full name of the eigenmode file (including file extension)
+            # Full name of the eigenmode file (including file extension)
             fullFile = (
                 modeFiles[quark] + "." + parameters["directories"]["lapModeFormat"]
             )
@@ -64,7 +64,7 @@ def main(parameters, kd, shift, jobValues, timer):
             print(5 * "-" + f"Doing {quark} quark" + 5 * "-")
             print(f"Eigenmode to make is: {fullFile}")
 
-            #Checking for eigenmode existence
+            # Checking for eigenmode existence
             if pathlib.Path(fullFile).is_file():
                 print("Skipping eigenmode file. File already exists")
                 fullFileList.append(fullFile)
@@ -75,7 +75,7 @@ def main(parameters, kd, shift, jobValues, timer):
                     )
                 continue
 
-            #Constructing the input filestub
+            # Constructing the input filestub
             filestub = (
                 dirs.FullDirectories(parameters, directory="lapmodeInput")[
                     "lapmodeInput"
@@ -86,29 +86,29 @@ def main(parameters, kd, shift, jobValues, timer):
                 + f".{quark}"
             )
 
-            #Adding required quantities to the inputs dictionary
+            # Adding required quantities to the inputs dictionary
             inputs["U1FieldCode"] = FieldCode(
                 kd=kd * QuarkCharge(quark), **parameters["propcfun"], **jobValues
             )
             inputs["outputPrefix"] = modeFiles[quark]
 
-            #Making the input files
+            # Making the input files
             MakeLatticeFile(filestub, logFile, **parameters["lattice"])
             MakeLap2ModesFile(
                 filestub, logFile, **inputs, **parameters["laplacianEigenmodes"]
             )
 
-            #In parameters file, scheduler params are lowercase, eg. pbsParams
+            # In parameters file, scheduler params are lowercase, eg. pbsParams
             scheduler = jobValues["scheduler"].lower()
             numGPUs = parameters[scheduler + "Params"]["NUMGPUS"]
 
-            #For the output from the binaries
+            # For the output from the binaries
             reportFile = dirs.FullDirectories(
                 parameters, directory="lapmodeReport", kd=kd, shift=shift, **jobValues
             )["lapmodeReport"].replace("QUARK", quark)
 
             timerLabel = "Eigenmodes"
-            #Calling the mpi
+            # Calling the mpi
             CallMPI(
                 parameters["laplacianEigenmodes"]["lapmodeExecutable"],
                 reportFile,
@@ -116,10 +116,10 @@ def main(parameters, kd, shift, jobValues, timer):
                 filestub=filestub,
                 numGPUs=numGPUs,
                 timerLabel=timerLabel,
-                timer=timer
+                timer=timer,
             )
 
-            #Compiling the list of files created
+            # Compiling the list of files created
             fullFileList.append(fullFile)
 
     return fullFileList
