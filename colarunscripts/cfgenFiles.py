@@ -1,4 +1,3 @@
-
 """
 Functions to make the files required by cfungen.
 
@@ -7,12 +6,12 @@ parameters which they print to file. MakePartStubsFile is the exception.
 
 """
 
-from colarunscripts.configIDs import ConfigID
 from colarunscripts import particles
-from colarunscripts.utilities import WriteListLengthnList,VariablePrinter
+from colarunscripts.configIDs import ConfigID
+from colarunscripts.utilities import VariablePrinter, WriteListLengthnList
 
 
-def MakePropPathFiles(filestub,logFile,propDict,structure,*args,**kwargs):
+def MakePropPathFiles(filestub, logFile, propDict, structure, *args, **kwargs):
     """
     Make the files containing paths to propagators.
 
@@ -31,80 +30,90 @@ def MakePropPathFiles(filestub,logFile,propDict,structure,*args,**kwargs):
                           file
     """
 
-    #File extension, QUARK to be replaced to differentiate the files
-    extension = '.QUARK.propinfo'
-    
-    #Initialising list of filenames
+    # File extension, QUARK to be replaced to differentiate the files
+    extension = ".QUARK.propinfo"
+
+    # Initialising list of filenames
     propList = []
 
-    #Looping through quark flavours. trueQuark is the flavour actually being 
-    #passed. quarkPosition is where in the traditional u,d,s structure the quark
-    #is being passed
-    for trueQuark,quarkPosition in zip(structure,['u','d','s']):
+    # Looping through quark flavours. trueQuark is the flavour actually being
+    # passed. quarkPosition is where in the traditional u,d,s structure the quark
+    # is being passed
+    for trueQuark, quarkPosition in zip(structure, ["u", "d", "s"]):
 
-        #Grabbing the quark propagator path
+        # Grabbing the quark propagator path
         quarkPath = propDict[trueQuark]
-        #Replacing the quark in the extension
-        ext = extension.replace('QUARK',quarkPosition)
+        # Replacing the quark in the extension
+        ext = extension.replace("QUARK", quarkPosition)
 
-        #Writing to the file
-        with open(filestub+ext,'w') as f:
-            f.write(f'{quarkPath}\n')
-        #Writing to the log file
-        with open(logFile,'a') as f:
-            f.write(f'\nextension={ext}\n')
-            VariablePrinter(f'{quarkPath=}\n',fileObject=f,nameWidth=20)
-            
-        #Adding the file to the filename list
-        propList.append(filestub+ext)
-    
+        # Writing to the file
+        with open(filestub + ext, "w") as f:
+            f.write(f"{quarkPath}\n")
+        # Writing to the log file
+        with open(logFile, "a") as f:
+            f.write(f"\nextension={ext}\n")
+            VariablePrinter(f"{quarkPath=}\n", fileObject=f, nameWidth=20)
+
+        # Adding the file to the filename list
+        propList.append(filestub + ext)
+
     return propList
 
 
-def MakePartStubsFile(filestub,logFile,kd,particleList,*args,**kwargs):
+def MakePartStubsFile(filestub, logFile, kd, particleList, *args, **kwargs):
     """
     Creates the particle stubs file.
 
-    Top of file should be the number of particle pairs with the 
+    Top of file should be the number of particle pairs with the
     particle stubs listed underneath it.
-    
+
     Arguments:
     filestub     -- str: The base filename without extension to write to.
     logFile      -- str: The input logFile to also write inputs to.
     kd           -- int: Field strength of current run. Needed to check for
                          fields that vanish.
     particleList -- list: list of lists containing the chi and chibar
-                          pairs to be made. 
+                          pairs to be made.
 
     """
-    #File extension
-    extension = '.part_stubs'
+    # File extension
+    extension = ".part_stubs"
 
-    #New list contains only interpolating combinations which are non-vanishing
-    #at the current field strength. ie removes lambda0sigma0bar
-    updatedList = particles.CheckForVanishingFields(kd,particleList)
+    # New list contains only interpolating combinations which are non-vanishing
+    # at the current field strength. ie removes lambda0sigma0bar
+    updatedList = particles.CheckForVanishingFields(kd, particleList)
 
     numParticlePairs = len(updatedList)
-    with open(filestub+extension,'w') as f, open(logFile,'a') as l:
-        l.write(f'\n{extension=}\n')
+    with open(filestub + extension, "w") as f, open(logFile, "a") as l:
+        l.write(f"\n{extension=}\n")
 
-        #Writing number of operator pairs
-        f.write(f'{numParticlePairs}\n')
-        VariablePrinter(f'{numParticlePairs=}\n',fileObject=l,nameWidth=20)
+        # Writing number of operator pairs
+        f.write(f"{numParticlePairs}\n")
+        VariablePrinter(f"{numParticlePairs=}\n", fileObject=l, nameWidth=20)
 
-        #Writing the particle stubs
-        for chi,chibar in updatedList:
+        # Writing the particle stubs
+        for chi, chibar in updatedList:
             partstub = filestub + chi + chibar
-            f.write(f'{partstub}\n')
-            l.write(f'{partstub}\n')
+            f.write(f"{partstub}\n")
+            l.write(f"{partstub}\n")
 
 
-
-def MakeInterpFile(partstub,logFile,chi,chibar,structure,cfunPrefix,isospinSym,su3FlavLimit,*args,**kwargs):
+def MakeInterpFile(
+    partstub,
+    logFile,
+    chi,
+    chibar,
+    structure,
+    cfunPrefix,
+    isospinSym,
+    su3FlavLimit,
+    *args,
+    **kwargs,
+):
     """
     Makes the interpolator file containing particle specific information.
 
-    chi and chibar are seperate in the case that we want to do different source 
+    chi and chibar are seperate in the case that we want to do different source
     and sink operators.
 
     Arguments:
@@ -119,107 +128,137 @@ def MakeInterpFile(partstub,logFile,chi,chibar,structure,cfunPrefix,isospinSym,s
 
     """
 
-    #File extension
-    extension = '.interp'
-    
-    #The name of the correlation function. ie protonprotonbar_uds
+    # File extension
+    extension = ".interp"
+
+    # The name of the correlation function. ie protonprotonbar_uds
     cfunName = f'{chi}{chibar}_{"".join(structure)}'
 
-    #Getting the particle details from the particles module
-    particle_details = getattr(particles,chi)()
+    # Getting the particle details from the particles module
+    particle_details = getattr(particles, chi)()
 
-    #ACTUAL INPUT FILE
-    #Writing the source details to the file
-    #WriteListLengthnList writes first the length of the list, then the elements
-    #of the list if it is not empty.
-    with open(partstub+extension,'w') as f:
-        f.write(f'{cfunName}\n')
-        f.write(f'{cfunPrefix}\n')
-        WriteListLengthnList(f,particle_details['lorentz_indices'])
-        WriteListLengthnList(f,particle_details['gell_mann_matrices'])
-        WriteListLengthnList(f,particle_details['levi_civita_indices'])
-        WriteListLengthnList(f,particle_details['interpolator_terms'])
-        
-    #Getting the anti-particle details from the particles module
-    particle_details = getattr(particles,chibar)()
-    #Writing the sink details to the file
-    with open(partstub+extension,'a') as f:
-        WriteListLengthnList(f,particle_details['gell_mann_matrices'])
-        WriteListLengthnList(f,particle_details['levi_civita_indices'])
-        WriteListLengthnList(f,particle_details['interpolator_terms'])
-        f.write(f'{isospinSym}\n')
-        f.write(f'{su3FlavLimit}\n')
+    # ACTUAL INPUT FILE
+    # Writing the source details to the file
+    # WriteListLengthnList writes first the length of the list, then the elements
+    # of the list if it is not empty.
+    with open(partstub + extension, "w") as f:
+        f.write(f"{cfunName}\n")
+        f.write(f"{cfunPrefix}\n")
+        WriteListLengthnList(f, particle_details["lorentz_indices"])
+        WriteListLengthnList(f, particle_details["gell_mann_matrices"])
+        WriteListLengthnList(f, particle_details["levi_civita_indices"])
+        WriteListLengthnList(f, particle_details["interpolator_terms"])
 
-    
-    #LOG FILE
-    #Getting the particle details from the particles module
-    particle_details = getattr(particles,chi)()
-    #Writing the source details to the file
-    #WriteListLengthnList writes first the length of the list, then the elements
-    #of the list if it is not empty.
-    with open(logFile,'a') as f:
-        f.write(f'\n{extension=}\n')
-        VariablePrinter(f'{cfunName=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{cfunPrefix=}\n',fileObject=f,nameWidth=20)
-        WriteListLengthnList(f,particle_details['lorentz_indices'],label='lorentz_indices')
-        WriteListLengthnList(f,particle_details['gell_mann_matrices'],label='gell_mann_matrices')
-        WriteListLengthnList(f,particle_details['levi_civita_indices'],label='levi_civita_indices')
-        WriteListLengthnList(f,particle_details['interpolator_terms'],label='interpolator_terms')
-        
-    #Getting the anti-particle details from the particles module
-    particle_details = getattr(particles,chibar)()
-    #Writing the sink details to the file
-    with open(logFile,'a') as f:
-        WriteListLengthnList(f,particle_details['gell_mann_matrices'],label='gell_mann_matrices')
-        WriteListLengthnList(f,particle_details['levi_civita_indices'],label='levi_civita_indices')
-        WriteListLengthnList(f,particle_details['interpolator_terms'],label='interpolator_terms')
-        VariablePrinter(f'{isospinSym=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{su3FlavLimit=}\n',fileObject=f,nameWidth=20)
+    # Getting the anti-particle details from the particles module
+    particle_details = getattr(particles, chibar)()
+    # Writing the sink details to the file
+    with open(partstub + extension, "a") as f:
+        WriteListLengthnList(f, particle_details["gell_mann_matrices"])
+        WriteListLengthnList(f, particle_details["levi_civita_indices"])
+        WriteListLengthnList(f, particle_details["interpolator_terms"])
+        f.write(f"{isospinSym}\n")
+        f.write(f"{su3FlavLimit}\n")
+
+    # LOG FILE
+    # Getting the particle details from the particles module
+    particle_details = getattr(particles, chi)()
+    # Writing the source details to the file
+    # WriteListLengthnList writes first the length of the list, then the elements
+    # of the list if it is not empty.
+    with open(logFile, "a") as f:
+        f.write(f"\n{extension=}\n")
+        VariablePrinter(f"{cfunName=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{cfunPrefix=}\n", fileObject=f, nameWidth=20)
+        WriteListLengthnList(
+            f, particle_details["lorentz_indices"], label="lorentz_indices"
+        )
+        WriteListLengthnList(
+            f, particle_details["gell_mann_matrices"], label="gell_mann_matrices"
+        )
+        WriteListLengthnList(
+            f, particle_details["levi_civita_indices"], label="levi_civita_indices"
+        )
+        WriteListLengthnList(
+            f, particle_details["interpolator_terms"], label="interpolator_terms"
+        )
+
+    # Getting the anti-particle details from the particles module
+    particle_details = getattr(particles, chibar)()
+    # Writing the sink details to the file
+    with open(logFile, "a") as f:
+        WriteListLengthnList(
+            f, particle_details["gell_mann_matrices"], label="gell_mann_matrices"
+        )
+        WriteListLengthnList(
+            f, particle_details["levi_civita_indices"], label="levi_civita_indices"
+        )
+        WriteListLengthnList(
+            f, particle_details["interpolator_terms"], label="interpolator_terms"
+        )
+        VariablePrinter(f"{isospinSym=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{su3FlavLimit=}\n", fileObject=f, nameWidth=20)
 
 
-
-def MakeConfigIDsFile(filestub,logFile,cfgID,*args,**kwargs):
+def MakeConfigIDsFile(filestub, logFile, cfgID, *args, **kwargs):
     """
     Makes the configuration ID file.
 
     In the current implementation, only writing the current config ID to the
     file. COLA can handle multiple configurations at once though.
-    
+
     Arguments:
     filestub -- str: The base file to write the ID to
     logFile  -- str: The input logFile to also write inputs to.
     cfgID    -- str: The ID to write
     """
 
-    #File extension
-    extension = '.cfg_ids'
+    # File extension
+    extension = ".cfg_ids"
 
-    #Writing the ID to file
-    with open(filestub+extension,'w') as f:
-        f.write(f'{cfgID}\n')
+    # Writing the ID to file
+    with open(filestub + extension, "w") as f:
+        f.write(f"{cfgID}\n")
 
-    #Writing the ID to the log file
-    with open(logFile,'a') as f:
-        f.write(f'\n{extension=}\n')
-        VariablePrinter(f'{cfgID=}\n',fileObject=f,nameWidth=20)
+    # Writing the ID to the log file
+    with open(logFile, "a") as f:
+        f.write(f"\n{extension=}\n")
+        VariablePrinter(f"{cfgID=}\n", fileObject=f, nameWidth=20)
 
 
-
-def MakePropCfunInfoFile(filestub,logFile,propList,propFormat,cfunFormat,parallelIO,gmaRep,gellMannRep,pmin,pmax,doUstar,sinkType,useLandau,fullLandauFile='',nLandauModes=0,kd_q='',*args,**kwargs):
+def MakePropCfunInfoFile(
+    filestub,
+    logFile,
+    propList,
+    propFormat,
+    cfunFormat,
+    parallelIO,
+    gmaRep,
+    gellMannRep,
+    pmin,
+    pmax,
+    doUstar,
+    sinkType,
+    useLandau,
+    fullLandauFile="",
+    nLandauModes=0,
+    kd_q="",
+    *args,
+    **kwargs,
+):
     """
     Makes the file containing information relevant to props and cfuns.
 
     This is a busy file. It contains firstly information about the propagators
     and correlation functions. Then information about the sink. If there is a
-    hadronic projection to be done, then the appropriate (Landau) information 
+    hadronic projection to be done, then the appropriate (Landau) information
     is passed.
-    Finally, the paths to the files containing the paths to the propagators are 
+    Finally, the paths to the files containing the paths to the propagators are
     appended on the end.
 
     Arguments:
     filestub       -- str: Base filename to write information to
     logFile      -- str: The input logFile to also write inputs to.
-    propList       -- str list: List of propagator filenames containing 
+    propList       -- str list: List of propagator filenames containing
                            propagator file paths
     propFormat     -- str: The propagator file extension
     cfunFormat     -- str: The correlation function file extension
@@ -237,83 +276,89 @@ def MakePropCfunInfoFile(filestub,logFile,propList,propFormat,cfunFormat,paralle
                            eg. "2 -1 0" for u d n at kd=-1
     """
 
-    #File extension
-    extension = '.prop_cfun_info'
+    # File extension
+    extension = ".prop_cfun_info"
 
-    #Setting whether we are doing sink smearing
-    if sinkType in ['smeared']:
-        doSinkSmear = 't'
+    # Setting whether we are doing sink smearing
+    if sinkType in ["smeared"]:
+        doSinkSmear = "t"
     else:
-        doSinkSmear = 'f'
+        doSinkSmear = "f"
 
-    #Writing to the file
-    with open(filestub+extension,'w') as f:
-        f.write(f'{1}\n')  #Number of configurations we are doing at once   
-        f.write(f'{propFormat}\n')
-        f.write(f'{cfunFormat}\n')
-        f.write(f'{parallelIO}\n')
-        f.write(f'{gmaRep}\n')
-        f.write(f'{gellMannRep}\n')
-        f.write(f'{pmin}\n')
-        f.write(f'{pmax}\n')
-        f.write(f'{doSinkSmear}\n')
-        f.write(f'{doUstar}\n')
-        f.write(f'{sinkType}\n')
-        f.write(f'{useLandau}\n')
-        if useLandau == 't':
-            f.write(f'{fullLandauFile}\n')
-            f.write(f'{kd_q}\n')
+    # Writing to the file
+    with open(filestub + extension, "w") as f:
+        f.write(f"{1}\n")  # Number of configurations we are doing at once
+        f.write(f"{propFormat}\n")
+        f.write(f"{cfunFormat}\n")
+        f.write(f"{parallelIO}\n")
+        f.write(f"{gmaRep}\n")
+        f.write(f"{gellMannRep}\n")
+        f.write(f"{pmin}\n")
+        f.write(f"{pmax}\n")
+        f.write(f"{doSinkSmear}\n")
+        f.write(f"{doUstar}\n")
+        f.write(f"{sinkType}\n")
+        f.write(f"{useLandau}\n")
+        if useLandau == "t":
+            f.write(f"{fullLandauFile}\n")
+            f.write(f"{kd_q}\n")
         for propFile in propList:
-            f.write(f'{propFile}\n')
+            f.write(f"{propFile}\n")
 
-    #Writing to the log file
-    with open(logFile,'a') as f:
-        f.write(f'\n{extension=}\n')
-        f.write(f'{"simultaneousConfigs":20}= 1\n')  #Number of configurations we are doing at once   
-        VariablePrinter(f'{propFormat=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{cfunFormat=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{parallelIO=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{gmaRep=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{gellMannRep=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{pmin=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{pmax=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{doSinkSmear=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{doUstar=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{sinkType=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{useLandau=}\n',fileObject=f,nameWidth=20)
-        if useLandau == 't':
-            VariablePrinter(f'{fullLandauFile=}\n',fileObject=f,nameWidth=20)
-            VariablePrinter(f'{kd_q=}\n',fileObject=f,nameWidth=20)
+    # Writing to the log file
+    with open(logFile, "a") as f:
+        f.write(f"\n{extension=}\n")
+        f.write(
+            f'{"simultaneousConfigs":20}= 1\n'
+        )  # Number of configurations we are doing at once
+        VariablePrinter(f"{propFormat=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{cfunFormat=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{parallelIO=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{gmaRep=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{gellMannRep=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{pmin=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{pmax=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{doSinkSmear=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{doUstar=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{sinkType=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{useLandau=}\n", fileObject=f, nameWidth=20)
+        if useLandau == "t":
+            VariablePrinter(f"{fullLandauFile=}\n", fileObject=f, nameWidth=20)
+            VariablePrinter(f"{kd_q=}\n", fileObject=f, nameWidth=20)
         for propFile in propList:
-            VariablePrinter(f'{propFile=}\n',fileObject=f,nameWidth=20)
+            VariablePrinter(f"{propFile=}\n", fileObject=f, nameWidth=20)
 
-def MakeLatticeFile(filestub,logFile,extent):
+
+def MakeLatticeFile(filestub, logFile, extent):
     """
     Make the .lat input file for cfungenGPU.x.
-    
+
     Arguments:
     filestub -- string: The filename, without the .lat extension
                          to write lattice details to.
     logFile  -- str: The input logFile to also write inputs to.
-    extent   -- int list: number of lattice point in each 
+    extent   -- int list: number of lattice point in each
                          direction. Order is [nx,ny,nz,nt].
     """
-    extension = '.lat'
-    
-    #Writing to the file
-    with open(filestub+extension,'w') as f:
-        f.write('\n'.join(str(dim) for dim in extent))
-        f.write('\n')
+    extension = ".lat"
 
-    #Writing to the log file
-    with open(logFile,'a') as f:
-        f.write(f'\n{extension=}\n')
-        f.write('\n'.join(f'{dim:20}= {val}' for dim,val in zip(['x','y','z','t'],extent)))
-        f.write('\n')
+    # Writing to the file
+    with open(filestub + extension, "w") as f:
+        f.write("\n".join(str(dim) for dim in extent))
+        f.write("\n")
+
+    # Writing to the log file
+    with open(logFile, "a") as f:
+        f.write(f"\n{extension=}\n")
+        f.write(
+            "\n".join(
+                f"{dim:20}= {val}" for dim, val in zip(["x", "y", "z", "t"], extent)
+            )
+        )
+        f.write("\n")
 
 
-
-def MakeGFSFile(filestub,logFile,configFormat,configFile,shift,*args,**kwargs):
+def MakeGFSFile(filestub, logFile, configFormat, configFile, shift, *args, **kwargs):
     """
     Makes that gauge field input file.
 
@@ -325,25 +370,38 @@ def MakeGFSFile(filestub,logFile,configFormat,configFile,shift,*args,**kwargs):
 
     """
 
-    #File extension
-    extension = '.gfs'
+    # File extension
+    extension = ".gfs"
 
-    #Writing to the file
-    with open(filestub+extension,'w') as f:
-        f.write(f'1\n')       #Number of configurations we are doing at once    
-        f.write(f'{configFormat}\n')
-        f.write(f'{shift}\n')
-        f.write(f'{configFile}\n')
-                
-    #Writing to the log file
-    with open(logFile,'a') as f:
-        f.write(f'\n{extension=}\n')
-        f.write(f'{"simultaneousConfigs":20}= 1\n')       #Number of configurations we are doing at once    
-        VariablePrinter(f'{configFormat=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{shift=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{configFile=}\n',fileObject=f,nameWidth=20)
+    # Writing to the file
+    with open(filestub + extension, "w") as f:
+        f.write(f"1\n")  # Number of configurations we are doing at once
+        f.write(f"{configFormat}\n")
+        f.write(f"{shift}\n")
+        f.write(f"{configFile}\n")
 
-def MakeLPSinkFile(filestub,logFile,nDim_lpsnk,shift,lapModeFiles,baseSinkCode,nModes_lpsnk,*args,**kwargs):
+    # Writing to the log file
+    with open(logFile, "a") as f:
+        f.write(f"\n{extension=}\n")
+        f.write(
+            f'{"simultaneousConfigs":20}= 1\n'
+        )  # Number of configurations we are doing at once
+        VariablePrinter(f"{configFormat=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{shift=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{configFile=}\n", fileObject=f, nameWidth=20)
+
+
+def MakeLPSinkFile(
+    filestub,
+    logFile,
+    nDim_lpsnk,
+    shift,
+    lapModeFiles,
+    baseSinkCode,
+    nModes_lpsnk,
+    *args,
+    **kwargs,
+):
     """
     Makes the Laplacian sink file.
 
@@ -354,50 +412,62 @@ def MakeLPSinkFile(filestub,logFile,nDim_lpsnk,shift,lapModeFiles,baseSinkCode,n
                          the Laplacian sink to
     lapModeFiles -- str list: List containing paths to eigenmode
                          files. In order u,d,s
-    sinkCode     -- str: Label inserted into the correlation 
+    sinkCode     -- str: Label inserted into the correlation
                          function filename. Can be used to store
                          sink information
     nModes_lpsnk -- int: Number of modes to truncate the Laplacian
                          at.
-    
+
     """
-    
-    #File extension
-    extension = '.qpsnk_lp'
-    
-    #Number of distinct nModes_lpsnk values to use
+
+    # File extension
+    extension = ".qpsnk_lp"
+
+    # Number of distinct nModes_lpsnk values to use
     nSnk_lp = len(nModes_lpsnk)
 
-    #Writing to the file
-    with open(filestub+extension,'w') as f:
-        f.write(f'{nDim_lpsnk}\n')
-        f.write(f'{shift}\n')
+    # Writing to the file
+    with open(filestub + extension, "w") as f:
+        f.write(f"{nDim_lpsnk}\n")
+        f.write(f"{shift}\n")
         for modeFile in lapModeFiles:
-            f.write(f'{modeFile}\n')
-        f.write(f'{nSnk_lp}\n')
+            f.write(f"{modeFile}\n")
+        f.write(f"{nSnk_lp}\n")
         for modes in nModes_lpsnk:
-            sinkCode = baseSinkCode.replace('MODES',str(modes))
-            f.write(f'{sinkCode}\n')
-            #COLA requires nModes in x,y,z dirs
-            f.write(3*f'{modes} '+'\n')
+            sinkCode = baseSinkCode.replace("MODES", str(modes))
+            f.write(f"{sinkCode}\n")
+            # COLA requires nModes in x,y,z dirs
+            f.write(3 * f"{modes} " + "\n")
 
-    #Writing to the log file
-    with open(logFile,'a') as f:
-        f.write(f'\n{extension=}\n')
-        VariablePrinter(f'{nDim_lpsnk=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{shift=}\n',fileObject=f,nameWidth=20)
+    # Writing to the log file
+    with open(logFile, "a") as f:
+        f.write(f"\n{extension=}\n")
+        VariablePrinter(f"{nDim_lpsnk=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{shift=}\n", fileObject=f, nameWidth=20)
         for modeFile in lapModeFiles:
-            VariablePrinter(f'{modeFile=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{nSnk_lp=}\n',fileObject=f,nameWidth=20)
+            VariablePrinter(f"{modeFile=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{nSnk_lp=}\n", fileObject=f, nameWidth=20)
         for modes in nModes_lpsnk:
-            sinkCode = baseSinkCode.replace('MODES',str(modes))
-            VariablePrinter(f'{sinkCode=}\n',fileObject=f,nameWidth=20)
-            #COLA requires nModes in x,y,z dirs
-            f.write(f'{"modes":20}= '+3*f'{modes} '+'\n')
+            sinkCode = baseSinkCode.replace("MODES", str(modes))
+            VariablePrinter(f"{sinkCode=}\n", fileObject=f, nameWidth=20)
+            # COLA requires nModes in x,y,z dirs
+            f.write(f'{"modes":20}= ' + 3 * f"{modes} " + "\n")
 
 
-
-def MakePropSmearingFile(filestub,logFile,sinkSmearcode,alpha_smsnk,u0_smsnk,kd,swpsFat_lnk,useStout_lnk,alphaFat_lnk,sweeps_smsnk,*args,**kwargs):
+def MakePropSmearingFile(
+    filestub,
+    logFile,
+    sinkSmearcode,
+    alpha_smsnk,
+    u0_smsnk,
+    kd,
+    swpsFat_lnk,
+    useStout_lnk,
+    alphaFat_lnk,
+    sweeps_smsnk,
+    *args,
+    **kwargs,
+):
     """
     Makes the input file related to smearing (sink and link).
 
@@ -414,36 +484,35 @@ def MakePropSmearingFile(filestub,logFile,sinkSmearcode,alpha_smsnk,u0_smsnk,kd,
     sweeps_smsnk  -- int: Number of sink smearing sweeps
     """
 
-    #File extension
-    extension = '.prop_sm_params'
-    
-    #Number of different sweep values
+    # File extension
+    extension = ".prop_sm_params"
+
+    # Number of different sweep values
     nsnk = len(sweeps_smsnk)
 
-    #Writing to the file
-    with open(filestub+extension,'w') as f:
-        f.write(f'{sinkSmearcode}\n')
-        f.write(f'{alpha_smsnk}\n')
-        f.write(f'{u0_smsnk}\n')
-        f.write(f'{kd}\n')
-        f.write(f'{nsnk}\n')
+    # Writing to the file
+    with open(filestub + extension, "w") as f:
+        f.write(f"{sinkSmearcode}\n")
+        f.write(f"{alpha_smsnk}\n")
+        f.write(f"{u0_smsnk}\n")
+        f.write(f"{kd}\n")
+        f.write(f"{nsnk}\n")
         for sweeps in sweeps_smsnk:
-            f.write(f'{sweeps}\n')
-        f.write(f'{swpsFat_lnk}\n')
-        f.write(f'{useStout_lnk}\n')
-        f.write(f'{alphaFat_lnk}\n')
+            f.write(f"{sweeps}\n")
+        f.write(f"{swpsFat_lnk}\n")
+        f.write(f"{useStout_lnk}\n")
+        f.write(f"{alphaFat_lnk}\n")
 
-    #Writing to the log file
-    with open(logFile,'a') as f:
-        f.write(f'\n{extension=}\n')
-        VariablePrinter(f'{sinkSmearcode=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{alpha_smsnk=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{u0_smsnk=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{kd=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{nsnk=}\n',fileObject=f,nameWidth=20)
+    # Writing to the log file
+    with open(logFile, "a") as f:
+        f.write(f"\n{extension=}\n")
+        VariablePrinter(f"{sinkSmearcode=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{alpha_smsnk=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{u0_smsnk=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{kd=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{nsnk=}\n", fileObject=f, nameWidth=20)
         for sweeps in sweeps_smsnk:
-            VariablePrinter(f'{sweeps=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{swpsFat_lnk=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{useStout_lnk=}\n',fileObject=f,nameWidth=20)
-        VariablePrinter(f'{alphaFat_lnk=}\n',fileObject=f,nameWidth=20)
-
+            VariablePrinter(f"{sweeps=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{swpsFat_lnk=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{useStout_lnk=}\n", fileObject=f, nameWidth=20)
+        VariablePrinter(f"{alphaFat_lnk=}\n", fileObject=f, nameWidth=20)

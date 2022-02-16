@@ -1,9 +1,11 @@
-from time import perf_counter
 from datetime import timedelta
+from time import perf_counter
+
+
 class Timer:
     """
     A class used to time the execution of code.
-    
+
     Attributes:
     timerName -- str: The name of what is being timed
 
@@ -18,19 +20,16 @@ class Timer:
     writeFullReport       -- Writes a report of elapsed time for all sub-timers.
     """
 
-    #Time is calculated using finish - start. Hence when timers start
-    #they are set to -start
-    def __init__(self,timerName):
-        self.timerName = timerName           #Overall timer name
-        self.totalTime = -1*perf_counter()   #Starting the overall timer
-        self.timerDict = {}                  #Dictionary of timers
-        #Initialising overall timer
-        self.timerDict[self.timerName] = {'time':self.totalTime,
-                                          'isRunning':True}
+    # Time is calculated using finish - start. Hence when timers start
+    # they are set to -start
+    def __init__(self, timerName):
+        self.timerName = timerName  # Overall timer name
+        self.totalTime = -1 * perf_counter()  # Starting the overall timer
+        self.timerDict = {}  # Dictionary of timers
+        # Initialising overall timer
+        self.timerDict[self.timerName] = {"time": self.totalTime, "isRunning": True}
 
-            
-
-    def initialiseTimer(self,timerName):
+    def initialiseTimer(self, timerName):
         """
         Initialises a sub-timer.
 
@@ -38,48 +37,43 @@ class Timer:
         timerName -- str: Name of the sub-timer
         """
 
-        #Add entry to dictionary of timers
-        #List is [amount of time,isTimerRunning]
-        self.timerDict[timerName] = {'time':0.0,
-                                     'isRunning':False,
-                                     'numCalls':0,}
+        # Add entry to dictionary of timers
+        # List is [amount of time,isTimerRunning]
+        self.timerDict[timerName] = {
+            "time": 0.0,
+            "isRunning": False,
+            "numCalls": 0,
+        }
 
-
-        
-    def startTimer(self,timerName):
+    def startTimer(self, timerName):
         """
         Starts the specified sub-timer.
 
         Arguments:
         timerName -- str: Name of the sub-timer
         """
-        
-        self.timerDict[timerName]['time']     -= perf_counter() #Starting timer
-        self.timerDict[timerName]['isRunning'] = True       
-        self.timerDict[timerName]['numCalls'] += 1
 
-        
-    def stopTimer(self,timerName):
+        self.timerDict[timerName]["time"] -= perf_counter()  # Starting timer
+        self.timerDict[timerName]["isRunning"] = True
+        self.timerDict[timerName]["numCalls"] += 1
+
+    def stopTimer(self, timerName):
         """
         Stops the specified sub-timer.
 
         Arguments:
         timerName -- str: Name of the sub-timer
         """
-        self.timerDict[timerName]['time']     += perf_counter() #Stopping timer
-        self.timerDict[timerName]['isRunning'] = False
+        self.timerDict[timerName]["time"] += perf_counter()  # Stopping timer
+        self.timerDict[timerName]["isRunning"] = False
 
-
-        
     def initialiseCheckpoints(self):
         """Enables the use of checkpoints."""
 
-        #Initialises the dictionary of checkpoints
+        # Initialises the dictionary of checkpoints
         self.checkpoints = {}
 
-
-        
-    def createCheckpoint(self,checkpointName,timerName=None):
+    def createCheckpoint(self, checkpointName, timerName=None):
         """
         Creates a checkpoint.
 
@@ -89,89 +83,100 @@ class Timer:
                                Can be a list of strings. Pass nothing for all.
         """
 
-        #Getting list of timers to include in checkpoint
-        timerList = ParseKeyInput(timerName,self.timerDict,'timerName')
+        # Getting list of timers to include in checkpoint
+        timerList = ParseKeyInput(timerName, self.timerDict, "timerName")
 
-        #Initialising dictionary for this checkpoint
+        # Initialising dictionary for this checkpoint
         self.checkpoints[checkpointName] = {}
 
-        #Looping through timers.
-        #Timers may be running so need to grab current elapsed time without
-        #stopping the timer, hence we specify inPlace=False.
+        # Looping through timers.
+        # Timers may be running so need to grab current elapsed time without
+        # stopping the timer, hence we specify inPlace=False.
         for timer in timerList:
-            #Grabbing time value
-            time = UpdateTimer(self.timerDict[timer],inPlace=False)
-            #Timer info needs to be a dictionary for consistency
-            self.checkpoints[checkpointName][timer] = {'time':time}
+            # Grabbing time value
+            time = UpdateTimer(self.timerDict[timer], inPlace=False)
+            # Timer info needs to be a dictionary for consistency
+            self.checkpoints[checkpointName][timer] = {"time": time}
 
         print(f'Checkpoint "{checkpointName}" created')
 
-
-        
-    def writeCheckpoint(self,checkpointName=None,timerName=None,printTotal=True,removeCheckpoint=False):
+    def writeCheckpoint(
+        self,
+        checkpointName=None,
+        timerName=None,
+        printTotal=True,
+        removeCheckpoint=False,
+    ):
         """
         Writes a report of elapsed time since the checkpoint's creation.
 
         Optional Arguments:
         checkpointName   -- str: Checkpoint(s) to write out. Default is all. Can
                                  pass list of checkpoints.
-        timerName        -- str: Timer(s) to write out. Default is all. Can pass 
+        timerName        -- str: Timer(s) to write out. Default is all. Can pass
                                  list of timers.
-        printTotal       -- bool: Whether to print the total elapsed time also. 
+        printTotal       -- bool: Whether to print the total elapsed time also.
                                   Default is True.
         removeCheckpoint -- bool: Whether to remove the checkpoint after printing.
                                   Default is False.
         """
 
-        #Grabbing lists of checkpoints and timers to write out
-        checkpointList = ParseKeyInput(checkpointName,self.checkpoints,'checkpointName')
-        timerList = ParseKeyInput(timerName,self.timerDict,'timerName')
+        # Grabbing lists of checkpoints and timers to write out
+        checkpointList = ParseKeyInput(
+            checkpointName, self.checkpoints, "checkpointName"
+        )
+        timerList = ParseKeyInput(timerName, self.timerDict, "timerName")
 
         if printTotal is True:
-            #Printing just the total time
-            WriteReport([self.timerName],self.timerDict)
+            # Printing just the total time
+            WriteReport([self.timerName], self.timerDict)
 
-        #Dictionary to hold the values to print
+        # Dictionary to hold the values to print
         toPrint = {}
-        #Looping through checkpoints
-        for i,name in enumerate(checkpointList):
+        # Looping through checkpoints
+        for i, name in enumerate(checkpointList):
             print(f'Time since checkpoint "{name}"')
-            
+
             for timer in timerList:
-                #Calculating time since checkpoint, firstly updating still runnning
-                totalTime = UpdateTimer(self.timerDict[timer],inPlace=False)
-                #Timer info needs to be a dictionary for consistency
-                toPrint[timer] = {'time':totalTime - self.checkpoints[name][timer]['time']}
+                # Calculating time since checkpoint, firstly updating still runnning
+                totalTime = UpdateTimer(self.timerDict[timer], inPlace=False)
+                # Timer info needs to be a dictionary for consistency
+                toPrint[timer] = {
+                    "time": totalTime - self.checkpoints[name][timer]["time"]
+                }
 
-            #Writing the report of each checkpoint
-            WriteReport(timerName, toPrint, printTotal=False, totalName=self.timerName, totalTime=self.totalTime)
+            # Writing the report of each checkpoint
+            WriteReport(
+                timerName,
+                toPrint,
+                printTotal=False,
+                totalName=self.timerName,
+                totalTime=self.totalTime,
+            )
 
-            #Removing checkpoint
+            # Removing checkpoint
             if removeCheckpoint is True:
                 del self.checkpoints[name]
-                
 
-        
-    def writeFullReport(self,timerName=None,final=False):
+    def writeFullReport(self, timerName=None, final=False):
         """
         Writes a report of elapsed time for all sub-timers.
 
         Optional Arguments:
-        timerName -- str: Timer(s) to write out. Default is all. Can pass 
+        timerName -- str: Timer(s) to write out. Default is all. Can pass
                           list of timers.
         final     -- bool: Is this the final report. Default is False.
         """
-        
+
         if final is True:
-            print('Final report: ')
+            print("Final report: ")
 
-        #Writing the report
-        WriteReport(timerName,self.timerDict)
+        # Writing the report
+        WriteReport(timerName, self.timerDict)
 
 
-
-#Utility functions to support the Timer class
-def UpdateTimer(timerInfo,inPlace=True):
+# Utility functions to support the Timer class
+def UpdateTimer(timerInfo, inPlace=True):
     """
     Update the timer with/without stopping it.
 
@@ -181,23 +186,22 @@ def UpdateTimer(timerInfo,inPlace=True):
                        Alternatively returns the current time value. Default is True
     """
 
-    #Attempts to update the timer. If timer is not running (ie. False), boolean will be
-    #zero and nothing will be added
+    # Attempts to update the timer. If timer is not running (ie. False), boolean will be
+    # zero and nothing will be added
     try:
-        time = timerInfo['time'] + timerInfo['isRunning']*perf_counter()
+        time = timerInfo["time"] + timerInfo["isRunning"] * perf_counter()
     except KeyError:
-        time = timerInfo['time']
+        time = timerInfo["time"]
 
-    #Returning or updating in place
+    # Returning or updating in place
     if inPlace is True:
-        timerInfo['time']      = time
-        timerInfo['isRunning'] = False
+        timerInfo["time"] = time
+        timerInfo["isRunning"] = False
     else:
         return time
 
 
-
-def PrintTimeData(timerName,timerInfo,maxNameLength):
+def PrintTimeData(timerName, timerInfo, maxNameLength):
     """
     Prints a piece of time data.
 
@@ -207,77 +211,74 @@ def PrintTimeData(timerName,timerInfo,maxNameLength):
     maxNameLength -- int: Length of longest name to be printed, for formatting.
     """
 
-    #Updating running timer
-    time = UpdateTimer(timerInfo,inPlace=False)
+    # Updating running timer
+    time = UpdateTimer(timerInfo, inPlace=False)
 
-    #Setting width of printing field
+    # Setting width of printing field
     fieldWidth = maxNameLength + 1
 
-    #Printing the value. timedelta formats in dd-hh:mm:ss format
-    timerName += ':'
-    toPrint = f'{timerName:{fieldWidth}}\t {str(timedelta(seconds=time)):14}'
+    # Printing the value. timedelta formats in dd-hh:mm:ss format
+    timerName += ":"
+    toPrint = f"{timerName:{fieldWidth}}\t {str(timedelta(seconds=time)):14}"
     try:
-        numCalls = timerInfo['numCalls']
-        toPrint += f'  (calls: {numCalls})'
+        numCalls = timerInfo["numCalls"]
+        toPrint += f"  (calls: {numCalls})"
     except KeyError:
         pass
 
     print(toPrint)
-    
 
-def WriteReport(names,timerDict,printTotal=False,totalName='',totalTime=0):
+
+def WriteReport(names, timerDict, printTotal=False, totalName="", totalTime=0):
     """
     Writes a report of the dictionary given.
 
     Arguments:
-    names      -- str: string or list of strings of timerNames to print. 
+    names      -- str: string or list of strings of timerNames to print.
     timerDict  -- dict: Dictionary of timers to print, keys correspoinding to names
-    printTotal -- bool: Whether to print the total data or not. 
+    printTotal -- bool: Whether to print the total data or not.
     totalName  -- str: Name of the overall timer.
     totalTime  -- int: Total time spent overall.
     """
 
-    #Grabbing the list of timers
-    nameList = ParseKeyInput(names,timerDict,'names')
+    # Grabbing the list of timers
+    nameList = ParseKeyInput(names, timerDict, "names")
 
-    #Determining the longest name, totalName included
-    maxNameLength = printTotal*len(totalName)
+    # Determining the longest name, totalName included
+    maxNameLength = printTotal * len(totalName)
     for timerName in nameList:
         if len(str(timerName)) > maxNameLength:
             maxNameLength = len(str(timerName))
 
-    #Printing overall time
+    # Printing overall time
     if printTotal is True:
-        timerInfo = {'time':      totalTime,
-                     'isRunning': True}
-        PrintTimeData(totalName,timerInfo,maxNameLength)
+        timerInfo = {"time": totalTime, "isRunning": True}
+        PrintTimeData(totalName, timerInfo, maxNameLength)
 
-    #Printing everything
+    # Printing everything
     for timerName in nameList:
         timerInfo = timerDict[timerName]
-        PrintTimeData(timerName,timerInfo,maxNameLength)
+        PrintTimeData(timerName, timerInfo, maxNameLength)
 
-        
 
-def ParseKeyInput(key,dictionary,variableName):
+def ParseKeyInput(key, dictionary, variableName):
     """
     Returns a list of keys based on different input types.
 
     Arguments:
-    key          -- str: Input keys, may be str, str list or None. 
+    key          -- str: Input keys, may be str, str list or None.
     dictionary   -- dict: The dictionary who's keys to return in None case.
     variableName -- str: The variable name of the first argument to raise for input
                          error
     """
 
-    if  key is None:
+    if key is None:
         keyList = [x for x in dictionary.keys()]
     elif type(key) is list:
         keyList = key
     elif type(key) is str:
         keyList = [key]
     else:
-        raise TypeError(f'Expected {variableName} to be string or list of strings')
+        raise TypeError(f"Expected {variableName} to be string or list of strings")
 
     return keyList
-

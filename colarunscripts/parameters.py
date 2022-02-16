@@ -8,17 +8,19 @@ Also takes care of making a copy of the parameters file for the specific job.
 The parameters.yml file must be located one directory above this file
 """
 
-#standard library modules
-import os                             #environmental vars
+# standard library modules
+import os  # environmental vars
 import pathlib
-import subprocess                     #for running commands
-import yaml                           #yaml importing
+import subprocess  # for running commands
 
-#local modules
+import yaml  # yaml importing
+
+# local modules
 from colarunscripts import directories as dirs
 from colarunscripts.utilities import pp
 
-def Load(parametersFile='',writeOut=False,*args,**kwargs):
+
+def Load(parametersFile="", writeOut=False, *args, **kwargs):
     """
     Loads the parameters from parameters.yml.
 
@@ -28,20 +30,19 @@ def Load(parametersFile='',writeOut=False,*args,**kwargs):
                            to the console when reading.
                            (for testing purposes)
     """
-    
-    #Opening and loading the yamml
-    with open(parametersFile,'r') as f:
+
+    # Opening and loading the yamml
+    with open(parametersFile, "r") as f:
         parameters = yaml.safe_load(f)
 
-    #Writing the details to the screen if specified
+    # Writing the details to the screen if specified
     if writeOut is True:
         pp(parameters)
 
-    return(parameters)
+    return parameters
 
 
-
-def CopyParamsFile(oldFile,jobID,testing=None,*args,**kwargs):
+def CopyParamsFile(oldFile, jobID, testing=None, *args, **kwargs):
     """
     Makes a copy of the parameters file to use for this specific job.
 
@@ -51,31 +52,33 @@ def CopyParamsFile(oldFile,jobID,testing=None,*args,**kwargs):
 
     """
     parameters = Load(parametersFile=oldFile)
-    #File to make
-    copyFile = dirs.FullDirectories(parameters,directory='parameters')['parameters'] + f'{jobID}_parameters.yml'
+    # File to make
+    copyFile = (
+        dirs.FullDirectories(parameters, directory="parameters")["parameters"]
+        + f"{jobID}_parameters.yml"
+    )
 
-    if testing == 'dryrun':
+    if testing == "dryrun":
         ModifyExecutables(parameters)
 
-    print(f'Making copy of parameters file at: {copyFile}')
+    print(f"Making copy of parameters file at: {copyFile}")
     print()
-    yaml.dump(parameters,open(copyFile,'w'))
+    yaml.dump(parameters, open(copyFile, "w"))
 
 
+def ModifyExecutables(parameters, *args, **kwargs):
 
-def ModifyExecutables(parameters,*args,**kwargs):
-
-    #Check we have actually been passed a dictionary
+    # Check we have actually been passed a dictionary
     if type(parameters) is not dict:
-        raise TypeError('parameters must be of type dictionary')
+        raise TypeError("parameters must be of type dictionary")
 
-    #Loop through the keys in dictionary looking for executables
+    # Loop through the keys in dictionary looking for executables
     for key in parameters:
-        #May have nested dictionaries, so recursively call function
-        #in that case
-        if type( parameters[key] ) is dict:
-            ModifyExecutables( parameters[key] )
+        # May have nested dictionaries, so recursively call function
+        # in that case
+        if type(parameters[key]) is dict:
+            ModifyExecutables(parameters[key])
 
-        #Otherwise, change the executable value if we find one
-        elif 'executable' in key.lower():
-            parameters[key] = 'dryRun'
+        # Otherwise, change the executable value if we find one
+        elif "executable" in key.lower():
+            parameters[key] = "dryRun"
