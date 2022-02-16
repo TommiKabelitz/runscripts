@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH --partition=QUEUE
+#SBATCH --nodes=NODES
+#SBATCH --ntasks=NUMCPUS
+#SBATCH --time=TIME
+#SBATCH --mem=MEMORYGB
+#SBATCH --output=OUTPUTDIR
+#SBATCH --gres=tmpfs:JOBSTORAGEG
+#SBATCH --gres=gpu:NUMGPUS
+
+echo Running on host `hostname`
+echo Time is `date`
+echo
+source /home/a1724542/temp_modules.sh
+ulimit -s unlimited
+ulimit -c 0
+ulimit -a
+
+python /home/a1724542/PhD/runscripts/colarunscripts/manageJob.py PARAMETERSDIR KAPPA NTHCONFIG NUMJOBS NCON TESTING
