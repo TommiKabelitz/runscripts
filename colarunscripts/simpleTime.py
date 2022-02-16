@@ -23,7 +23,11 @@ class Timer:
     def __init__(self,timerName):
         self.timerName = timerName           #Overall timer name
         self.totalTime = -1*perf_counter()   #Starting the overall timer
-        self.timerDict = {self.timerName:[self.totalTime,True]}  #Dictionary of timers
+        self.timerDict = {}                  #Dictionary of timers
+        #Initialising overall timer
+        self.timerDict[self.timerName] = {'time':self.totalTime,
+                                          'isRunning':True}
+
             
 
     def initialiseTimer(self,timerName):
@@ -36,7 +40,9 @@ class Timer:
 
         #Add entry to dictionary of timers
         #List is [amount of time,isTimerRunning]
-        self.timerDict[timerName] = [0,False]
+        self.timerDict[timerName] = {'time':0.0,
+                                     'isRunning':False,
+                                     'numCalls':0,}
 
 
         
@@ -48,9 +54,9 @@ class Timer:
         timerName -- str: Name of the sub-timer
         """
         
-        self.timerDict[timerName][0] -= perf_counter() #Starting timer
-        self.timerDict[timerName][1] = True            #Changing state to running
-
+        self.timerDict[timerName]['time']     -= perf_counter() #Starting timer
+        self.timerDict[timerName]['isRunning'] = True       
+        self.timerDict[timerName]['numCalls'] += 1
 
         
     def stopTimer(self,timerName):
@@ -60,8 +66,8 @@ class Timer:
         Arguments:
         timerName -- str: Name of the sub-timer
         """
-        self.timerDict[timerName][0] += perf_counter() #Stopping timer
-        self.timerDict[timerName][1] = False           #Changing state to not running
+        self.timerDict[timerName]['time']     += perf_counter() #Stopping timer
+        self.timerDict[timerName]['isRunning'] = False
 
 
         
@@ -91,11 +97,12 @@ class Timer:
 
         #Looping through timers.
         #Timers may be running so need to grab current elapsed time without
-        #stopping the timer.
+        #stopping the timer, hence we specify inPlace=False.
         for timer in timerList:
             #Grabbing time value
             time = UpdateTimer(self.timerDict[timer],inPlace=False)
-            self.checkpoints[checkpointName][timer] = time
+            #Timer info needs to be a dictionary for consistency
+            self.checkpoints[checkpointName][timer] = {'time':time}
 
         print(f'Checkpoint "{checkpointName}" created')
 
@@ -112,7 +119,7 @@ class Timer:
                                  list of timers.
         printTotal       -- bool: Whether to print the total elapsed time also. 
                                   Default is True.
-        removeCheckpoint -- bool: Whether to remove the checkpoint after printing
+        removeCheckpoint -- bool: Whether to remove the checkpoint after printing.
                                   Default is False.
         """
 
@@ -133,10 +140,11 @@ class Timer:
             for timer in timerList:
                 #Calculating time since checkpoint, firstly updating still runnning
                 totalTime = UpdateTimer(self.timerDict[timer],inPlace=False)
-                toPrint[timer] = totalTime - self.checkpoints[name][timer]
+                #Timer info needs to be a dictionary for consistency
+                toPrint[timer] = {'time':totalTime - self.checkpoints[name][timer]['time']}
 
             #Writing the report of each checkpoint
-            WriteReport(timerName,toPrint,printTotal=False,totalName=self.timerName,totalTime=self.totalTime)
+            WriteReport(timerName, toPrint, printTotal=False, totalName=self.timerName, totalTime=self.totalTime)
 
             #Removing checkpoint
             if removeCheckpoint is True:
@@ -168,20 +176,22 @@ def UpdateTimer(timerInfo,inPlace=True):
     Update the timer with/without stopping it.
 
     Arguments:
-    timerInfo -- list: 2 element list [time,isTimerRunning]. Can just be the time
+    timerInfo -- dict: Required keys: 'time'. Optional keys: 'isRunning'
     inPlace   -- bool: Whether to modify in place and stop the timer.
                        Alternatively returns the current time value. Default is True
     """
 
-    #Attempts to update the timer. If timer is not running, nothing will be added
+    #Attempts to update the timer. If timer is not running (ie. False), boolean will be
+    #zero and nothing will be added
     try:
-        time = timerInfo[0] + timerInfo[1]*perf_counter()
-    except TypeError:
-        time = timerInfo
+        time = timerInfo['time'] + timerInfo['isRunning']*perf_counter()
+    except KeyError:
+        time = timerInfo['time']
 
     #Returning or updating in place
     if inPlace is True:
-        timerInfo = [time,False]
+        timerInfo['time']      = time
+        timerInfo['isRunning'] = False
     else:
         return time
 
@@ -193,7 +203,7 @@ def PrintTimeData(timerName,timerInfo,maxNameLength):
 
     Arguments:
     timerName     -- str: Name of the time data.
-    timerInfo     -- list 2 element list [time,isTimerRunning].
+    timerInfo     -- dict: Required keys: 'time'. Optional keys: 'isRunning'
     maxNameLength -- int: Length of longest name to be printed, for formatting.
     """
 
@@ -205,8 +215,14 @@ def PrintTimeData(timerName,timerInfo,maxNameLength):
 
     #Printing the value. timedelta formats in dd-hh:mm:ss format
     timerName += ':'
-    print(f'{timerName:{fieldWidth}}\t {timedelta(seconds=time)}')
+    toPrint = f'{timerName:{fieldWidth}}\t {str(timedelta(seconds=time)):14}'
+    try:
+        numCalls = timerInfo['numCalls']
+        toPrint += f'  (calls: {numCalls})'
+    except KeyError:
+        pass
 
+    print(toPrint)
     
 
 def WriteReport(names,timerDict,printTotal=False,totalName='',totalTime=0):
@@ -232,7 +248,8 @@ def WriteReport(names,timerDict,printTotal=False,totalName='',totalTime=0):
 
     #Printing overall time
     if printTotal is True:
-        timerInfo = [totalTime,True]
+        timerInfo = {'time':      totalTime,
+                     'isRunning': True}
         PrintTimeData(totalName,timerInfo,maxNameLength)
 
     #Printing everything

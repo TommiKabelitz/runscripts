@@ -113,10 +113,8 @@ def MakeCorrelationFunctions(parameters,filestub,kd,shift,jobValues,timer,*args,
             numGPUs = parameters[scheduler+'Params']['NUMGPUS']
             reportFile = dirs.FullDirectories(parameters,directory='cfunReport',kd=kd,shift=shift,structure=structure,**jobValues,**parameters['sourcesink'])['cfunReport']
 
-            #Calling cfungen
-            timer.startTimer('Correlation functions')
-            CallMPI(executable,reportFile,jobValues['runFunction'],filestub=filestub,numGPUs=numGPUs)
-            timer.stopTimer('Correlation functions')
+            timerLabel = 'Correlation functions'
+            CallMPI(executable,reportFile,jobValues['runFunction'],filestub=filestub,numGPUs=numGPUs,timerLabel=timerLabel,timer=timer)
 
             if jobValues['tarCfuns'] is True:
                 #Tar new correlation functions together
@@ -146,10 +144,6 @@ def CompilePropPaths(parameters,kd,shift,jobValues,*args,**kwargs):
     
     #Looping over quarks in quark list
     for quark in parameters['propcfun']['quarkList']:
-
-        kd *= QuarkCharge(quark)
-        #Getting the base propagator file
-        propFile = dirs.FullDirectories(parameters,directory='prop',kd=kd,shift=shift,**jobValues,**parameters['sourcesink'])['prop']
 
         #Effectively only make 2 types of propagator. Light (d) and heavy (s).
         #The rest we get through charge manipulation (u=-2*d,nl=0*d,nh=0*nh).

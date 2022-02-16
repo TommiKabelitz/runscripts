@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --partition=QUEUE
 #SBATCH --nodes=NODES
+#SBATCH --ntasks=NUMCPUS
 #SBATCH --time=TIME
 #SBATCH --mem=MEMORYGB
 #SBATCH --output=OUTPUTDIR
