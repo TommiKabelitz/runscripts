@@ -107,7 +107,7 @@ def main(parameters, kd, shift, jobValues, timer):
                     f"WARNING: {numCPUs=}, {numGPUs=}, BUT lap2dmodes generally requires equal numbers of CPUs and GPUs. This may cause issues."
                 )
 
-            timeout = parameters["laplacianEigenmodes"]["tolerance"]
+            timeout = parameters["laplacianEigenmodes"]["timeout"]
 
             # For the output from the binaries
             reportFile = dirs.FullDirectories(
