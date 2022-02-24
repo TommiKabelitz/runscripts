@@ -5,13 +5,15 @@
 #SBATCH --time=TIME
 #SBATCH --mem=MEMORYGB
 #SBATCH --output=OUTPUTDIR
-#SBATCH --gres=tmpfs:JOBSTORAGEG
 #SBATCH --gres=gpu:NUMGPUS
 
 echo Running on host `hostname`
 echo Time is `date`
 echo
-source /home/a1724542/temp_modules.sh
+
+export HOME=/hpcfs/users/$USER
+
+source /home/a1724542/New_phoenix_modules.sh
 ulimit -s unlimited
 ulimit -c 0
 ulimit -a
