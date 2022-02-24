@@ -149,6 +149,8 @@ def MakePropagator(
 
     scheduler = jobValues["scheduler"].lower()
     numGPUs = parameters[scheduler + "Params"]["NUMGPUS"]
+    numCPUs = parameters[scheduler + "Params"]["NUMCPUS"]
+    timeout = parameters["propcfun"]["timeout"]
 
     # Get propagator report file and call the MPI
     reportFile = dirs.FullDirectories(
@@ -163,13 +165,16 @@ def MakePropagator(
         timerLabel = "Heavy Propagators"
     else:
         timerLabel = "Light Propagators"
+
     CallMPI(
         parameters["propcfun"]["qpropExecutable"],
         reportFile,
         jobValues["runFunction"],
-        arguments=["--solver=CGNE+S", "--itermax=1000000"],
+        arguments=["--itermax=1000000"],
         filestub=filestub,
         numGPUs=numGPUs,
+        numCPUs=numCPUs,
+        timeout=timeout,
         timerLabel=timerLabel,
         timer=timer,
     )
@@ -218,8 +223,10 @@ def CallMPI(
     reportFile,
     runFunction,
     numGPUs=0,
+    numCPUs=0,
     arguments=[],
     filestub="",
+    timeout=None,
     timerLabel=None,
     timer=None,
     *args,
@@ -233,8 +240,10 @@ def CallMPI(
     reportFile  -- str: The reportfile to write the output of the executable to
     runFunction -- str: Function call the executable with, ie. mpirun
     numGPUs     -- int: The number of GPUs available to run on
+    numCPUs     -- int: The number of CPUs available to run on
     arguments   -- list: List of arguments to pass to the executable
     filestub    -- str: Filestub of the input files to pass to the executable
+    timeout     -- int: Maximum process execution time in seconds
     timerLabel  -- str: Specify which, if any timer should record execution time
     timer       -- Timer: Timer object that is tracking the execution time
 
@@ -244,20 +253,13 @@ def CallMPI(
     if runFunction == "mpirun":
         command = [runFunction, "-np", str(numGPUs), executable] + arguments
     elif runFunction == "srun":
-        # Using srun can do weird things with the number of CPUs specified.
-        # The propagator code breaks with more than 1 while the others need
-        # 2.
-        if "quarkprop" in executable:
-            numTasks = 1
-        else:
-            numTasks = 2
-        command = [runFunction, "-n", str(numTasks), executable] + arguments
+        command = [runFunction, "-n", str(numCPUs), executable] + arguments
     else:
         raise NotImplementedError(f"{runFunction} is not implemented")
 
     print(f"Time is {datetime.now()}")
     print(f'Running {" ".join([executable]+arguments)} using{runFunction}')
-    print(f"On {numGPUs} GPUs")
+    print(f"On {numGPUs} GPUs and {numCPUs} CPUs")
     print(f'The input filestub is "{filestub}"')
 
     # If doing a dry testrun. We do everything except call binaries
@@ -271,8 +273,9 @@ def CallMPI(
         timer.startTimer(timerLabel)
 
     # Running the executable. text=True means input and output are decoded
+    # rather than in binary
     runDetails = subprocess.run(
-        command, input=filestub + "\n", text=True, capture_output=True
+        command, input=filestub + "\n", text=True, capture_output=True, timeout=timeout
     )
 
     if timerLabel is not None:

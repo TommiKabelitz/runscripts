@@ -125,6 +125,14 @@ def MakeCorrelationFunctions(
 
             scheduler = jobValues["scheduler"].lower()
             numGPUs = parameters[scheduler + "Params"]["NUMGPUS"]
+            numCPUs = numGPUs
+            if numCPUs < parameters[scheduler + "Params"]["NUMGPUS"]:
+                print(
+                    f"WARNING: {numCPUs=}, {numGPUs=}, BUT cfungen generally requires equal numbers of CPUs and GPUs. This may cause issues."
+                )
+
+            timeout = parameters["propcfun"]["timeout"]
+
             reportFile = dirs.FullDirectories(
                 parameters,
                 directory="cfunReport",
@@ -142,6 +150,8 @@ def MakeCorrelationFunctions(
                 jobValues["runFunction"],
                 filestub=filestub,
                 numGPUs=numGPUs,
+                numCPUs=numCPUs,
+                timeout=timeout,
                 timerLabel=timerLabel,
                 timer=timer,
             )

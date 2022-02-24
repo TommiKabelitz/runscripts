@@ -101,6 +101,13 @@ def main(parameters, kd, shift, jobValues, timer):
             # In parameters file, scheduler params are lowercase, eg. pbsParams
             scheduler = jobValues["scheduler"].lower()
             numGPUs = parameters[scheduler + "Params"]["NUMGPUS"]
+            numCPUs = numGPUs
+            if numCPUs < parameters[scheduler + "Params"]["NUMGPUS"]:
+                print(
+                    f"WARNING: {numCPUs=}, {numGPUs=}, BUT lap2dmodes generally requires equal numbers of CPUs and GPUs. This may cause issues."
+                )
+
+            timeout = parameters["laplacianEmodes"]["tolerance"]
 
             # For the output from the binaries
             reportFile = dirs.FullDirectories(
@@ -115,6 +122,8 @@ def main(parameters, kd, shift, jobValues, timer):
                 jobValues["runFunction"],
                 filestub=filestub,
                 numGPUs=numGPUs,
+                numCPUs=numCPUs,
+                timeout=timeout,
                 timerLabel=timerLabel,
                 timer=timer,
             )

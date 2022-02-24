@@ -28,7 +28,9 @@ runValues:
   makeCfuns: True
   keepProps: False
   keepEmodes: False
-    
+
+  tarCfuns: True
+  
 tempStorage:
   #Phoenix is $TMPFS, Gadi is $TMPDIR
   tempFS: $TMPDIR
@@ -40,7 +42,7 @@ tempStorage:
 #memory in GB
 slurmParams:
   runscriptTemplate: /home/a1724542/PhD/runscripts/topazTemplate
-  PARTITION: e31
+  PROJECT: e31
   QUEUE: gpuq
   NODES: 1
   NUMCPUS: 4
@@ -130,6 +132,8 @@ sourcesink:
 
 laplacianEigenmodes:
   lapmodeExecutable: /home/566/tk9944/PhD/cola-dev/trunk/cuda/lap2dmodesGPU.x
+  #Maximum execution time in seconds for eigenmodes
+  timeout: 1200 
   #link smearing values here are just for the eigenmode code.
   #For no smearing, set both to zero
   alpha_smearing: 0.1
@@ -149,6 +153,9 @@ propcfun:
   #13665 is from Ben Menadue's thesis to get kaon mass right
   strangeKappa: 13665
   qpropExecutable: /home/566/tk9944/PhD/cola-dev/trunk/cuda/quarkpropGPU.x
+  #Maximum execution time in seconds for both quarkprop and cfgen
+  timeout: 600 
+
   #Dictionary of clover values
   clover:
     bcx: 1.0
