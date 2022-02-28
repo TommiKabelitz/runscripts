@@ -258,35 +258,30 @@ def CallMPI(
         raise NotImplementedError(f"{runFunction} is not implemented")
 
     print(f"Time is {datetime.now()}")
-    print(f'Running {" ".join([executable]+arguments)} using{runFunction}')
+    print(f'Running {" ".join(command)}')
     print(f"On {numGPUs} GPUs and {numCPUs} CPUs")
     print(f'The input filestub is "{filestub}"')
+    print(f"Report file is: {reportFile}")
 
     # If doing a dry testrun. We do everything except call binaries
-    # Print path to reportfile as usual though it may not exist
     if executable == "dryRun":
-        print(f"Report file is: {reportFile}")
-        print(f"Time is {datetime.now()}")
         return
 
-    if timerLabel is not None:
-        timer.startTimer(timerLabel)
-
-    # Running the executable. text=True means input and output are decoded
-    # rather than in binary
-    runDetails = subprocess.run(
-        command, input=filestub + "\n", text=True, capture_output=True, timeout=timeout
-    )
-
-    if timerLabel is not None:
-        timer.stopTimer(timerLabel)
-
-    # Writing output to report file
+    #Opening the report file so that output can be redirected to it
     with open(reportFile, "w") as f:
-        f.write(runDetails.stdout)
-        # Write the returned error to the file if there is one
-        if runDetails.stderr is not None:
-            f.write(runDetails.stderr)
-            print(f"Report file is: {reportFile}")
-            print(f"Time is {datetime.now()}")
+
+        if timerLabel is not None:
+            timer.startTimer(timerLabel)
+
+        # Running the executable. text=True means input and output are decoded
+        # rather than in binary
+        # stdout and stderr are both redirected to the report file
+        runDetails = subprocess.run(
+            command, input=filestub + "\n", text=True, stdout=f, stderr=subprocess.STDOUT, timeout=timeout 
+        )
+
+        if timerLabel is not None:
+            timer.stopTimer(timerLabel)
+
+    print(f"Time is {datetime.now()}")
     # end CallMPI
