@@ -58,6 +58,7 @@ def SubmitJobs(parameters, nthConfig, inputArgs, values, *args, **kwargs):
             if input("Enter y to proceed: ") != "y":
                 print("exiting")
                 exit()
+            inputArgs["skipDeleteCheck"] = True
 
     # Looping over parameters to submit as separate jobs
     for kappa in values["kappaValues"]:
