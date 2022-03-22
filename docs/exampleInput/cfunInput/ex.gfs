@@ -1,3 +1,4 @@
-1       #Number of gauge field configurations being done in this call. Should match number of file paths in this file and number of IDs in .cfg_ids file
-ildg    #Gauge configuration format
+1          #Number of gauge field configurations being done in this call. Should match number of file paths in this file and number of IDs in .cfg_ids file
+ildg       #Gauge configuration format
+0 0 0 0    #Gauge field shift
 /hpcfs/groups/cssm-hpc-users/PACS-CS/RC32x64_B1900Kud01377000Ks01364000C1715/RC32x64_B1900Kud01377000Ks01364000C1715-a-001880    #Path to gauge field file

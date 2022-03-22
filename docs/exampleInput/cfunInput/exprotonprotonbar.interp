@@ -1,6 +1,6 @@
 protonprotonbar_uds    #Name of correlation function. Gets put in output file
 /hpcfs/groups/cssm-hpc-users/a1724542/WorkingStorage/PhDRunOne/k13770/BF1/shx00t00/cfuns/SOsm250_icfg    #Output correlation function prefix. cfgen will append stuff
-#Info for source op starts here. Integer lines must be followed by that many lines containing the pertinant information 
+#Info for source op starts here. Integer lines must be followed by that many lines containing the pertinent information
 0        #number of Lorentz indices
 0        #number of Gell Mann matrices
 1        #number of levi civita
