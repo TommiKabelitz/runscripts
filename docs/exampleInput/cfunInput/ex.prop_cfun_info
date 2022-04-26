@@ -4,15 +4,15 @@ gencf         #correlation function format
 f             #do parallel file IO
 sakurai       #Gamma matrix rep
 fundamental   #Gell Mann matrix rep
--1            #pmin
-4	      #pmax
+-1            #pmin (I think these are irrelevant and have not been removed)
+4	      #pmax (Only the first Landau mode is output now)
 f	      #doSinkSmearing
 f	      #do U star trick
 laplacian     #sink type
 t	      #Do Hadronic Landau projection
-/home/a1724542/PhD/runscripts/LandauModes/LandauModeBasisRealSourcenM18nx32ny32x00y00kB3.dat    #Landau file
-3             #Number of Landau modes (absolute hadronic charge)
+/scratch/e31/tk9944/PhD/LandauPhases/LandauPhasenx32ny32x0y0kBmax12step1.dat    #Landau file
+-2 1 1        #Effective field strength experienced by each quark (this is uds in BF1)
 #Paths to files containing paths to propagators. Note order u,s,d
-/home/a1724542/PhD/runscripts/runFiles/cfunInput/1_1.u.propinfo    
+/home/a1724542/PhD/runscripts/runFiles/cfunInput/1_1.u.propinfo
 /home/a1724542/PhD/runscripts/runFiles/cfunInput/1_1.s.propinfo
 /home/a1724542/PhD/runscripts/runFiles/cfunInput/1_1.d.propinfo

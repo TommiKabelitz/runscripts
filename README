@@ -17,11 +17,11 @@ makes Laplacian eigenmodes, propagators and correlation functions.
 - To update virtual environment, re-run:
      	python3 -m pip install -r requirements.txt
   while environment is active
-  
+
 #Usage
 
 - Copy example_parameters.yml to parameters.yml and set parameters as desired
-- Run 
+- Run
 
 	python submit.py
 
@@ -50,3 +50,4 @@ makes Laplacian eigenmodes, propagators and correlation functions.
 - Add testing scripts for easy testing of individual functions
 - Implement production and use of loop props
 - Make replacement in file paths much cleaner
+- Consider removing of tarinfo files. They don't feel useful as tar -tvf is quick

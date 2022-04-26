@@ -11,6 +11,8 @@ echo Running on host `hostname`
 echo Time is `date`
 echo
 
+#Phoenix currently having an issue with the hpcfs file system and linking to
+#the home directory. This fixes the issue.
 export HOME=/hpcfs/users/$USER
 
 source /home/a1724542/New_phoenix_modules.sh
