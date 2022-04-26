@@ -258,7 +258,7 @@ def CallMPI(
         raise NotImplementedError(f"{runFunction} is not implemented")
 
     print(f"Time is {datetime.now()}")
-    print(f'Running {" ".join([executable]+arguments)} using{runFunction}')
+    print(f'Running {" ".join(command)}')
     print(f"On {numGPUs} GPUs and {numCPUs} CPUs")
     print(f'The input filestub is "{filestub}"')
 
