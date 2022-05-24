@@ -34,3 +34,5 @@ fort.100
 #Text file of missing cfun IDs created by findMissing.py
 missingCfuns.txt
 
+#vscode config info
+./vscode/*
