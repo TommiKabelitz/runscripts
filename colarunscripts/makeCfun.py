@@ -89,7 +89,6 @@ def MakeCorrelationFunctions(
 
         # Looping over different structures
         for structure in parameters["runValues"]["structureList"]:
-
             if structure != ["u", "d", "s"] and sinkType == "smeared":
                 print(f"\nskipping combination of {structure=} and {sinkType=}")
                 continue
@@ -294,12 +293,6 @@ def MakeSpecificFiles(
         **parameters["sourcesink"],
     )
 
-    # Setting isospin symmetry based on field strength
-    if kd == 0:
-        isospinSym = "t"
-    else:
-        isospinSym = "f"
-
     # Correlation function filepath
     cfunPrefix = dirs.FullDirectories(
         parameters,
@@ -314,8 +307,10 @@ def MakeSpecificFiles(
     hadronicProjection = HadronicProjection(parameters, kd, structure)
 
     # Making the files which hold the paths to the propagators in the u,d,s
-    # spots. Returns the paths to those files.
-    propList = files.MakePropPathFiles(filestub, logFile, propDict, structure)
+    # spots. Returns the paths to those files and whether we have isospin symmetry
+    propList, isospin_sym = files.MakePropPathFiles(
+        filestub, logFile, propDict, structure
+    )
     # Exchange the order as the order to feed props in is u,s,d. COLA reads
     # u and s first, then d if isospin is false.
     propList[1], propList[2] = propList[2], propList[1]
@@ -345,7 +340,7 @@ def MakeSpecificFiles(
             chibar,
             structure,
             cfunPrefix,
-            isospinSym,
+            isospin_sym,
             **parameters["propcfun"],
         )
 
