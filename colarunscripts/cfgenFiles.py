@@ -26,15 +26,21 @@ def MakePropPathFiles(filestub, logFile, propDict, structure, *args, **kwargs):
     structure -- str list: The specific quark structure we want to make
 
     Return:
-    propList -- str list: List of files we make. Get written to .prop_cfun_info
-                          file
+    fileList    -- str list: List of files we make. Get written to .prop_cfun_info
+                             file
+    isospin_sym -- bool: Whether we have isospin symmetry in the propagators
     """
 
     # File extension, QUARK to be replaced to differentiate the files
     extension = ".QUARK.propinfo"
 
     # Initialising list of filenames
-    propList = []
+    fileList = []
+
+    # List of the actual propagator paths that get written to the propinfo files
+    # This is used to determine if the u and d quarks are the same. ie whether
+    # isospin sym is True
+    propPaths = []
 
     # Looping through quark flavours. trueQuark is the flavour actually being
     # passed. quarkPosition is where in the traditional u,d,s structure the quark
@@ -43,6 +49,8 @@ def MakePropPathFiles(filestub, logFile, propDict, structure, *args, **kwargs):
 
         # Grabbing the quark propagator path
         quarkPath = propDict[trueQuark]
+        propPaths.append(quarkPath)
+
         # Replacing the quark in the extension
         ext = extension.replace("QUARK", quarkPosition)
 
@@ -55,9 +63,10 @@ def MakePropPathFiles(filestub, logFile, propDict, structure, *args, **kwargs):
             VariablePrinter(f"{quarkPath=}\n", fileObject=f, nameWidth=20)
 
         # Adding the file to the filename list
-        propList.append(filestub + ext)
+        fileList.append(filestub + ext)
 
-    return propList
+    isospin_sym = "t" if propPaths[0] == propPaths[1] else "f"
+    return fileList, isospin_sym
 
 
 def MakePartStubsFile(filestub, logFile, kd, particleList, *args, **kwargs):

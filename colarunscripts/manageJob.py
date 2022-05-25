@@ -3,9 +3,9 @@ import argparse
 import os
 import pathlib
 import re
-import subprocess
 import sys
 import tarfile
+from collections import UserDict
 from datetime import datetime
 
 from colarunscripts import configIDs as cfg
@@ -15,6 +15,59 @@ from colarunscripts import parameters as params
 from colarunscripts import particles, simpleTime, submit
 from colarunscripts.shifts import CompareShifts
 from colarunscripts.utilities import GetJobID, pp
+
+
+class Paths(UserDict):
+    """
+    Simple dict extension. Allows psuedo merging through + operator.
+
+    Paths1 + Paths2 creates new entries for distinct keys and does
+    Paths1[key] = Paths1[key] + Paths2[key] for common keys. A TypeError
+    will be raised if the addition does not make sense.
+
+    Parameters
+    ----------
+    paths: dict
+        Dictionary of values with which to initialise the Paths object.
+    """
+
+    def __init__(self, paths: dict = None):
+        # Initialialising the dictionary class
+        super().__init__()
+
+        if paths is not None:
+            self.data = paths
+
+    def __add__(self, paths):
+        """
+        Adds dictionary or Paths object to this instance.
+        Common keys are added with the new object to the right (if
+        that is important). Distinct keys either remain or are added
+        as with instance[key] = value.
+
+        Parameters
+        ----------
+        paths: dict or Paths
+            The data to add.
+
+        Returns
+        ----------
+        Resulting Paths object
+        """
+
+        for key, value in paths.items():
+            try:
+                self.data[key] += value
+            except KeyError:
+                self.data[key] = value
+        return self
+
+    def clear(self, key: str = None):
+        """Empties dictionary. If key is specified, empties only that key."""
+        if key is not None:
+            self.data.pop(key)
+        else:
+            self.data = {}
 
 
 def main(
@@ -58,7 +111,9 @@ def main(
 
 
 def JobLoops(parameters, shifts, kds, jobValues, *args, **kwargs):
-
+    """
+    Loops over field strengths and shifts
+    """
     timer = simpleTime.Timer("Overall")
     timer.initialiseCheckpoints()
     timer.initialiseTimer("Eigenmodes")
@@ -66,12 +121,19 @@ def JobLoops(parameters, shifts, kds, jobValues, *args, **kwargs):
     timer.initialiseTimer("Heavy Propagators")
     timer.initialiseTimer("Correlation functions")
 
+    # Do we actually need eigenmodes. Does not override makeEmodes = True
+    # in parameters file (In case you want to make and not use eigenmodes
+    # for some reason).
     if jobValues["sourceType"] == "lp" and jobValues["makeProps"]:
         jobValues["makeEmodes"] = True
     if "laplacian" in jobValues["sinkTypes"] and jobValues["makeCfuns"] is True:
         jobValues["makeEmodes"] = True
 
     inputSummaries = []
+    paths = Paths()  # Stores the created files so they can be deleted
+
+    # The funky zip just ensures we have the current and the next shift
+    # easily accessible
     for shift, nextShift in zip(shifts, [*shifts[1:], None]):
         for kd in kds:
 
@@ -79,33 +141,34 @@ def JobLoops(parameters, shifts, kds, jobValues, *args, **kwargs):
                 print(
                     f"Correlation functions for {kd=}, {shift=} already exist, skipping."
                 )
-                paths = {"props": [], "eigenmodes": []}
                 continue
-
-            print()
-            paths = doJobSet(parameters, kd, shift, jobValues, timer)
+            newpaths = doJobSet(parameters, kd, shift, jobValues, timer)
+            paths = paths + newpaths
             inputSummaries += list(jobValues["inputSummary"].values())
 
-        # removing the propagators
+        # Removing the propagators
         if jobValues["keepProps"] is False and jobValues["makeProps"] is True:
             print("All field strengths done, new shift, deleting propagators")
             for prop in paths["props"]:
                 print(f"Deleting {prop}")
                 path = pathlib.Path(prop)
                 path.unlink(missing_ok=True)
+            paths.clear(key="props")
             print()
 
+        # Removing the eigenmodes
         if (
-            jobValues["makeEmodes"]
-            is not jobValues["keepEmodes"]
-            is CompareShifts(shift, nextShift)
-            is False
+            jobValues["makeEmodes"]  # If we made eigenmodes
+            is not jobValues["keepEmodes"]  # and don't want to keep them
+            is CompareShifts(shift, nextShift)  # and the next shift is such that we
+            is False  # won't re-use them. Then delete
         ):
             print("Shifting in more than time, deleting eigenmodes")
             for eigenMode in paths["eigenmodes"]:
                 print(f"Deleting {eigenMode}")
                 path = pathlib.Path(eigenMode)
                 path.unlink(missing_ok=True)
+            paths.clear(key="eigenmodes")
             print()
 
         print("Input file summaries located at:")
@@ -119,9 +182,11 @@ def JobLoops(parameters, shifts, kds, jobValues, *args, **kwargs):
         print()
 
 
-def doJobSet(parameters, kd, shift, jobValues, timer, *args, **kwargs):
+def doJobSet(parameters, kd, shift, jobValues, timer, *args, **kwargs) -> Paths:
     """
     Runs eigenmode, propagator and cfun code for the one configuration.
+
+    Loops through field strength and shifts inside through JobLoops function.
 
     Arguments:
     jobValues -- dict: Dictionary containing the job specific values such as
@@ -196,7 +261,7 @@ def doJobSet(parameters, kd, shift, jobValues, timer, *args, **kwargs):
     timer.writeCheckpoint(removeCheckpoint=True)
     print()
 
-    paths = {"eigenmodes": eigenmodePaths, "props": propPaths}
+    paths = Paths({"eigenmodes": eigenmodePaths, "props": propPaths})
     return paths
 
 

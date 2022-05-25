@@ -55,7 +55,6 @@ def main(parameters, kd, shift, jobValues, timer, *args, **kwargs):
 
     # Looping over structures and quarks in structures
     for structure in parameters["runValues"]["structureList"]:
-
         print()
         print(f"Making propagators for structure set: {structure}")
 
@@ -267,7 +266,7 @@ def CallMPI(
     if executable == "dryRun":
         return
 
-    #Opening the report file so that output can be redirected to it
+    # Opening the report file so that output can be redirected to it
     with open(reportFile, "w") as f:
 
         if timerLabel is not None:
@@ -277,7 +276,12 @@ def CallMPI(
         # rather than in binary
         # stdout and stderr are both redirected to the report file
         runDetails = subprocess.run(
-            command, input=filestub + "\n", text=True, stdout=f, stderr=subprocess.STDOUT, timeout=timeout 
+            command,
+            input=filestub + "\n",
+            text=True,
+            stdout=f,
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
         )
 
         if timerLabel is not None:
