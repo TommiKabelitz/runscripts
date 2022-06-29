@@ -508,20 +508,23 @@ def HadronicCharge(kd, particle, structure, *args, **kwargs):
 
 
 def CheckForVanishingFields(
-    kd, particleList=None, chi=None, chibar=None, *args, **kwargs
+    isospin_sym, particleList=None, chi=None, chibar=None, *args, **kwargs
 ):
     """
     Removes interpolator combinations which vanish under isospin sym.
 
     Arguments:
-    kd         -- int: Field strength
-    particList -- nested list: List of list of particle names. In form
-                       [chi,chibar].
+    isospin_sym -- bool: Whether isospin symmetry is true.
+    particList  -- nested list: List of list of particle names. In form
+                         [chi,chibar].
 
     Returns:
     updatedList -- nested list: List of list of particle names. Format as
                        above. Function does not act in place.
     """
+
+    if isospin_sym is False:
+        return particleList
 
     if particleList is None:
         if chi is None or chibar is None:
@@ -531,13 +534,9 @@ def CheckForVanishingFields(
 
         particleList = [[chi, chibar]]
 
-    # Isospin symmetry only when kd = 0
-    if kd != 0:
-        return particleList
-
-    # Particles which when combined in any source/sink operator produce should
-    # be placed here. Each inner list will test all permutations of that list.
-    # Separate inner lists will not be compared.
+    # Particles which when combined in any source/sink operator combination produce 0
+    # with isospin symmetry should be placed here. Each inner list will test all
+    # permutations of that list. Separate inner lists will not be compared.
     # ie. [[a,b,c],[d,e]] would check all permutations of ab,ac,ba... and de...
     # but not ad,ae...
     badParticles = [["lambda0", "sigma0"]]

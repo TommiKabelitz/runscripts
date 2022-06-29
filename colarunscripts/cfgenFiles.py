@@ -69,7 +69,7 @@ def MakePropPathFiles(filestub, logFile, propDict, structure, *args, **kwargs):
     return fileList, isospin_sym
 
 
-def MakePartStubsFile(filestub, logFile, kd, particleList, *args, **kwargs):
+def MakePartStubsFile(filestub, logFile, isospin_sym, particleList, *args, **kwargs):
     """
     Creates the particle stubs file.
 
@@ -90,7 +90,7 @@ def MakePartStubsFile(filestub, logFile, kd, particleList, *args, **kwargs):
 
     # New list contains only interpolating combinations which are non-vanishing
     # at the current field strength. ie removes lambda0sigma0bar
-    updatedList = particles.CheckForVanishingFields(kd, particleList)
+    updatedList = particles.CheckForVanishingFields(isospin_sym, particleList)
 
     numParticlePairs = len(updatedList)
     with open(filestub + extension, "w") as f, open(logFile, "a") as l:

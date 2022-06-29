@@ -259,10 +259,6 @@ def MakeReusableFiles(
         filestub, logFile, kd=kd, **parameters["sourcesink"], **jobValues
     )
 
-    # Making the particle stubs file
-    particleList = jobValues["particleList"]
-    files.MakePartStubsFile(filestub, logFile, kd, particleList)
-
 
 def MakeSpecificFiles(
     parameters, filestub, logFile, kd, shift, structure, propDict, jobValues
@@ -325,11 +321,16 @@ def MakeSpecificFiles(
         **hadronicProjection,
     )
 
+    # Making the particle stubs file - not reusable as isospin changes the
+    # available operator combinations
+    particleList = jobValues["particleList"]
+    files.MakePartStubsFile(filestub, logFile, isospin_sym, particleList)
+
     # Looping over operator pairs to make interpolator files
     # .interp files are structure dependent as the structure
     # is in the filename of the correlator
     for chi, chibar in jobValues["particleList"]:
-        # compiling the particle stub ie. 5319732_4protonprotonbar
+        # compiling the particle stub ie. 5319732_4proton_1proton_1bar
         partstub = filestub + chi + chibar
 
         # Making the interpolator file using that stub
