@@ -146,8 +146,14 @@ def JobLoops(parameters, shifts, kds, jobValues, *args, **kwargs):
             paths = paths + newpaths
             inputSummaries += list(jobValues["inputSummary"].values())
 
+        removeProps = (
+            jobValues["keepProps"] is False
+            and jobValues["makeProps"] is True
+            and "props" in paths.keys()
+        )
+
         # Removing the propagators
-        if jobValues["keepProps"] is False and jobValues["makeProps"] is True:
+        if removeProps:
             print("All field strengths done, new shift, deleting propagators")
             for prop in paths["props"]:
                 print(f"Deleting {prop}")
@@ -156,13 +162,18 @@ def JobLoops(parameters, shifts, kds, jobValues, *args, **kwargs):
             paths.clear(key="props")
             print()
 
+        removeEmodes = (
+            # If we made eigenmodes
+            jobValues["makeEmodes"]
+            # and don't want to keep them
+            is not jobValues["keepEmodes"]
+            # and the next shift is such that we is False  # won't re-use them. Then delete
+            is CompareShifts(shift, nextShift) is False
+            and "eigenmodes" in paths.keys()
+        )
+
         # Removing the eigenmodes
-        if (
-            jobValues["makeEmodes"]  # If we made eigenmodes
-            is not jobValues["keepEmodes"]  # and don't want to keep them
-            is CompareShifts(shift, nextShift)  # and the next shift is such that we
-            is False  # won't re-use them. Then delete
-        ):
+        if removeEmodes:
             print("Shifting in more than time, deleting eigenmodes")
             for eigenMode in paths["eigenmodes"]:
                 print(f"Deleting {eigenMode}")
@@ -443,14 +454,16 @@ def CfunsExist(parameters, jobValues, kd=None, shift=None, *args, **kwargs):
             tarFilename, _ = makeCfun.GetTarFile(parameters, **tarArgs)
 
             for chi, chibar in jobValues["particleList"]:
-                if kd == 0:
-                    fields = particles.CheckForVanishingFields(
-                        kd, chi=chi, chibar=chibar
-                    )
-                    if len(fields) == 0:
-                        continue
 
                 for structure in jobValues["structureList"]:
+                    # Not a perfect check for isospin, but close enough
+                    if (kd == 0) or (structure[1] == structure[0]):
+                        fields = particles.CheckForVanishingFields(
+                            isospin_sym=True, chi=chi, chibar=chibar
+                        )
+                        if len(fields) == 0:
+                            continue
+
                     # Structure in jobValues['structureList'] is a list
                     formattedStructure = "".join(structure)
                     cfun = cfunFilename.replace(
